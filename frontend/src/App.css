@@ -1,103 +1,1141 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ============================================
+   CHAPEL MANAGEMENT SYSTEM - COMPLETE STYLES
+   WITH VISIBLE CHAPEL BACKGROUND IMAGE
+   ============================================ */
 
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-.App { min-height: 100vh; display: flex; flex-direction: column; }
-main { flex: 1; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  background-image: url('https://images.pexels.com/photos/2570062/pexels-photo-2570062.jpeg?auto=compress&cs=tinysrgb&w=1600');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+}
 
-.container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+/* Light overlay - image is clearly visible! */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: -1;
+}
 
-/* Navbar */
-.navbar { background: #1a1a2e; padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
-.nav-container { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
-.logo { color: white; font-size: 1.5rem; text-decoration: none; font-weight: bold; }
-.nav-links { display: flex; gap: 1.5rem; align-items: center; }
-.nav-links a { color: white; text-decoration: none; transition: color 0.3s; }
-.nav-links a:hover { color: #4CAF50; }
-.logout-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1rem; }
-.user-name { color: #4CAF50; }
-.mobile-toggle { display: none; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
 
-/* Hero Section */
-.hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center; padding: 4rem 0; }
-.hero h1 { font-size: 2.5rem; margin-bottom: 1rem; }
-.hero p { font-size: 1.2rem; margin-bottom: 2rem; }
+/* ============================================
+   NAVBAR
+   ============================================ */
+.navbar {
+  background: rgba(26, 26, 46, 0.9);
+  backdrop-filter: blur(10px);
+  padding: 1rem 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
 
-/* Buttons */
-.btn-primary { background: #4CAF50; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: all 0.3s; }
-.btn-primary:hover { background: #45a049; transform: translateY(-2px); }
-.btn-secondary { background: #2196F3; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; transition: all 0.3s; }
-.btn-secondary:hover { background: #1976D2; }
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-/* Sections */
-.section { padding: 4rem 0; }
-.bg-light { background: #f5f5f5; }
-.section-title { text-align: center; font-size: 2rem; margin-bottom: 2rem; color: #333; }
+.logo {
+  color: white;
+  font-size: 1.5rem;
+  text-decoration: none;
+  font-weight: bold;
+}
 
-/* Events Grid */
-.events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-.event-card { background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); transition: transform 0.3s; cursor: pointer; }
-.event-card:hover { transform: translateY(-5px); }
-.event-card h3 { margin-bottom: 0.5rem; color: #333; }
-.event-card p { margin-bottom: 0.5rem; color: #666; }
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
 
-/* Announcements */
-.announcements-list { max-width: 800px; margin: 0 auto; }
-.announcement-card { background: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.3s; }
-.announcement-card:hover { transform: translateX(10px); }
-.announcement-card h3 { margin-bottom: 0.5rem; }
-.announcement-card .date { color: #4CAF50; font-size: 0.9rem; margin-bottom: 0.5rem; }
-.read-more { background: none; border: none; color: #4CAF50; cursor: pointer; margin-top: 0.5rem; }
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s;
+  font-size: 0.95rem;
+}
 
-/* Footer */
-.footer { background: #1a1a2e; color: white; padding: 2rem 0; margin-top: auto; }
-.footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; }
-.footer-section h3, .footer-section h4 { margin-bottom: 1rem; color: #4CAF50; }
-.footer-section a { color: white; text-decoration: none; display: block; margin-bottom: 0.5rem; transition: color 0.3s; }
-.footer-section a:hover { color: #4CAF50; }
-.auth-card { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
-.auth-card h2 { text-align: center; margin-bottom: 1.5rem; }
-.auth-card input { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 5px; }
-.auth-card .error { background: #ffebee; color: #c62828; padding: 0.5rem; border-radius: 5px; margin-bottom: 1rem; text-align: center; }
-.auth-card p { text-align: center; margin-top: 1rem; }
-.auth-card a { color: #4CAF50; text-decoration: none; }
+.nav-links a:hover {
+  color: #4CAF50;
+}
 
-/* Prayer Page */
-.two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-.prayer-card { background: white; border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-.prayer-meta { display: flex; gap: 1rem; margin: 1rem 0; }
-.urgency { padding: 0.2rem 0.5rem; border-radius: 5px; font-size: 0.8rem; }
-.urgency.normal { background: #4CAF50; color: white; }
-.urgency.urgent { background: #ff9800; color: white; }
-.urgency.critical { background: #f44336; color: white; }
-.form-card { background: white; border-radius: 10px; padding: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-.form-card input, .form-card textarea, .form-card select { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 5px; }
-.form-card label { display: block; margin-bottom: 1rem; }
+.logout-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: color 0.3s;
+}
 
-/* Footer */
-.footer { background: #1a1a2e; color: white; padding: 3rem 0 1rem; margin-top: 4rem; }
-.footer-content { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 2rem; }
-.footer-section h3, .footer-section h4 { margin-bottom: 1rem; }
-.footer-section a { display: block; color: #ccc; text-decoration: none; margin-bottom: 0.5rem; }
-.footer-section a:hover { color: #4CAF50; }
-.footer-bottom { text-align: center; padding-top: 2rem; border-top: 1px solid #333; color: #888; }
+.logout-btn:hover {
+  color: #f44336;
+}
 
-/* Loading & Misc */
-.loading { text-align: center; padding: 4rem; font-size: 1.2rem; color: #666; }
-.page-title { text-align: center; font-size: 2rem; margin: 2rem 0; }
-.filters { margin-bottom: 2rem; text-align: center; }
-.filters select { padding: 0.5rem 1rem; font-size: 1rem; border: 1px solid #ddd; border-radius: 5px; }
-.event-actions { display: flex; gap: 1rem; margin-top: 1rem; }
-.event-detail { max-width: 800px; margin: 0 auto; }
-.event-meta { margin: 1rem 0; padding: 1rem; background: #f5f5f5; border-radius: 10px; }
-.registration-box { background: #e8f5e9; padding: 1.5rem; border-radius: 10px; margin: 2rem 0; text-align: center; }
-.registered { color: #4CAF50; font-weight: bold; }
+.user-name {
+  color: #4CAF50;
+  font-weight: 500;
+}
 
-/* Responsive */
-@media (max-width: 768px) {
-  .mobile-toggle { display: block; }
-  .nav-links { display: none; position: absolute; top: 60px; left: 0; right: 0; background: #1a1a2e; flex-direction: column; padding: 1rem; text-align: center; }
-  .nav-links.active { display: flex; }
-  .two-columns { grid-template-columns: 1fr; }
-  .footer-content { grid-template-columns: 1fr; text-align: center; }
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* ============================================
+   HERO SECTION
+   ============================================ */
+.hero {
+  text-align: center;
+  padding: 5rem 2rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn-primary {
+  background: #4CAF50;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.btn-primary:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.btn-secondary {
+  background: #2196F3;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #1976D2;
+  transform: translateY(-2px);
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+/* ============================================
+   SECTIONS
+   ============================================ */
+.section {
+  padding: 4rem 0;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: #4CAF50;
+  margin: 0.5rem auto;
+  border-radius: 2px;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin: 2rem 0;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   EVENT CARDS
+   ============================================ */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.event-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.event-image-placeholder {
+  height: 160px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.event-type {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #4CAF50;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.event-content {
+  padding: 1.5rem;
+}
+
+.event-content h3 {
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.event-date, .event-time, .event-location {
+  color: #666;
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.event-description {
+  color: #888;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.event-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+  font-size: 0.85rem;
+}
+
+.status {
+  padding: 0.2rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.status.open {
+  background: #4CAF50;
+  color: white;
+}
+
+.status.closed {
+  background: #9e9e9e;
+  color: white;
+}
+
+.event-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* ============================================
+   ANNOUNCEMENTS
+   ============================================ */
+.announcements-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.announcement-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: transform 0.3s;
+  cursor: pointer;
+  border-left: 4px solid #4CAF50;
+}
+
+.announcement-card:hover {
+  transform: translateX(10px);
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.announcement-type {
+  background: #e0e0e0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.announcement-date {
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.announcement-card h2 {
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-size: 1.2rem;
+}
+
+.announcement-card p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.read-more {
+  background: none;
+  border: none;
+  color: #4CAF50;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.read-more:hover {
+  color: #45a049;
+}
+
+.priority-critical { border-left-color: #f44336; }
+.priority-high { border-left-color: #ff9800; }
+.priority-medium { border-left-color: #2196F3; }
+.priority-low { border-left-color: #4CAF50; }
+
+/* ============================================
+   SERMONS
+   ============================================ */
+.sermons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.sermon-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.sermon-card:hover {
+  transform: translateY(-5px);
+}
+
+.sermon-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.sermon-content {
+  padding: 1.5rem;
+}
+
+.sermon-content h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.sermon-speaker, .sermon-date {
+  color: #666;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.sermon-description {
+  color: #888;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.sermon-stats {
+  display: flex;
+  gap: 1rem;
+  margin: 0.75rem 0;
+  color: #999;
+  font-size: 0.8rem;
+}
+
+/* ============================================
+   CELLS
+   ============================================ */
+.cells-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.cell-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: transform 0.3s;
+}
+
+.cell-card:hover {
+  transform: translateY(-5px);
+}
+
+.cell-card h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.cell-zone {
+  color: #4CAF50;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.cell-card p {
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* ============================================
+   PRAYER PAGE
+   ============================================ */
+.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.prayer-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.prayer-card h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.prayer-card p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.prayer-meta {
+  display: flex;
+  gap: 1rem;
+  margin: 1rem 0;
+  flex-wrap: wrap;
+}
+
+.urgency {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.urgency-critical {
+  background: #f44336;
+  color: white;
+}
+
+.urgency-urgent {
+  background: #ff9800;
+  color: white;
+}
+
+.urgency-normal {
+  background: #4CAF50;
+  color: white;
+}
+
+/* ============================================
+   FORMS
+   ============================================ */
+.form-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.form-card h2 {
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.form-card input,
+.form-card textarea,
+.form-card select {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.form-card input:focus,
+.form-card textarea:focus,
+.form-card select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+}
+
+/* ============================================
+   AUTH PAGES
+   ============================================ */
+.auth-container {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.auth-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.auth-card h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 1.5rem;
+}
+
+.auth-card input {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.auth-card .error {
+  background: #ffebee;
+  color: #c62828;
+  padding: 0.5rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.auth-card p {
+  text-align: center;
+  margin-top: 1rem;
+  color: #666;
+}
+
+.auth-card a {
+  color: #4CAF50;
+  text-decoration: none;
+}
+
+.auth-card a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   DASHBOARD
+   ============================================ */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-card h3 {
+  font-size: 2rem;
+  color: #4CAF50;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+  color: #666;
+}
+
+.dashboard-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-section h2, .dashboard-section h3 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* ============================================
+   PROFILE PAGE
+   ============================================ */
+.profile-page {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.profile-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.profile-avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.avatar-placeholder {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+.profile-info p {
+  color: #666;
+  margin: 0.5rem 0;
+}
+
+.profile-form input,
+.profile-form textarea {
+  width: 100%;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* ============================================
+   NOTIFICATIONS
+   ============================================ */
+.notifications-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.notifications-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  position: relative;
+}
+
+.notification-item.unread {
+  background: rgba(227, 242, 253, 0.95);
+}
+
+.notification-item:hover {
+  background: rgba(245, 245, 245, 0.95);
+}
+
+.notification-icon {
+  font-size: 1.5rem;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content h4 {
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.notification-content p {
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.notification-time {
+  font-size: 0.75rem;
+  color: #999;
+}
+
+.unread-dot {
+  width: 10px;
+  height: 10px;
+  background: #2196F3;
+  border-radius: 50%;
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+/* ============================================
+   INFO CARD
+   ============================================ */
+.info-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.info-card h3, .info-card h4 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.info-card p {
+  color: #666;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+/* ============================================
+   EVENT DETAIL PAGE
+   ============================================ */
+.event-detail {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+.event-detail h1 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.event-meta-box {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.event-meta-box p {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.registration-box {
+  background: #e8f5e9;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+
+.registration-box h3 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.registration-box p {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.registered {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+/* ============================================
+   ANNOUNCEMENT DETAIL
+   ============================================ */
+.announcement-detail {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+.announcement-detail h1 {
+  color: #333;
+  margin: 1rem 0;
+}
+
+.announcement-content {
+  margin: 1.5rem 0;
+}
+
+.announcement-content p {
+  color: #666;
+  line-height: 1.8;
+}
+
+.announcement-author {
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+/* ============================================
+   SERMON DETAIL
+   ============================================ */
+.sermon-detail {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+
+.sermon-detail h1 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.sermon-meta {
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.sermon-meta p {
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.sermon-audio, .sermon-video {
+  margin: 1.5rem 0;
+}
+
+.sermon-audio h3, .sermon-video h3 {
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+/* ============================================
+   LOADING & ERROR STATES
+   ============================================ */
+.loading {
+  text-align: center;
+  padding: 4rem;
+  font-size: 1.2rem;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  color: white;
+}
+
+.loader {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #4CAF50;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-container {
+  text-align: center;
+  padding: 4rem;
+  color: white;
+}
+
+.error-message {
+  color: #ff6b6b;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  color: white;
+  font-size: 1.1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+}
+
+/* ============================================
+   FILTERS & PAGINATION
+   ============================================ */
+.filters {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.filters select {
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #4CAF50;
+  color: white;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.footer {
+  background: rgba(26, 26, 46, 0.9);
+  backdrop-filter: blur(10px);
+  color: white;
+  padding: 3rem 0 1rem;
+  margin-top: 4rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.footer-section h3, .footer-section h4 {
+  margin-bottom: 1rem;
+  color: #4CAF50;
+}
+
+.footer-section p {
+  color: #ccc;
+  margin-bottom: 0.5rem;
+}
+
+.footer-section a {
+  display: block;
+  color: #ccc;
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  transition: color 0.3s;
+}
+
+.footer-section a:hover {
+  color: #4CAF50;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #888;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 968px) {
+  .mobile-toggle {
+    display: block;
+  }
+  
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: rgba(26, 26, 46, 0.98);
+    flex-direction: column;
+    padding: 1rem;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .nav-links.active {
+    display: flex;
+  }
+  
+  .two-columns {
+    grid-template-columns: 1fr;
+  }
+  
+  .footer-content {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .section-title, .page-title {
+    font-size: 1.8rem;
+  }
+  
+  .events-grid, .sermons-grid, .cells-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .notifications-header {
+    flex-direction: column;
+    text-align: center;
+  }
 }

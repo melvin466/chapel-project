@@ -1,4 +1,4 @@
-/* HomePage.css */
+/* HomePage.css - Transparent Version */
 
 * {
   margin: 0;
@@ -8,7 +8,7 @@
 
 .homepage {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
+  color: #fff;
 }
 
 .container {
@@ -19,7 +19,7 @@
 
 /* Hero Section */
 .hero-section {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/api/placeholder/1920/600');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('/api/placeholder/1920/600');
   background-size: cover;
   background-position: center;
   height: 500px;
@@ -98,9 +98,10 @@
   text-align: center;
   font-size: 2rem;
   margin-bottom: 40px;
-  color: #2c3e50;
+  color: white;
   position: relative;
   padding-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .section-title::after {
@@ -114,10 +115,11 @@
   background-color: #4CAF50;
 }
 
-/* Mass Times Section */
+/* Mass Times Section - Transparent */
 .mass-times-section {
   padding: 60px 0;
-  background-color: #f9f9f9;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
 }
 
 .mass-times-grid {
@@ -128,17 +130,20 @@
 }
 
 .mass-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
   padding: 30px;
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   transition: transform 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .mass-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .mass-card h3 {
@@ -146,16 +151,22 @@
   margin-bottom: 15px;
 }
 
+.mass-card p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .mass-time {
   font-size: 1.2rem;
   font-weight: bold;
   margin-top: 10px;
-  color: #2c3e50;
+  color: #4CAF50;
 }
 
-/* Events Section */
+/* Events Section - Transparent */
 .events-section {
   padding: 60px 0;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(5px);
 }
 
 .events-grid {
@@ -166,16 +177,19 @@
 
 .event-card {
   display: flex;
-  background: white;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   transition: transform 0.3s, box-shadow 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .event-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .event-date-badge {
@@ -205,27 +219,28 @@
 }
 
 .event-title {
-  color: #2c3e50;
+  color: white;
   margin-bottom: 10px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 .event-info {
   margin: 8px 0;
-  color: #666;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .event-description {
   margin-top: 10px;
-  color: #888;
+  color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
 }
 
 .event-btn {
   margin-top: 15px;
   padding: 8px 20px;
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: 2px solid #4CAF50;
-  color: #4CAF50;
+  color: white;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.3s;
@@ -236,10 +251,11 @@
   color: white;
 }
 
-/* Announcements Section */
+/* Announcements Section - Transparent */
 .announcements-section {
   padding: 60px 0;
-  background-color: #f5f5f5;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
 }
 
 .announcements-list {
@@ -248,7 +264,8 @@
 }
 
 .announcement-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
   padding: 25px;
   margin-bottom: 20px;
   border-radius: 10px;
@@ -259,6 +276,7 @@
 
 .announcement-card:hover {
   transform: translateX(5px);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .announcement-header {
@@ -270,8 +288,9 @@
 }
 
 .announcement-title {
-  color: #2c3e50;
+  color: white;
   font-size: 1.2rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 .announcement-date {
@@ -280,7 +299,7 @@
 }
 
 .announcement-content {
-  color: #666;
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.6;
 }
 
@@ -296,10 +315,11 @@
   text-decoration: underline;
 }
 
-/* Quick Links Section */
+/* Quick Links Section - Transparent */
 .quick-links-section {
   padding: 60px 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(5px);
 }
 
 .quick-links-grid {
@@ -309,15 +329,18 @@
 }
 
 .quick-link-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
   padding: 40px 20px;
   text-align: center;
   border-radius: 10px;
   transition: transform 0.3s;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .quick-link-card:hover {
   transform: translateY(-10px);
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .quick-link-icon {
@@ -327,11 +350,12 @@
 
 .quick-link-card h3 {
   margin-bottom: 15px;
-  color: #2c3e50;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
 }
 
 .quick-link-card p {
-  color: #666;
+  color: rgba(255, 255, 255, 0.85);
   margin-bottom: 20px;
 }
 
@@ -354,29 +378,32 @@
   text-align: center;
   padding: 40px;
   font-size: 1.2rem;
-  color: #666;
+  color: white;
 }
 
 .error-message {
   text-align: center;
   padding: 40px;
-  color: #e74c3c;
-  background: #fde8e8;
+  color: #ff6b6b;
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
 }
 
 .empty-state {
   text-align: center;
   padding: 40px;
-  color: #999;
+  color: rgba(255, 255, 255, 0.7);
   font-style: italic;
 }
 
-/* Footer */
+/* Footer - Transparent (CHANGED) */
 .footer {
-  background-color: #2c3e50;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
   color: white;
   padding: 40px 0 20px;
+  margin-top: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-content {
@@ -394,6 +421,7 @@
 .footer-section p, .footer-section ul {
   margin: 10px 0;
   line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .footer-section ul {
@@ -405,7 +433,7 @@
 }
 
 .footer-section a {
-  color: white;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   transition: color 0.3s;
 }
@@ -422,8 +450,8 @@
 .footer-bottom {
   text-align: center;
   padding-top: 20px;
-  border-top: 1px solid #34495e;
-  color: #95a5a6;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 /* Animations */
@@ -480,5 +508,11 @@
   
   .social-links {
     justify-content: center;
+  }
+  
+  .mass-times-grid,
+  .events-grid,
+  .quick-links-grid {
+    grid-template-columns: 1fr;
   }
 }
