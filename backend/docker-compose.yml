@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    ports:
+      - '8080:8080'
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_URI=${DB_URI}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - SSL_PRIVATE_KEY=${SSL_PRIVATE_KEY}
+      - SSL_CERTIFICATE=${SSL_CERTIFICATE}
+      - SSL_CA=${SSL_CA}
+    volumes:
+      - .:/app
+    restart: always
