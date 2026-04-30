@@ -5,7 +5,7 @@ const { protect, admin, chaplain } = require('../middleware/auth');
 
 router.get('/', getAnnouncements);
 router.get('/:id', getAnnouncementById);
-router.post('/', protect, chaplain, createAnnouncement);
+router.post('/', protect, admin, createAnnouncement);
 router.put('/:id', protect, chaplain, updateAnnouncement);
 router.delete('/:id', protect, admin, deleteAnnouncement);
 

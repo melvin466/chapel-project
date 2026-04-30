@@ -35,6 +35,15 @@ const getAnnouncementById = async (req, res) => {
 
 const createAnnouncement = async (req, res) => {
   try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin access required' });
+    }
+
+    const { type } = req.body;
+    if (!['event', 'general', 'prayer'].includes(type)) {
+      return res.status(400).json({ success: false, message: 'Invalid type. Allowed types: event, general, prayer' });
+    }
+
     const announcement = await Announcement.create({ ...req.body, createdBy: req.user.id });
     res.status(201).json({ success: true, data: { announcement } });
   } catch (error) {

@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const sendEmail = require('../services/emailService');
+// const sendEmail = require('../services/emailService');
 const crypto = require('crypto');
 
 const generateToken = (id) => {
@@ -33,11 +33,11 @@ const register = async (req, res) => {
 
     const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
-    await sendEmail({
-      to: email,
-      subject: 'Verify Your Email',
-      htmlContent: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`
-    });
+    // await sendEmail({
+    //   to: email,
+    //   subject: 'Verify Your Email',
+    //   htmlContent: `<p>Click <a href="${verificationUrl}">here</a> to verify your email.</p>`
+    // });
 
     res.status(201).json({ success: true, message: 'User registered. Please check your email to verify your account.' });
   } catch (error) {

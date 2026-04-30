@@ -30,8 +30,8 @@ app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use(limiter);
@@ -52,6 +52,71 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
+// ============ SIMPLE ROUTE LIST (MANUAL) ============
+function logRegisteredRoutes() {
+  console.log('\n╔══════════════════════════════════════════════════════════════╗');
+  console.log('║              📋 REGISTERED API ENDPOINTS 📋                 ║');
+  console.log('╚══════════════════════════════════════════════════════════════╝\n');
+
+  const routeList = [
+    { method: 'GET', path: '/api/health' },
+    { method: 'POST', path: '/api/auth/register' },
+    { method: 'POST', path: '/api/auth/login' },
+    { method: 'GET', path: '/api/auth/me' },
+    { method: 'GET', path: '/api/events' },
+    { method: 'POST', path: '/api/events' },
+    { method: 'GET', path: '/api/events/upcoming' },
+    { method: 'GET', path: '/api/events/:id' },
+    { method: 'POST', path: '/api/events/:id/register' },
+    { method: 'PUT', path: '/api/events/:id' },
+    { method: 'DELETE', path: '/api/events/:id' },
+    { method: 'GET', path: '/api/announcements' },
+    { method: 'POST', path: '/api/announcements' },
+    { method: 'GET', path: '/api/announcements/:id' },
+    { method: 'PUT', path: '/api/announcements/:id' },
+    { method: 'DELETE', path: '/api/announcements/:id' },
+    { method: 'GET', path: '/api/prayers' },
+    { method: 'POST', path: '/api/prayers' },
+    { method: 'POST', path: '/api/prayers/:id/pray' },
+    { method: 'PUT', path: '/api/prayers/:id/status' },
+    { method: 'GET', path: '/api/sermons' },
+    { method: 'POST', path: '/api/sermons' },
+    { method: 'GET', path: '/api/sermons/:id' },
+    { method: 'POST', path: '/api/sermons/:id/like' },
+    { method: 'GET', path: '/api/cells' },
+    { method: 'GET', path: '/api/cells/:id' },
+    { method: 'POST', path: '/api/cells' },
+    { method: 'POST', path: '/api/cells/:id/join' },
+    { method: 'GET', path: '/api/bookings' },
+    { method: 'POST', path: '/api/bookings' },
+    { method: 'PUT', path: '/api/bookings/:id/cancel' },
+    { method: 'GET', path: '/api/donations' },
+    { method: 'POST', path: '/api/donations' },
+    { method: 'GET', path: '/api/donations/stats' },
+    { method: 'GET', path: '/api/notifications' },
+    { method: 'PUT', path: '/api/notifications/:id/read' },
+    { method: 'PUT', path: '/api/notifications/read-all' },
+    { method: 'GET', path: '/api/feedback' },
+    { method: 'POST', path: '/api/feedback' },
+    { method: 'GET', path: '/api/settings/public' },
+    { method: 'GET', path: '/api/settings' },
+    { method: 'PUT', path: '/api/settings/:key' },
+  ];
+
+  routeList.sort((a, b) => a.path.localeCompare(b.path));
+
+  console.log('🔹 API ENDPOINTS:');
+  console.log('─────────────────────────────────────────────────────────────');
+  routeList.forEach(route => {
+    console.log(`   ${route.method.padEnd(10)} ${route.path}`);
+  });
+
+  console.log('\n─────────────────────────────────────────────────────────────');
+  console.log(`📊 Total: ${routeList.length} endpoints`);
+  console.log('═════════════════════════════════════════════════════════════\n');
+}
+// ============ END OF ROUTE LOGGER ============
+
 // Routes
 const routes = [
   { path: '/api/auth', route: require('./routes/authRoutes') },
@@ -69,7 +134,10 @@ const routes = [
 
 const verificationRoutes = require('./routes/verificationRoutes');
 
-routes.forEach(({ path, route }) => app.use(path, route));
+routes.forEach(({ path, route }) => {
+  app.use(path, route);
+  console.log(`✅ Route registered: ${path}`);
+});
 
 app.use('/api', verificationRoutes);
 
@@ -83,18 +151,44 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Chapel Management System API',
+    version: '1.0.0',
+    endpoints: '/api/health, /api/auth, /api/events, /api/announcements, /api/prayers, /api/sermons, /api/cells, /api/bookings, /api/donations, /api/notifications, /api/feedback, /api/settings'
+  });
+});
+
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Route not found' });
+  res.status(404).json({ success: false, message: `Route not found: ${req.method} ${req.url}` });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  res.status(500).json({ 
+    success: false, 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
 });
 
 // MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
+const mongooseOptions = {
+  tls: true, // Enable TLS/SSL
+  tlsAllowInvalidCertificates: true, // Allow self-signed certificates (if needed)
+};
+
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/chapel-system', mongooseOptions)
   .then(() => {
     console.log('✅ Connected to MongoDB');
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`✅ Server running on http://localhost:${PORT}`);
+      // Display routes
+      logRegisteredRoutes();
     });
   })
   .catch(err => {

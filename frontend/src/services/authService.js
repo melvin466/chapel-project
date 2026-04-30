@@ -1,35 +1,59 @@
 import api from './api';
-import Cookies from 'js-cookie';
 
 export const authService = {
   register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
-    if (response.data.token) {
-      Cookies.set('token', response.data.token, { httpOnly: true });
+    try {
+      const response = await api.post('/auth/register', userData);
+      if (response.data.token) {
+        // Store token in localStorage (not httpOnly cookie for frontend access)
+        localStorage.setItem('token', response.data.token);
+        // Store user data
+        if (response.data.data?.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        } else if (response.data.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+        }
+      }
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Registration failed' };
     }
-    return response.data;
   },
 
   login: async (email, password) => {
-    const response = await api.post('/auth/login', { email, password });
-    if (response.data.token) {
-      Cookies.set('token', response.data.token, { httpOnly: true });
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      if (response.data.token) {
+        // Store token in localStorage
+        localStorage.setItem('token', response.data.token);
+        // Store user data
+        if (response.data.data?.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.data.user));
+        } else if (response.data.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+        }
+      }
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Login failed' };
     }
-    return response.data;
   },
 
   logout: () => {
-    Cookies.remove('token');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   },
 
   isAuthenticated: () => {
-    return !!Cookies.get('token');
+    return !!localStorage.getItem('token');
+  },
+
+  getToken: () => {
+    return localStorage.getItem('token');
   },
 
   getCurrentUser: () => {
-    const token = Cookies.get('token');
-    if (!token) return null;
-    // Decode token to get user data (e.g., using jwt-decode)
-    return token;
-  },
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  }
 };
