@@ -6,7 +6,7 @@ const Footer = () => {
       <div className="container">
         <div className="footer-content">
           <div className="footer-section">
-            <h3>🕊️ St. Francis Chapel</h3>
+            <h3>🕊️ CHAPEL SYSTEM</h3>
             <p>Makerere University</p>
             <p>Kampala, Uganda</p>
           </div>
@@ -19,7 +19,7 @@ const Footer = () => {
           <div className="footer-section">
             <h4>Contact</h4>
             <p>📧 chapel@mak.ac.ug</p>
-            <p>📞 +256 700 000000</p>
+            <p>📞 +256 789030837</p>
           </div>
           <div className="footer-section">
             <h4>Service Times</h4>
@@ -28,7 +28,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2024 St. Francis Chapel. All rights reserved.</p>
+          <p>&copy; 2025 CHAPEL MANAGEMENT SYSTEM. All rights reserved.</p>
         </div>
       </div>
     </footer>

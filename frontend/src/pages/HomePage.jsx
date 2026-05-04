@@ -48,7 +48,7 @@ const HomePage = () => {
       <section className="hero-section">
         <div className="hero-overlay">
           <div className="hero-content">
-            <h1 className="hero-title">Welcome to St. Francis Chapel</h1>
+            <h1 className="hero-title">Welcome to Chapel Management System</h1>
             <p className="hero-subtitle">
               A place of peace, prayer, and community
             </p>

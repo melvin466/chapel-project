@@ -20,6 +20,7 @@ import SermonsPage from './pages/SermonsPage';
 import SermonDetailPage from './pages/SermonDetailPage';
 import CellsPage from './pages/CellsPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import BookingsPage from './pages/BookingsPage';
 
 // FIXED: Import from ./pages/ NOT ./pages/admin/
 import AdminEvents from './pages/AdminEvents';
@@ -80,6 +81,7 @@ function App() {
               <Route path="/prayer" element={<PrayerPage />} />
               <Route path="/donations" element={<DonationsPage />} />
               <Route path="/feedback" element={<FeedbackPage />} />
+              <Route path="/bookings" element={<BookingsPage />} />
               
               {/* Auth Routes - Redirect to dashboard if already logged in */}
               <Route path="/login" element={

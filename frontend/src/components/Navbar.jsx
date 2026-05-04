@@ -15,7 +15,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="logo">🔔 St. Francis Chapel</Link>
+        <Link to="/" className="logo">🔔CHAPEL MANAGEMENT SYSTEM</Link>
         
         <div className={`nav-links ${isOpen ? 'active' : ''}`}>
           {/* Common Links - Everyone sees these */}
@@ -26,7 +26,7 @@ const Navbar = () => {
           <Link to="/cells">Cells</Link>
           <Link to="/prayer">Prayer</Link>
           <Link to="/donations">Give</Link>
-          <Link to="/feedback">Feedback</Link>
+          <Link to="/bookings">Bookings</Link>
           
           {isAuthenticated ? (
             <>
@@ -57,7 +57,7 @@ const Navbar = () => {
             <>
               {/* Guest Links */}
               <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
+            
             </>
           )}
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 
 const EventsPage = () => {
   const [events, setEvents] = useState([]);
@@ -7,16 +7,19 @@ const EventsPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('/api/events')
-      .then(response => {
-        setEvents(response.data);
-        setLoading(false);
-      })
-      .catch(error => {
+    const fetchEvents = async () => {
+      try {
+        const response = await api.get('/events');
+        setEvents(response.data.data.events);
+      } catch (error) {
         console.error('Error fetching events:', error);
         setError('Failed to load events.');
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchEvents();
   }, []);
 
   return (
