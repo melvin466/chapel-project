@@ -175,40 +175,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-content">
-            <div className="footer-section">
-              <h3>St. Francis Chapel</h3>
-              <p>123 Faith Avenue</p>
-              <p>City, State 12345</p>
-              <p>📞 (555) 123-4567</p>
-              <p>✉️ info@stfrancischapel.org</p>
-            </div>
-            <div className="footer-section">
-              <h3>Quick Links</h3>
-              <ul>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/mass-times">Mass Times</a></li>
-                <li><a href="/sacraments">Sacraments</a></li>
-                <li><a href="/contact">Contact</a></li>
-              </ul>
-            </div>
-            <div className="footer-section">
-              <h3>Follow Us</h3>
-              <div className="social-links">
-                <a href="#">Facebook</a>
-                <a href="#">Instagram</a>
-                <a href="#">YouTube</a>
-              </div>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <p>© 2024 St. Francis Chapel. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
