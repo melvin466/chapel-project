@@ -1,17 +1,29 @@
 {
+<<<<<<< HEAD
   "name": "backend",
+=======
+  "name": "frontend",
+>>>>>>> 5771e13caa648fa01d076f1f614308e7f14bfc31
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
+<<<<<<< HEAD
     "start": "node server.js",
     "dev": "nodemon server.js"
+=======
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+>>>>>>> 5771e13caa648fa01d076f1f614308e7f14bfc31
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+<<<<<<< HEAD
     "bcryptjs": "^3.0.3",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
@@ -27,5 +39,15 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
+=======
+    "@vitejs/plugin-react": "^6.0.1",
+    "axios": "^1.15.1",
+    "dompurify": "^3.4.1",
+    "js-cookie": "^3.0.5",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.1",
+    "vite": "^8.0.9"
+>>>>>>> 5771e13caa648fa01d076f1f614308e7f14bfc31
   }
 }
