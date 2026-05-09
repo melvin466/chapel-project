@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { cellService } from '../services/cellService';
+import  cellService  from '../services/cellService';
 import { useAuth } from '../context/AuthContext';
 
 const CellsPage = () => {

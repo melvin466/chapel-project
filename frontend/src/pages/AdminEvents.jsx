@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { eventService } from '../services/eventService';
+import  eventService  from '../services/eventService';
 import { useAuth } from '../context/AuthContext';
 
 const AdminEvents = () => {

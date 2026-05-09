@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { sermonService } from '../services/sermonService';
+import  sermonService  from '../services/sermonService';
 
 const SermonsPage = () => {
   const [sermons, setSermons] = useState([]);

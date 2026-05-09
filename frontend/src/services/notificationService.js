@@ -1,6 +1,6 @@
 import api from './api';
 
-export const notificationService = {
+const notificationService = {
   getNotifications: async () => {
     const response = await api.get('/notifications');
     return response.data;
@@ -16,3 +16,5 @@ export const notificationService = {
     return response.data;
   }
 };
+
+export default notificationService;

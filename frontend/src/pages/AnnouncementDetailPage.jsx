@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { announcementService } from '../services/announcementService';
+import  announcementService  from '../services/announcementService';
 
 const AnnouncementDetailPage = () => {
   const { id } = useParams();

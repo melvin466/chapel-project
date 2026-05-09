@@ -23,12 +23,17 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import BookingsPage from './pages/BookingsPage';
 import GivePage from './pages/GivePage';
 
-// FIXED: Import from ./pages/ NOT ./pages/admin/
 import AdminEvents from './pages/AdminEvents';
 import AdminAnnouncements from './pages/AdminAnnouncements';
 import AdminPrayerRequests from './pages/AdminPrayerRequests';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
+
+// NEW IMPORTS FOR CREATE/EDIT FORMS
+import AdminEventForm from './pages/AdminEventForm';
+import AdminAnnouncementForm from './pages/AdminAnnouncementForm';
+import AdminUserForm from './pages/AdminUserForm';
+import AdminExport from './pages/AdminExport';
 
 import './App.css';
 
@@ -70,22 +75,10 @@ function App() {
           <Navbar />
           <main>
             <Routes>
-              {/* Public Routes - Everyone can see */}
+              {/* ===== PUBLIC ROUTE - ONLY HOME ===== */}
               <Route path="/" element={<HomePage />} />
-              <Route path="/events" element={<EventsPage />} />
-              <Route path="/events/:id" element={<EventDetailPage />} />
-              <Route path="/announcements" element={<AnnouncementsPage />} />
-              <Route path="/announcements/:id" element={<AnnouncementDetailPage />} />
-              <Route path="/sermons" element={<SermonsPage />} />
-              <Route path="/sermons/:id" element={<SermonDetailPage />} />
-              <Route path="/cells" element={<CellsPage />} />
-              <Route path="/prayer" element={<PrayerPage />} />
-              <Route path="/donations" element={<DonationsPage />} />
-              <Route path="/feedback" element={<FeedbackPage />} />
-              <Route path="/bookings" element={<BookingsPage />} />
-              <Route path="/give" element={<GivePage />} />
               
-              {/* Auth Routes - Redirect to dashboard if already logged in */}
+              {/* ===== AUTH ROUTES (redirect if already logged in) ===== */}
               <Route path="/login" element={
                 <PublicRoute>
                   <LoginPage />
@@ -97,7 +90,67 @@ function App() {
                 </PublicRoute>
               } />
               
-              {/* Protected Routes - Require login */}
+              {/* ===== PROTECTED ROUTES (ALL require login) ===== */}
+              <Route path="/events" element={
+                <ProtectedRoute>
+                  <EventsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/events/:id" element={
+                <ProtectedRoute>
+                  <EventDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/announcements" element={
+                <ProtectedRoute>
+                  <AnnouncementsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/announcements/:id" element={
+                <ProtectedRoute>
+                  <AnnouncementDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/sermons" element={
+                <ProtectedRoute>
+                  <SermonsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/sermons/:id" element={
+                <ProtectedRoute>
+                  <SermonDetailPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/cells" element={
+                <ProtectedRoute>
+                  <CellsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/prayer" element={
+                <ProtectedRoute>
+                  <PrayerPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/donations" element={
+                <ProtectedRoute>
+                  <DonationsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/feedback" element={
+                <ProtectedRoute>
+                  <FeedbackPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/bookings" element={
+                <ProtectedRoute>
+                  <BookingsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/give" element={
+                <ProtectedRoute>
+                  <GivePage />
+                </ProtectedRoute>
+              } />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <DashboardPage />
@@ -114,7 +167,7 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* Admin Routes - Require admin role */}
+              {/* ===== ADMIN MANAGEMENT ROUTES ===== */}
               <Route path="/admin" element={
                 <AdminRoute>
                   <AdminDashboardPage />
@@ -143,6 +196,43 @@ function App() {
               <Route path="/admin/settings" element={
                 <AdminRoute>
                   <AdminSettings />
+                </AdminRoute>
+              } />
+              
+              {/* ===== ADMIN CREATE/EDIT ROUTES (NEW) ===== */}
+              <Route path="/admin/events/create" element={
+                <AdminRoute>
+                  <AdminEventForm />
+                </AdminRoute>
+              } />
+              <Route path="/admin/events/edit/:id" element={
+                <AdminRoute>
+                  <AdminEventForm />
+                </AdminRoute>
+              } />
+              <Route path="/admin/announcements/create" element={
+                <AdminRoute>
+                  <AdminAnnouncementForm />
+                </AdminRoute>
+              } />
+              <Route path="/admin/announcements/edit/:id" element={
+                <AdminRoute>
+                  <AdminAnnouncementForm />
+                </AdminRoute>
+              } />
+              <Route path="/admin/users/create" element={
+                <AdminRoute>
+                  <AdminUserForm />
+                </AdminRoute>
+              } />
+              <Route path="/admin/users/edit/:id" element={
+                <AdminRoute>
+                  <AdminUserForm />
+                </AdminRoute>
+              } />
+              <Route path="/admin/export" element={
+                <AdminRoute>
+                  <AdminExport />
                 </AdminRoute>
               } />
               

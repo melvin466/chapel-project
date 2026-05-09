@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { eventService } from '../services/eventService';
+import  eventService  from '../services/eventService';
 import prayerService from '../services/prayerService';  // ← FIXED: removed curly braces
-import { notificationService } from '../services/notificationService';
+import  notificationService  from '../services/notificationService';
 
 const DashboardPage = () => {
   const { user, logout } = useAuth();

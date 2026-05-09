@@ -4,16 +4,22 @@ export const authService = {
   register: async (userData) => {
     try {
       const response = await api.post('/auth/register', userData);
-      if (response.data.token) {
-        // Store token in localStorage (not httpOnly cookie for frontend access)
-        localStorage.setItem('token', response.data.token);
-        // Store user data
-        if (response.data.data?.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        } else if (response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-        }
+      console.log('Register response:', response.data);
+      
+      // Try multiple possible token locations
+      const token = response.data.token || response.data.data?.token;
+      const user = response.data.data?.user || response.data.user;
+      
+      if (token) {
+        localStorage.setItem('token', token);
+        console.log('✅ Token stored on register');
       }
+      
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        console.log('✅ User stored on register');
+      }
+      
       return response.data;
     } catch (error) {
       throw error.response?.data || { message: 'Registration failed' };
@@ -23,18 +29,28 @@ export const authService = {
   login: async (email, password) => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      if (response.data.token) {
-        // Store token in localStorage
-        localStorage.setItem('token', response.data.token);
-        // Store user data
-        if (response.data.data?.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.data.user));
-        } else if (response.data.user) {
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-        }
+      console.log('📝 Login response:', response.data);
+      
+      // IMPORTANT: Your backend returns token inside data.token
+      const token = response.data.data?.token;
+      const user = response.data.data?.user;
+      
+      if (token) {
+        localStorage.setItem('token', token);
+        console.log('✅ Token stored successfully');
+      } else {
+        console.error('❌ No token found in response');
+        console.log('Response structure:', Object.keys(response.data));
       }
+      
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+        console.log('✅ User stored:', user.firstName, user.role);
+      }
+      
       return response.data;
     } catch (error) {
+      console.error('❌ Login error:', error);
       throw error.response?.data || { message: 'Login failed' };
     }
   },
@@ -42,10 +58,13 @@ export const authService = {
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    console.log('🔓 Logged out, storage cleared');
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    console.log('🔑 isAuthenticated check:', !!token);
+    return !!token;
   },
 
   getToken: () => {

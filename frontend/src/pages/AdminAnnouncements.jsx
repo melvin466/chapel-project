@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { announcementService } from '../services/announcementService';
+import  announcementService  from '../services/announcementService';
 
 const AdminAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
