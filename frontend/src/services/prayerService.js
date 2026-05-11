@@ -26,8 +26,8 @@ const prayerService = {
   },
 
   // Update prayer status
-  updatePrayerStatus: async (id, status) => {
-    const response = await api.put(`/prayers/${id}/status`, { status });
+  updatePrayerStatus: async (id, status, adminResponse = '') => {
+    const response = await api.put(`/prayers/${id}/status`, { status, adminResponse });
     return response.data;
   },
 

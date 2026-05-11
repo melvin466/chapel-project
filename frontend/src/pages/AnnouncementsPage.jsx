@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import  announcementService  from '../services/announcementService';
+import api from '../services/api';
+
+const getMediaUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+};
 
 const AnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -47,6 +54,9 @@ const AnnouncementsPage = () => {
               className={`announcement-card ${getPriorityClass(announcement.priority)}`}
               onClick={() => navigate(`/announcements/${announcement._id}`)}
             >
+              {announcement.featuredImage && (
+                <img src={getMediaUrl(announcement.featuredImage)} alt={announcement.title} className="announcement-image" />
+              )}
               <div className="announcement-header">
                 <span className="announcement-type">{announcement.type || 'General'}</span>
                 <span className="announcement-date">
@@ -75,13 +85,21 @@ const AnnouncementsPage = () => {
           padding-bottom: 3rem;
         }
         .announcement-card {
-          background: rgba(255, 255, 255, 0.95);
-          border-radius: 12px;
+          max-width: 100%;
+          overflow: hidden;
+          border-radius: 8px;
           padding: 1.5rem;
           margin-bottom: 1rem;
           transition: transform 0.3s;
           cursor: pointer;
           border-left: 4px solid #4CAF50;
+        }
+        .announcement-image {
+          width: 100%;
+          max-height: 260px;
+          object-fit: cover;
+          border-radius: 8px;
+          margin-bottom: 1rem;
         }
         .announcement-card:hover {
           transform: translateX(10px);
@@ -111,13 +129,17 @@ const AnnouncementsPage = () => {
         }
         .announcement-card h2 {
           margin-bottom: 0.5rem;
-          color: #333;
+          color: white;
           font-size: 1.2rem;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .announcement-card p {
-          color: #666;
+          color: rgba(255, 255, 255, 0.74);
           margin-bottom: 1rem;
           line-height: 1.5;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .read-more {
           background: none;

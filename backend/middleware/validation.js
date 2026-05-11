@@ -1,5 +1,4 @@
 const { body, validationResult } = require('express-validator');
-const Joi = require('joi');
 
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -76,13 +75,10 @@ const validatePrayerRequest = [
   validate
 ];
 
-const registerSchema = Joi.object({
-  name: Joi.string().min(3).max(30).required(),
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).required(),
-});
-
 const validateSchema = (schema) => (req, res, next) => {
+  if (!schema?.validate) {
+    return next();
+  }
   const { error } = schema.validate(req.body);
   if (error) {
     return res.status(400).json({ success: false, message: error.details[0].message });
@@ -90,4 +86,4 @@ const validateSchema = (schema) => (req, res, next) => {
   next();
 };
 
-module.exports = { validateRegister, validateLogin, validateEvent, validateBooking, validateCell, validateSermon, validatePrayerRequest, validateSchema, registerSchema, validate };
+module.exports = { validateRegister, validateLogin, validateEvent, validateBooking, validateCell, validateSermon, validatePrayerRequest, validateSchema, validate };

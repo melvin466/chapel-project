@@ -11,6 +11,11 @@ const eventService = {
     return response.data;
   },
 
+  getManageEvents: async (params = {}) => {
+    const response = await api.get('/events/manage/all', { params });
+    return response.data;
+  },
+
   getEventById: async (id) => {
     const response = await api.get(`/events/${id}`);
     return response.data;
@@ -22,12 +27,16 @@ const eventService = {
   },
 
   createEvent: async (eventData) => {
-    const response = await api.post('/events', eventData);
+    const response = await api.post('/events', eventData, eventData instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    } : undefined);
     return response.data;
   },
 
   updateEvent: async (id, eventData) => {
-    const response = await api.put(`/events/${id}`, eventData);
+    const response = await api.put(`/events/${id}`, eventData, eventData instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    } : undefined);
     return response.data;
   },
 

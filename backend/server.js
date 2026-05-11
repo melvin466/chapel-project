@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const winston = require('winston');
+const path = require('path');
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -101,6 +103,12 @@ function logRegisteredRoutes() {
     { method: 'GET', path: '/api/settings/public' },
     { method: 'GET', path: '/api/settings' },
     { method: 'PUT', path: '/api/settings/:key' },
+    // Dashboard routes
+    { method: 'GET', path: '/api/dashboard/all' },
+    { method: 'GET', path: '/api/dashboard/stats' },
+    { method: 'GET', path: '/api/dashboard/my-events' },
+    { method: 'GET', path: '/api/dashboard/my-prayers' },
+    { method: 'GET', path: '/api/dashboard/my-notifications' },
   ];
 
   routeList.sort((a, b) => a.path.localeCompare(b.path));
@@ -120,6 +128,7 @@ function logRegisteredRoutes() {
 // Routes
 const routes = [
   { path: '/api/auth', route: require('./routes/authRoutes') },
+  { path: '/api/users', route: require('./routes/userRoutes') },
   { path: '/api/events', route: require('./routes/eventRoutes') },
   { path: '/api/announcements', route: require('./routes/announcementRoutes') },
   { path: '/api/prayers', route: require('./routes/prayerRoutes') },
@@ -130,6 +139,7 @@ const routes = [
   { path: '/api/notifications', route: require('./routes/notificationRoutes') },
   { path: '/api/feedback', route: require('./routes/feedbackRoutes') },
   { path: '/api/settings', route: require('./routes/settingRoutes') },
+  { path: '/api/dashboard', route: require('./routes/dashboardRoutes') }, // ADDED DASHBOARD ROUTES
 ];
 
 const verificationRoutes = require('./routes/verificationRoutes');
@@ -156,7 +166,7 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Chapel Management System API',
     version: '1.0.0',
-    endpoints: '/api/health, /api/auth, /api/events, /api/announcements, /api/prayers, /api/sermons, /api/cells, /api/bookings, /api/donations, /api/notifications, /api/feedback, /api/settings'
+    endpoints: '/api/health, /api/auth, /api/events, /api/announcements, /api/prayers, /api/sermons, /api/cells, /api/bookings, /api/donations, /api/notifications, /api/feedback, /api/settings, /api/dashboard'
   });
 });
 

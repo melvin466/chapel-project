@@ -1,5 +1,13 @@
 const Donation = require('../models/Donation');
-const axios = require('axios');
+
+const donationOptions = [
+  { id: 'tithe', name: 'Tithe' },
+  { id: 'offering', name: 'Offering' },
+  { id: 'pledge', name: 'Pledge' },
+  { id: 'building', name: 'Building Fund' },
+  { id: 'missions', name: 'Missions' },
+  { id: 'benevolence', name: 'Benevolence' },
+];
 
 const getDonations = async (req, res) => {
   try {
@@ -23,9 +31,21 @@ const getDonations = async (req, res) => {
   }
 };
 
+const getDonationOptions = (req, res) => {
+  res.json({ success: true, data: { options: donationOptions } });
+};
+
 const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
   const apiUrl = provider === 'MTN' ? process.env.MTN_API_URL : process.env.AIRTEL_API_URL;
   const apiKey = provider === 'MTN' ? process.env.MTN_API_KEY : process.env.AIRTEL_API_KEY;
+
+  if (!apiUrl || !apiKey) {
+    return {
+      transactionId: `${provider.toLowerCase()}-${Date.now()}`,
+      provider,
+      sandbox: true,
+    };
+  }
 
   const payload = {
     amount,
@@ -41,25 +61,44 @@ const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
   };
 
   try {
-    const response = await axios.post(`${apiUrl}/payments`, payload, { headers });
-    return response.data;
+    const response = await fetch(`${apiUrl}/payments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.message || `Payment provider returned ${response.status}`);
+    }
+
+    return data;
   } catch (error) {
-    console.error('Mobile Money Payment Error:', error.response?.data || error.message);
+    console.error('Mobile Money Payment Error:', error.message);
     throw new Error('Failed to initiate mobile money payment');
   }
 };
 
 const createDonation = async (req, res) => {
   try {
-    const { amount, phoneNumber, paymentMethod } = req.body;
+    const { amount, phoneNumber, paymentMethod, provider = 'MTN' } = req.body;
+    const normalizedProvider = provider === 'Airtel' ? 'Airtel' : 'MTN';
+
+    if (!amount || Number(amount) < 100) {
+      return res.status(400).json({ success: false, message: 'Donation amount must be at least UGX 100' });
+    }
 
     if (paymentMethod === 'mobile_money') {
-      const provider = req.body.provider || 'MTN'; // Default to MTN
-      const paymentResponse = await initiateMobileMoneyPayment(amount, phoneNumber, provider);
+      if (!phoneNumber) {
+        return res.status(400).json({ success: false, message: 'Phone number is required for mobile money' });
+      }
+
+      const paymentResponse = await initiateMobileMoneyPayment(amount, phoneNumber, normalizedProvider);
 
       const donation = await Donation.create({
         ...req.body,
         donor: req.user.id,
+        provider: normalizedProvider,
         status: 'pending',
         transactionId: paymentResponse.transactionId,
       });
@@ -127,4 +166,4 @@ const handlePaymentCallback = async (req, res) => {
   }
 };
 
-module.exports = { getDonations, createDonation, getDonationStats, handlePaymentCallback };
+module.exports = { getDonations, getDonationOptions, createDonation, getDonationStats, handlePaymentCallback };

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import '/HomePage.css'; // Import custom styles for the homepage
+import { Link } from 'react-router-dom';
+import eventService from '../services/eventService';
+import announcementService from '../services/announcementService';
+import '/HomePage.css';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
@@ -9,172 +11,196 @@ const HomePage = () => {
   const [error, setError] = useState({ events: null, announcements: null });
 
   useEffect(() => {
-    // Fetch upcoming events
-    axios.get('/api/events')
-      .then(response => {
-        console.log('Events API response:', response.data);
-        setEvents(Array.isArray(response.data) ? response.data : []);
-        setLoading(prev => ({ ...prev, events: false }));
+    eventService.getEvents({ limit: 3 })
+      .then((response) => {
+        setEvents(response.data?.events || []);
+        setLoading((current) => ({ ...current, events: false }));
       })
-      .catch(error => {
-        console.error('Error fetching events:', error);
-        setError(prev => ({ ...prev, events: 'Failed to load events.' }));
-        setLoading(prev => ({ ...prev, events: false }));
+      .catch(() => {
+        setError((current) => ({ ...current, events: 'Failed to load events.' }));
+        setLoading((current) => ({ ...current, events: false }));
       });
 
-    // Fetch latest announcements
-    axios.get('/api/announcements')
-      .then(response => {
-        console.log('Announcements API response:', response.data);
-        setAnnouncements(Array.isArray(response.data) ? response.data : []);
-        setLoading(prev => ({ ...prev, announcements: false }));
+    announcementService.getAnnouncements({ limit: 3 })
+      .then((response) => {
+        setAnnouncements(response.data?.announcements || []);
+        setLoading((current) => ({ ...current, announcements: false }));
       })
-      .catch(error => {
-        console.error('Error fetching announcements:', error);
-        setError(prev => ({ ...prev, announcements: 'Failed to load announcements.' }));
-        setLoading(prev => ({ ...prev, announcements: false }));
+      .catch(() => {
+        setError((current) => ({ ...current, announcements: 'Failed to load announcements.' }));
+        setLoading((current) => ({ ...current, announcements: false }));
       });
   }, []);
 
-  // Helper function to format dates
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+  const formatDate = (dateString, options = {}) => {
+    if (!dateString) return 'Date to be announced';
+    return new Date(dateString).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: options.withYear ? 'numeric' : undefined,
+    });
+  };
+
+  const getDay = (dateString) => {
+    if (!dateString) return '--';
+    return new Date(dateString).toLocaleDateString(undefined, { day: '2-digit' });
+  };
+
+  const getMonth = (dateString) => {
+    if (!dateString) return 'TBA';
+    return new Date(dateString).toLocaleDateString(undefined, { month: 'short' });
+  };
+
+  const excerpt = (text = '', length = 130) => {
+    if (text.length <= length) return text;
+    return `${text.slice(0, length).trim()}...`;
   };
 
   return (
     <div className="homepage">
-      {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-overlay">
-          <div className="hero-content">
-            <h1 className="hero-title">Welcome to Chapel Management System</h1>
-            <p className="hero-subtitle">
-              A place of peace, prayer, and community
+      <section className="home-hero">
+        <div className="home-hero-inner">
+          <div className="home-hero-copy">
+            <span className="home-eyebrow">Makerere University Chapel</span>
+            <h1>Worship, community, and care in one living system.</h1>
+            <p>
+              Follow chapel events, read announcements, send prayer requests, book support, and give securely from one place.
             </p>
-            <div className="hero-buttons">
-              <button className="btn-primary">Join Us for Mass</button>
-              <button className="btn-secondary">Contact Us</button>
+            <div className="home-hero-actions">
+              <Link to="/events" className="home-button primary">View Events</Link>
+              <Link to="/prayer" className="home-button">Request Prayer</Link>
+            </div>
+          </div>
+
+          <div className="home-hero-panel">
+            <span className="panel-label">Today at Chapel</span>
+            <div className="panel-service">
+              <strong>Weekday Mass</strong>
+              <span>7:00 AM and 12:10 PM</span>
+            </div>
+            <div className="panel-service">
+              <strong>Wednesday Fellowship</strong>
+              <span>5:30 PM</span>
+            </div>
+            <div className="panel-stats">
+              <div>
+                <strong>{events.length}</strong>
+                <span>Upcoming</span>
+              </div>
+              <div>
+                <strong>{announcements.length}</strong>
+                <span>Updates</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Mass Times Section */}
-      <section className="mass-times-section">
-        <div className="container">
-          <h2 className="section-title">Mass Schedule</h2>
-          <div className="mass-times-grid">
-            <div className="mass-card">
-              <h3>Weekdays</h3>
-              <p>Monday - Friday</p>
-              <p className="mass-time">7:00 AM & 12:10 PM</p>
-            </div>
-            <div className="mass-card">
-              <h3>Saturday</h3>
-              <p>Vigil Mass</p>
-              <p className="mass-time">5:00 PM</p>
-            </div>
-            <div className="mass-card">
-              <h3>Sunday</h3>
-              <p>Morning & Evening</p>
-              <p className="mass-time">8:00 AM, 10:00 AM, 5:00 PM</p>
-            </div>
-          </div>
+      <section className="home-actions-section">
+        <div className="container home-action-grid">
+          <Link to="/give" className="home-action-card">
+            <span>Give</span>
+            <strong>Support the mission</strong>
+            <p>Use MTN or Airtel mobile money giving.</p>
+          </Link>
+          <Link to="/bookings" className="home-action-card">
+            <span>Book</span>
+            <strong>Request chapel support</strong>
+            <p>Plan counselling, facility, or appointment requests.</p>
+          </Link>
+          <Link to="/cells" className="home-action-card">
+            <span>Connect</span>
+            <strong>Join a cell group</strong>
+            <p>Find a smaller community for fellowship.</p>
+          </Link>
         </div>
       </section>
 
-      {/* Events Section */}
-      <section className="events-section">
+      <section className="home-section">
         <div className="container">
-          <h2 className="section-title">📅 Upcoming Events</h2>
+          <div className="home-section-heading">
+            <div>
+              <span className="home-eyebrow">Live from the database</span>
+              <h2>Upcoming Events</h2>
+            </div>
+            <Link to="/events">View all</Link>
+          </div>
+
           {loading.events ? (
-            <div className="loading-spinner">Loading events...</div>
+            <div className="home-state">Loading events...</div>
           ) : error.events ? (
-            <div className="error-message">{error.events}</div>
+            <div className="home-state error">{error.events}</div>
           ) : events.length > 0 ? (
-            <div className="events-grid">
-              {events.map(event => (
-                <div key={event.id} className="event-card">
-                  <div className="event-date-badge">
-                    <span className="event-month">{formatDate(event.date).split(' ')[0]}</span>
-                    <span className="event-day">{formatDate(event.date).split(' ')[1]?.replace(',', '')}</span>
+            <div className="home-events-grid">
+              {events.map((event) => (
+                <Link key={event._id} className="home-event-card" to={`/events/${event._id}`}>
+                  <div className="home-event-date">
+                    <span>{getMonth(event.startDate)}</span>
+                    <strong>{getDay(event.startDate)}</strong>
                   </div>
-                  <div className="event-details">
-                    <h3 className="event-title">{event.name}</h3>
-                    <p className="event-info">🕒 {formatDate(event.date)}</p>
-                    <p className="event-info">📍 {event.location}</p>
-                    {event.description && <p className="event-description">{event.description}</p>}
-                    <button className="event-btn">Learn More →</button>
+                  <div>
+                    <h3>{event.title}</h3>
+                    <p className="home-muted">{formatDate(event.startDate, { withYear: true })}</p>
+                    <p>{excerpt(event.description)}</p>
+                    <span className="home-meta">{event.location || 'Location to be announced'}</span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
-            <div className="empty-state">
-              <p>No upcoming events at this time. Please check back soon!</p>
-            </div>
+            <div className="home-state">No upcoming events yet.</div>
           )}
         </div>
       </section>
 
-      {/* Announcements Section */}
-      <section className="announcements-section">
+      <section className="home-section home-section-alt">
         <div className="container">
-          <h2 className="section-title">📢 Latest Announcements</h2>
+          <div className="home-section-heading">
+            <div>
+              <span className="home-eyebrow">Latest notices</span>
+              <h2>Announcements</h2>
+            </div>
+            <Link to="/announcements">View all</Link>
+          </div>
+
           {loading.announcements ? (
-            <div className="loading-spinner">Loading announcements...</div>
+            <div className="home-state">Loading announcements...</div>
           ) : error.announcements ? (
-            <div className="error-message">{error.announcements}</div>
+            <div className="home-state error">{error.announcements}</div>
           ) : announcements.length > 0 ? (
-            <div className="announcements-list">
-              {announcements.map(announcement => (
-                <div key={announcement.id} className="announcement-card">
-                  <div className="announcement-header">
-                    <h3 className="announcement-title">{announcement.title}</h3>
-                    <span className="announcement-date">{formatDate(announcement.date)}</span>
+            <div className="home-announcement-list">
+              {announcements.map((announcement) => (
+                <Link key={announcement._id} to={`/announcements/${announcement._id}`} className="home-announcement-card">
+                  <div>
+                    <span className={`home-priority priority-${announcement.priority || 'medium'}`}>
+                      {announcement.priority || 'medium'}
+                    </span>
+                    <h3>{announcement.title}</h3>
+                    <p>{excerpt(announcement.summary || announcement.content, 150)}</p>
                   </div>
-                  <p className="announcement-content">{announcement.content}</p>
-                  {announcement.link && (
-                    <a href={announcement.link} className="announcement-link">Read more →</a>
-                  )}
-                </div>
+                  <span className="home-date">{formatDate(announcement.publishDate || announcement.createdAt, { withYear: true })}</span>
+                </Link>
               ))}
             </div>
           ) : (
-            <div className="empty-state">
-              <p>No announcements available. Stay tuned for updates!</p>
-            </div>
+            <div className="home-state">No announcements available yet.</div>
           )}
         </div>
       </section>
 
-      {/* Quick Links Section */}
-      <section className="quick-links-section">
-        <div className="container">
-          <div className="quick-links-grid">
-            <div className="quick-link-card">
-              <div className="quick-link-icon">🙏</div>
-              <h3>Prayer Requests</h3>
-              <p>Submit your prayer intentions to our community</p>
-              <button className="quick-link-btn">Submit Request</button>
-            </div>
-            <div className="quick-link-card">
-              <div className="quick-link-icon">🤝</div>
-              <h3>Volunteer</h3>
-              <p>Join our ministry and serve the community</p>
-              <button className="quick-link-btn">Get Involved</button>
-            </div>
-            <div className="quick-link-card">
-              <div className="quick-link-icon">💰</div>
-              <h3>Donate</h3>
-              <p>Support St. Francis Chapel's mission</p>
-              <button className="quick-link-btn">Give Today</button>
-            </div>
+      <section className="home-section">
+        <div className="container home-schedule-band">
+          <div>
+            <span className="home-eyebrow">Service rhythm</span>
+            <h2>Gather through the week</h2>
+          </div>
+          <div className="home-schedule-list">
+            <div><strong>Sunday</strong><span>8:00 AM, 10:00 AM, 5:00 PM</span></div>
+            <div><strong>Weekdays</strong><span>7:00 AM, 12:10 PM</span></div>
+            <div><strong>Wednesday</strong><span>5:30 PM fellowship</span></div>
           </div>
         </div>
       </section>
-
     </div>
   );
 };

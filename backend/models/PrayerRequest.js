@@ -7,6 +7,8 @@ const prayerRequestSchema = new mongoose.Schema({
   urgency: { type: String, enum: ['normal', 'urgent', 'critical'], default: 'normal' },
   isAnonymous: { type: Boolean, default: false },
   status: { type: String, enum: ['active', 'answered', 'closed'], default: 'active' },
+  adminResponse: { type: String, default: '' },
+  answeredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   prayerCount: { type: Number, default: 0 },
   requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   prayedBy: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, prayedAt: { type: Date, default: Date.now } }],

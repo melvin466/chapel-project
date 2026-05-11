@@ -19,6 +19,10 @@ const eventSchema = new mongoose.Schema({
   registrationRequired: { type: Boolean, default: false },
   registrationDeadline: Date,
   featuredImage: { type: String, default: '' },
+   eventVideo: {
+    type: String, 
+    default: ''
+  },
   status: { type: String, enum: ['draft', 'published', 'cancelled', 'completed'], default: 'draft' },
   visibility: { type: String, enum: ['public', 'members_only', 'private'], default: 'public' },
   isFeatured: { type: Boolean, default: false },

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import  announcementService  from '../services/announcementService';
+import { useAuth } from '../context/AuthContext';
 
 const AdminAnnouncements = () => {
+  const { isAdmin } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -14,6 +16,10 @@ const AdminAnnouncements = () => {
     priority: 'medium',
     status: 'published'
   });
+  const [mediaFiles, setMediaFiles] = useState({
+    featuredImage: null,
+    announcementVideo: null
+  });
 
   useEffect(() => {
     loadAnnouncements();
@@ -22,7 +28,7 @@ const AdminAnnouncements = () => {
   const loadAnnouncements = async () => {
     try {
       setLoading(true);
-      const response = await announcementService.getAnnouncements({ limit: 100 });
+      const response = await announcementService.getManageAnnouncements({ limit: 100 });
       setAnnouncements(response.data?.announcements || []);
     } catch (error) {
       console.error('Error loading announcements:', error);
@@ -36,19 +42,38 @@ const AdminAnnouncements = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleMediaChange = (e) => {
+    const { name, files } = e.target;
+    setMediaFiles((currentFiles) => ({
+      ...currentFiles,
+      [name]: files[0] || null
+    }));
+  };
+
+  const buildPayload = () => {
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      payload.append(key, value ?? '');
+    });
+    if (mediaFiles.featuredImage) payload.append('featuredImage', mediaFiles.featuredImage);
+    if (mediaFiles.announcementVideo) payload.append('announcementVideo', mediaFiles.announcementVideo);
+    return payload;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       if (editingItem) {
-        await announcementService.updateAnnouncement(editingItem._id, formData);
+        await announcementService.updateAnnouncement(editingItem._id, buildPayload());
         alert('Announcement updated!');
       } else {
-        await announcementService.createAnnouncement(formData);
+        await announcementService.createAnnouncement(buildPayload());
         alert('Announcement created!');
       }
       setShowForm(false);
       setEditingItem(null);
       setFormData({ title: '', content: '', summary: '', type: 'general', priority: 'medium', status: 'published' });
+      setMediaFiles({ featuredImage: null, announcementVideo: null });
       loadAnnouncements();
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to save announcement');
@@ -87,7 +112,7 @@ const AdminAnnouncements = () => {
       <div className="admin-header">
         <h1>Manage Announcements</h1>
         <button onClick={() => { setShowForm(!showForm); setEditingItem(null); }} className="btn-primary">
-          {showForm ? 'Cancel' : '+ New Announcement'}
+          {showForm ? 'Cancel' : 'New Announcement'}
         </button>
       </div>
 
@@ -98,6 +123,17 @@ const AdminAnnouncements = () => {
             <input type="text" name="title" placeholder="Title" value={formData.title} onChange={handleChange} required />
             <textarea name="summary" placeholder="Short Summary (optional)" rows="2" value={formData.summary} onChange={handleChange} />
             <textarea name="content" placeholder="Full Content" rows="6" value={formData.content} onChange={handleChange} required />
+
+            <div className="media-upload-section">
+              <label>
+                Announcement image
+                <input type="file" name="featuredImage" accept="image/*" onChange={handleMediaChange} />
+              </label>
+              <label>
+                Announcement video
+                <input type="file" name="announcementVideo" accept="video/*" onChange={handleMediaChange} />
+              </label>
+            </div>
             
             <div className="form-row">
               <select name="type" value={formData.type} onChange={handleChange}>
@@ -153,7 +189,7 @@ const AdminAnnouncements = () => {
                   <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                   <td>
                     <button onClick={() => handleEdit(item)} className="btn-edit">Edit</button>
-                    <button onClick={() => handleDelete(item._id)} className="btn-delete">Delete</button>
+                    {isAdmin && <button onClick={() => handleDelete(item._id)} className="btn-delete">Delete</button>}
                   </td>
                 </tr>
               ))
@@ -165,28 +201,35 @@ const AdminAnnouncements = () => {
       <style>{`
         .admin-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-        .admin-header h1 { color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-        .admin-form { background: rgba(255,255,255,0.95); padding: 2rem; border-radius: 12px; margin-bottom: 2rem; }
+        .admin-header h1 { color: white; text-shadow: 0 2px 18px rgba(0,0,0,0.28); }
+        .admin-form { background: rgba(255,255,255,0.96); padding: 2rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 18px 45px rgba(16,24,40,0.16); border: 1px solid rgba(255,255,255,0.55); overflow: hidden; }
+        .admin-form h2 { color: #1f2933; margin-bottom: 1rem; font-size: 1.25rem; }
         .admin-form form { display: flex; flex-direction: column; gap: 1rem; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .form-row > * { flex: 1; min-width: 150px; }
-        .admin-form input, .admin-form textarea, .admin-form select { padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; }
-        .admin-table-container { background: rgba(255,255,255,0.95); border-radius: 12px; overflow-x: auto; }
+        .form-row > * { flex: 1 1 180px; min-width: 0; }
+        .admin-form input, .admin-form textarea, .admin-form select { width: 100%; max-width: 100%; min-width: 0; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: white; overflow-wrap: anywhere; }
+        .admin-form textarea { resize: vertical; line-height: 1.5; }
+        .media-upload-section { display: grid; gap: 0.75rem; }
+        .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; color: #333; font-weight: 500; }
+        .media-upload-section input { overflow: hidden; text-overflow: ellipsis; }
+        .admin-table-container { background: rgba(255,255,255,0.96); border-radius: 8px; overflow-x: auto; box-shadow: 0 18px 45px rgba(16,24,40,0.12); }
         .admin-table { width: 100%; border-collapse: collapse; }
         .admin-table th, .admin-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
-        .admin-table th { background: #4CAF50; color: white; }
+        .admin-table th { background: #1f2933; color: white; font-weight: 600; }
         .admin-table tr:hover { background: #f5f5f5; }
-        .btn-edit, .btn-delete { padding: 0.3rem 0.8rem; margin: 0 0.2rem; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-edit { background: #2196F3; color: white; }
-        .btn-delete { background: #f44336; color: white; }
-        .type-badge, .priority-low, .priority-medium, .priority-high, .priority-critical { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; }
-        .type-urgent, .priority-critical { background: #f44336; color: white; }
-        .priority-high { background: #ff9800; color: white; }
-        .priority-medium { background: #2196F3; color: white; }
-        .priority-low { background: #4CAF50; color: white; }
-        .status-badge.status-published { background: #4CAF50; color: white; }
-        .status-badge.status-draft { background: #ff9800; color: white; }
-        .status-badge.status-archived { background: #9e9e9e; color: white; }
+        .admin-table td { color: #1f2933; overflow-wrap: anywhere; }
+        .btn-edit, .btn-delete { padding: 0.35rem 0.75rem; margin: 0.15rem; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-edit { background: #315f72; color: white; }
+        .btn-delete { background: #c2413a; color: white; }
+        .type-badge, .priority-low, .priority-medium, .priority-high, .priority-critical, .status-badge { display: inline-block; padding: 0.25rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
+        .type-badge { background: #edf2f0; color: #315f72; }
+        .type-urgent, .priority-critical { background: #f8e8e7; color: #9f2f29; }
+        .priority-high { background: #f8efe3; color: #8a5a1f; }
+        .priority-medium { background: #e8f0f3; color: #315f72; }
+        .priority-low { background: #e8f3ec; color: #2f7d46; }
+        .status-badge.status-published { background: #e8f3ec; color: #2f7d46; }
+        .status-badge.status-draft { background: #f8efe3; color: #8a5a1f; }
+        .status-badge.status-archived { background: #edf0f2; color: #62707c; }
       `}</style>
     </div>
   );

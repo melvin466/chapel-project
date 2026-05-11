@@ -15,6 +15,7 @@ const AdminUsers = () => {
     firstName: '',
     lastName: '',
     email: '',
+    password: '',
     phoneNumber: '',
     role: 'member',
     isActive: true,
@@ -49,11 +50,14 @@ const AdminUsers = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = { ...formData };
+      if (editingUser && !payload.password) delete payload.password;
+
       if (editingUser) {
-        await userService.updateUser(editingUser._id, formData);
+        await userService.updateUser(editingUser._id, payload);
         alert('User updated successfully!');
       } else {
-        await userService.createUser(formData);
+        await userService.createUser(payload);
         alert('User created successfully!');
       }
       setShowForm(false);
@@ -61,7 +65,8 @@ const AdminUsers = () => {
       resetForm();
       loadUsers();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save user');
+      console.error('Failed to save user:', error.response?.data || error);
+      alert(error.response?.data?.message || `Failed to save user (${error.response?.status || 'network error'})`);
     }
   };
 
@@ -70,6 +75,7 @@ const AdminUsers = () => {
       firstName: '',
       lastName: '',
       email: '',
+      password: '',
       phoneNumber: '',
       role: 'member',
       isActive: true,
@@ -99,6 +105,7 @@ const AdminUsers = () => {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      password: '',
       phoneNumber: user.phoneNumber,
       role: user.role,
       isActive: user.isActive,
@@ -165,6 +172,10 @@ const AdminUsers = () => {
               <input type="email" name="email" placeholder="Email" value={formData.email} onChange={handleChange} required />
               <input type="tel" name="phoneNumber" placeholder="Phone Number" value={formData.phoneNumber} onChange={handleChange} required />
             </div>
+
+            {!editingUser && (
+              <input type="password" name="password" placeholder="Temporary Password" value={formData.password} onChange={handleChange} required minLength="6" />
+            )}
             
             <div className="form-row">
               <select name="role" value={formData.role} onChange={handleChange}>

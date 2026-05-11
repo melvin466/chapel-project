@@ -11,13 +11,22 @@ const announcementService = {
     return response.data;
   },
 
+  getManageAnnouncements: async (params = {}) => {
+    const response = await api.get('/announcements/manage/all', { params });
+    return response.data;
+  },
+
   createAnnouncement: async (data) => {
-    const response = await api.post('/announcements', data);
+    const response = await api.post('/announcements', data, data instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    } : undefined);
     return response.data;
   },
 
   updateAnnouncement: async (id, data) => {
-    const response = await api.put(`/announcements/${id}`, data);
+    const response = await api.put(`/announcements/${id}`, data, data instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    } : undefined);
     return response.data;
   },
 

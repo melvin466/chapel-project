@@ -33,8 +33,9 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.login(email, password);
       if (response.success) {
-        setUser(response.data?.user || response.user);
-        return { success: true };
+        const loggedInUser = response.data?.user || response.user;
+        setUser(loggedInUser);
+        return { success: true, user: loggedInUser };
       }
       return { success: false, message: response.message };
     } catch (error) {
@@ -47,14 +48,30 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const response = await authService.updateProfile(profileData);
+      if (response.success) {
+        const updatedUser = response.data?.user;
+        setUser(updatedUser);
+        return { success: true, user: updatedUser };
+      }
+      return { success: false, message: response.message };
+    } catch (error) {
+      return { success: false, message: error.message || 'Profile update failed' };
+    }
+  };
+
   const value = {
     user,
     loading,
     register,
     login,
     logout,
+    updateProfile,
     isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin'
+    isAdmin: user?.role === 'admin',
+    isChaplain: user?.role === 'chaplain'  // ← ADD THIS LINE
   };
 
   return (

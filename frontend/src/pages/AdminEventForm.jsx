@@ -6,6 +6,10 @@ const AdminEventForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [files, setFiles] = useState({
+    featuredImage: null,
+    eventVideo: null
+  });
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -18,7 +22,9 @@ const AdminEventForm = () => {
     capacity: 0,
     registrationRequired: false,
     status: 'published',
-    isFeatured: false
+    isFeatured: false,
+    featuredImage: '',
+    eventVideo: ''
   });
 
   useEffect(() => {
@@ -44,7 +50,9 @@ const AdminEventForm = () => {
         capacity: event.capacity,
         registrationRequired: event.registrationRequired,
         status: event.status,
-        isFeatured: event.isFeatured || false
+        isFeatured: event.isFeatured || false,
+        featuredImage: event.featuredImage || '',
+        eventVideo: event.eventVideo || ''
       });
     } catch (error) {
       console.error('Error loading event:', error);
@@ -59,15 +67,33 @@ const AdminEventForm = () => {
     });
   };
 
+  const handleFileChange = (e) => {
+    const { name, files: selectedFiles } = e.target;
+    setFiles((currentFiles) => ({
+      ...currentFiles,
+      [name]: selectedFiles[0] || null
+    }));
+  };
+
+  const buildPayload = () => {
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      payload.append(key, value ?? '');
+    });
+    if (files.featuredImage) payload.append('featuredImage', files.featuredImage);
+    if (files.eventVideo) payload.append('eventVideo', files.eventVideo);
+    return payload;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (isEditing) {
-        await eventService.updateEvent(id, formData);
+        await eventService.updateEvent(id, buildPayload());
         alert('Event updated successfully!');
       } else {
-        await eventService.createEvent(formData);
+        await eventService.createEvent(buildPayload());
         alert('Event created successfully!');
       }
       navigate('/admin/events');
@@ -114,6 +140,20 @@ const AdminEventForm = () => {
             <input type="number" name="capacity" placeholder="Capacity (0 = unlimited)" value={formData.capacity} onChange={handleChange} />
           </div>
 
+          <div className="media-upload-section">
+            <label>
+              Event image
+              <input type="file" name="featuredImage" accept="image/*" onChange={handleFileChange} />
+            </label>
+            {formData.featuredImage && <small>Current image: {formData.featuredImage}</small>}
+
+            <label>
+              Event video
+              <input type="file" name="eventVideo" accept="video/*" onChange={handleFileChange} />
+            </label>
+            {formData.eventVideo && <small>Current video: {formData.eventVideo}</small>}
+          </div>
+
           <div className="form-row">
             <select name="status" value={formData.status} onChange={handleChange}>
               <option value="draft">Draft</option>
@@ -140,16 +180,20 @@ const AdminEventForm = () => {
       </div>
 
       <style>{`
-        .admin-form-container { min-height: 80vh; display: flex; justify-content: center; align-items: center; padding: 2rem; background: linear-gradient(135deg, #667eea, #764ba2); }
-        .admin-form-card { background: white; border-radius: 24px; padding: 2rem; max-width: 700px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .admin-form-container { min-height: 80vh; display: flex; justify-content: center; align-items: center; padding: 2rem; }
+        .admin-form-card { background: rgba(255,255,255,0.96); border-radius: 8px; padding: 2rem; max-width: 700px; width: 100%; box-shadow: 0 18px 45px rgba(16,24,40,0.16); border: 1px solid rgba(255,255,255,0.55); }
         .admin-form-card h1 { color: #333; margin-bottom: 1.5rem; }
         .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
         .form-row input, .form-row select { flex: 1; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; }
         textarea { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; }
+        .media-upload-section { display: grid; gap: 0.75rem; margin-bottom: 1rem; }
+        .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; font-weight: 500; color: #333; }
+        .media-upload-section input { padding: 0.7rem; border: 1px solid #ddd; border-radius: 8px; }
+        .media-upload-section small { color: #666; overflow-wrap: anywhere; }
         .checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
         .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
-        .btn-primary { background: #4CAF50; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
-        .btn-secondary { background: #9e9e9e; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-primary { background: #2f7d46; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-secondary { background: #315f72; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
       `}</style>
     </div>
   );

@@ -71,6 +71,19 @@ export const authService = {
     return localStorage.getItem('token');
   },
 
+  updateProfile: async (data) => {
+    const response = await api.put('/auth/me', data, data instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    } : undefined);
+
+    const user = response.data.data?.user;
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+
+    return response.data;
+  },
+
   getCurrentUser: () => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;

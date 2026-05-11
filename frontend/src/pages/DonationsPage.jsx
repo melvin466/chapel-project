@@ -1,21 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import  donationService  from '../services/donationService';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
 
 const DonationsPage = () => {
   const [amount, setAmount] = useState('');
   const [donationType, setDonationType] = useState('tithe');
   const [paymentMethod, setPaymentMethod] = useState('mobile_money');
+  const [provider, setProvider] = useState('MTN');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { isAuthenticated } = useAuth();
-  const [donationOptions, setDonationOptions] = useState([]);
+  const [donationOptions, setDonationOptions] = useState([
+    { id: 'tithe', name: 'Tithe' },
+    { id: 'offering', name: 'Offering' },
+    { id: 'pledge', name: 'Pledge' },
+    { id: 'building', name: 'Building Fund' },
+    { id: 'missions', name: 'Missions' },
+    { id: 'benevolence', name: 'Benevolence' },
+  ]);
 
   useEffect(() => {
-    axios.get('/api/donation-options')
+    donationService.getDonationOptions()
       .then(response => {
-        setDonationOptions(response.data);
+        setDonationOptions(response.data?.options || donationOptions);
       })
       .catch(error => {
         console.error('Error fetching donation options:', error);
@@ -30,9 +38,17 @@ const DonationsPage = () => {
     }
     setSubmitting(true);
     try {
-      await donationService.createDonation({ amount: parseInt(amount), donationType, paymentMethod, isAnonymous });
-      alert('Thank you for your donation!');
+      await donationService.createDonation({
+        amount: parseInt(amount, 10),
+        donationType,
+        paymentMethod,
+        provider,
+        phoneNumber,
+        isAnonymous
+      });
+      alert(paymentMethod === 'mobile_money' ? 'Donation saved. Check your phone to complete the payment.' : 'Thank you for your donation!');
       setAmount('');
+      setPhoneNumber('');
     } catch (error) {
       alert(error.response?.data?.message || 'Donation failed');
     } finally {
@@ -55,10 +71,20 @@ const DonationsPage = () => {
               ))}
             </select>
             <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-              <option value="mobile_money">Mobile Money</option><option value="credit_card">Credit Card</option>
-              <option value="bank_transfer">Bank Transfer</option><option value="cash">Cash</option>
+              <option value="mobile_money">Mobile Money</option>
+              <option value="bank_transfer">Bank Transfer</option>
+              <option value="cash">Cash</option>
             </select>
-            <label><input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} /> Donate Anonymously</label>
+            {paymentMethod === 'mobile_money' && (
+              <>
+                <select value={provider} onChange={(e) => setProvider(e.target.value)}>
+                  <option value="MTN">MTN Mobile Money</option>
+                  <option value="Airtel">Airtel Money</option>
+                </select>
+                <input type="tel" placeholder="Mobile money phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
+              </>
+            )}
+            <label className="checkbox-label"><input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} /> Donate Anonymously</label>
             <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Processing...' : 'Give Now'}</button>
           </form>
         </div>

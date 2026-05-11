@@ -1,5 +1,23 @@
 const Announcement = require('../models/Announcement');
 
+const getFilePath = (file) => {
+  if (!file) return undefined;
+  const normalizedPath = file.path.replace(/\\/g, '/');
+  const uploadIndex = normalizedPath.indexOf('/uploads/');
+  return uploadIndex >= 0 ? normalizedPath.slice(uploadIndex) : `/${normalizedPath}`;
+};
+
+const withUploadedAnnouncementFiles = (body, files = {}) => {
+  const data = { ...body };
+  const featuredImage = getFilePath(files.featuredImage?.[0]);
+  const announcementVideo = getFilePath(files.announcementVideo?.[0]);
+
+  if (featuredImage) data.featuredImage = featuredImage;
+  if (announcementVideo) data.announcementVideo = announcementVideo;
+
+  return data;
+};
+
 const getAnnouncements = async (req, res) => {
   try {
     const { page = 1, limit = 10, type } = req.query;
@@ -33,18 +51,43 @@ const getAnnouncementById = async (req, res) => {
   }
 };
 
+const getManageAnnouncements = async (req, res) => {
+  try {
+    const { page = 1, limit = 100, type, status } = req.query;
+    const filter = {};
+    if (type) filter.type = type;
+    if (status) filter.status = status;
+
+    const announcements = await Announcement.find(filter)
+      .populate('createdBy', 'firstName lastName')
+      .sort({ publishDate: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await Announcement.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: { announcements, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const createAnnouncement = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Admin access required' });
+    if (!['admin', 'chaplain'].includes(req.user.role)) {
+      return res.status(403).json({ success: false, message: 'Admin or Chaplain access required' });
     }
 
-    const { type } = req.body;
-    if (!['event', 'general', 'prayer'].includes(type)) {
-      return res.status(400).json({ success: false, message: 'Invalid type. Allowed types: event, general, prayer' });
+    const { type = 'general' } = req.body;
+    const allowedTypes = ['general', 'urgent', 'event', 'ministry', 'prayer', 'administrative', 'pastoral'];
+    if (!allowedTypes.includes(type)) {
+      return res.status(400).json({ success: false, message: `Invalid type. Allowed types: ${allowedTypes.join(', ')}` });
     }
 
-    const announcement = await Announcement.create({ ...req.body, createdBy: req.user.id });
+    const announcement = await Announcement.create({ ...withUploadedAnnouncementFiles({ ...req.body, type }, req.files), createdBy: req.user.id });
     res.status(201).json({ success: true, data: { announcement } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -53,7 +96,7 @@ const createAnnouncement = async (req, res) => {
 
 const updateAnnouncement = async (req, res) => {
   try {
-    const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const announcement = await Announcement.findByIdAndUpdate(req.params.id, withUploadedAnnouncementFiles(req.body, req.files), { new: true });
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
     res.json({ success: true, data: { announcement } });
   } catch (error) {
@@ -71,4 +114,4 @@ const deleteAnnouncement = async (req, res) => {
   }
 };
 
-module.exports = { getAnnouncements, getAnnouncementById, createAnnouncement, updateAnnouncement, deleteAnnouncement };
+module.exports = { getAnnouncements, getManageAnnouncements, getAnnouncementById, createAnnouncement, updateAnnouncement, deleteAnnouncement };

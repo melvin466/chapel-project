@@ -6,6 +6,11 @@ const donationService = {
     return response.data;
   },
 
+  getDonationOptions: async () => {
+    const response = await api.get('/donations/options');
+    return response.data;
+  },
+
   getDonations: async () => {
     const response = await api.get('/donations');
     return response.data;

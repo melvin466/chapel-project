@@ -153,21 +153,21 @@ const AdminDashboardPage = () => {
   };
 
   const statsCards = [
-    { title: 'Total Events', value: data.events.total, icon: '📅', color: '#4CAF50', change: '+12%', path: '/admin/events' },
-    { title: 'Total Users', value: data.users.total, icon: '👥', color: '#2196F3', change: `+${data.users.newThisMonth} this month`, path: '/admin/users' },
-    { title: 'Prayer Requests', value: data.prayers.total, icon: '🙏', color: '#FF9800', change: `${data.prayers.active} active`, path: '/admin/prayers' },
-    { title: 'Donations', value: `UGX ${(data.donations.amount / 1000000).toFixed(1)}M`, icon: '💰', color: '#E91E63', change: `${data.donations.total} gifts`, path: '/admin/donations' },
-    { title: 'Announcements', value: data.announcements.total, icon: '📢', color: '#9C27B0', change: `${data.announcements.published} published`, path: '/admin/announcements' },
-    { title: 'Answered Prayers', value: data.prayers.answered, icon: '✨', color: '#00BCD4', change: `${((data.prayers.answered / (data.prayers.total || 1)) * 100).toFixed(0)}% rate`, path: '/admin/prayers' }
+    { title: 'Total Events', value: data.events.total, icon: 'EV', color: '#2f7d46', change: '+12%', path: '/admin/events' },
+    { title: 'Total Users', value: data.users.total, icon: 'US', color: '#315f72', change: `+${data.users.newThisMonth} this month`, path: '/admin/users' },
+    { title: 'Prayer Requests', value: data.prayers.total, icon: 'PR', color: '#8a5a1f', change: `${data.prayers.active} active`, path: '/admin/prayers' },
+    { title: 'Donations', value: `UGX ${(data.donations.amount / 1000000).toFixed(1)}M`, icon: 'DN', color: '#7a4665', change: `${data.donations.total} gifts`, path: '/admin/donations' },
+    { title: 'Announcements', value: data.announcements.total, icon: 'AN', color: '#4c5f7a', change: `${data.announcements.published} published`, path: '/admin/announcements' },
+    { title: 'Answered Prayers', value: data.prayers.answered, icon: 'OK', color: '#31706d', change: `${((data.prayers.answered / (data.prayers.total || 1)) * 100).toFixed(0)}% rate`, path: '/admin/prayers' }
   ];
 
   const quickActions = [
-    { name: 'Create Event', icon: '➕', color: '#4CAF50', path: '/admin/events/create', desc: 'Add new service or event' },
-    { name: 'Post Announcement', icon: '📢', color: '#2196F3', path: '/admin/announcements/create', desc: 'Share news with community' },
-    { name: 'Add User', icon: '👤', color: '#9C27B0', path: '/admin/users/create', desc: 'Register new member' },
-    { name: 'Review Prayers', icon: '🙏', color: '#FF9800', path: '/admin/prayers', desc: 'Respond to requests' },
-    { name: 'Export Data', icon: '📊', color: '#00BCD4', path: '/admin/export', desc: 'Download reports' },
-    { name: 'Settings', icon: '⚙️', color: '#607D8B', path: '/admin/settings', desc: 'Configure system' }
+    { name: 'Create Event', icon: 'New', color: '#2f7d46', path: '/admin/events/create', desc: 'Add new service or event' },
+    { name: 'Post Announcement', icon: 'Post', color: '#315f72', path: '/admin/announcements/create', desc: 'Share news with community' },
+    { name: 'Add User', icon: 'User', color: '#4c5f7a', path: '/admin/users/create', desc: 'Register new member' },
+    { name: 'Review Prayers', icon: 'Care', color: '#8a5a1f', path: '/admin/prayers', desc: 'Respond to requests' },
+    { name: 'Export Data', icon: 'CSV', color: '#31706d', path: '/admin/export', desc: 'Download reports' },
+    { name: 'Settings', icon: 'Set', color: '#607D8B', path: '/admin/settings', desc: 'Configure system' }
   ];
 
   if (loading) {
@@ -185,41 +185,41 @@ const AdminDashboardPage = () => {
       <aside className={`admin-sidebar ${!sidebarOpen ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <div className="logo">
-            <span className="logo-icon">⛪</span>
+            <span className="logo-icon">CMS</span>
             {sidebarOpen && <span className="logo-text">Chapel Admin</span>}
           </div>
           <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? '◀' : '▶'}
+            {sidebarOpen ? 'Hide' : 'Show'}
           </button>
         </div>
         
         <nav className="sidebar-nav">
           <button className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-            <span className="nav-icon">📊</span>
+            <span className="nav-icon">OV</span>
             {sidebarOpen && <span>Overview</span>}
           </button>
           <button className={`nav-item ${activeTab === 'events' ? 'active' : ''}`} onClick={() => navigate('/admin/events')}>
-            <span className="nav-icon">📅</span>
+            <span className="nav-icon">EV</span>
             {sidebarOpen && <span>Events</span>}
           </button>
           <button className={`nav-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => navigate('/admin/users')}>
-            <span className="nav-icon">👥</span>
+            <span className="nav-icon">US</span>
             {sidebarOpen && <span>Users</span>}
           </button>
           <button className={`nav-item ${activeTab === 'prayers' ? 'active' : ''}`} onClick={() => navigate('/admin/prayers')}>
-            <span className="nav-icon">🙏</span>
+            <span className="nav-icon">PR</span>
             {sidebarOpen && <span>Prayers</span>}
           </button>
           <button className={`nav-item ${activeTab === 'donations' ? 'active' : ''}`} onClick={() => navigate('/admin/donations')}>
-            <span className="nav-icon">💰</span>
+            <span className="nav-icon">DN</span>
             {sidebarOpen && <span>Donations</span>}
           </button>
           <button className={`nav-item ${activeTab === 'announcements' ? 'active' : ''}`} onClick={() => navigate('/admin/announcements')}>
-            <span className="nav-icon">📢</span>
+            <span className="nav-icon">AN</span>
             {sidebarOpen && <span>Announcements</span>}
           </button>
           <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => navigate('/admin/settings')}>
-            <span className="nav-icon">⚙️</span>
+            <span className="nav-icon">ST</span>
             {sidebarOpen && <span>Settings</span>}
           </button>
         </nav>
@@ -235,7 +235,7 @@ const AdminDashboardPage = () => {
             )}
           </div>
           <button onClick={logout} className="logout-btn">
-            <span className="nav-icon">🚪</span>
+            <span className="nav-icon">OUT</span>
             {sidebarOpen && <span>Logout</span>}
           </button>
         </div>
@@ -262,7 +262,7 @@ const AdminDashboardPage = () => {
                 <p>{card.title}</p>
                 <span className="stat-change">{card.change}</span>
               </div>
-              <div className="stat-arrow">→</div>
+              <div className="stat-arrow">View</div>
             </div>
           ))}
         </div>
@@ -270,13 +270,13 @@ const AdminDashboardPage = () => {
         {/* Charts Row */}
         <div className="charts-row">
           <div className="chart-card">
-            <h3>📊 Events Overview</h3>
+            <h3>Events Overview</h3>
             <div className="chart-container">
               <Pie data={eventsChartData} options={chartOptions} />
             </div>
           </div>
           <div className="chart-card">
-            <h3>💰 Revenue Trend (Last 6 Months)</h3>
+            <h3>Revenue Trend (Last 6 Months)</h3>
             <div className="chart-container">
               <Line data={revenueChartData} options={chartOptions} />
             </div>
@@ -285,7 +285,7 @@ const AdminDashboardPage = () => {
 
         {/* Quick Actions */}
         <div className="quick-actions-section">
-          <h3>⚡ Quick Actions</h3>
+          <h3>Quick Actions</h3>
           <div className="actions-grid">
             {quickActions.map((action, i) => (
               <button key={i} className="action-btn" style={{ borderLeftColor: action.color }} onClick={() => navigate(action.path)}>
@@ -302,19 +302,19 @@ const AdminDashboardPage = () => {
         {/* Recent Activity */}
         <div className="recent-grid">
           <div className="recent-card">
-            <div className="card-header"><h3>📅 Recent Events</h3><button onClick={() => navigate('/admin/events')}>View All →</button></div>
+            <div className="card-header"><h3>Recent Events</h3><button onClick={() => navigate('/admin/events')}>View All</button></div>
             {data.events.monthly.slice(-5).map((item, i) => (
               <div key={i} className="activity-item"><span className="dot green"></span><span>{item.month}: {item.events} events</span></div>
             ))}
           </div>
           <div className="recent-card">
-            <div className="card-header"><h3>🙏 Recent Prayers</h3><button onClick={() => navigate('/admin/prayers')}>View All →</button></div>
+            <div className="card-header"><h3>Recent Prayers</h3><button onClick={() => navigate('/admin/prayers')}>View All</button></div>
             {data.prayers.recent.map((prayer, i) => (
               <div key={i} className="activity-item"><span className="dot orange"></span><span>{prayer.title}</span><small>{prayer.status}</small></div>
             ))}
           </div>
           <div className="recent-card">
-            <div className="card-header"><h3>👥 New Users</h3><button onClick={() => navigate('/admin/users')}>View All →</button></div>
+            <div className="card-header"><h3>New Users</h3><button onClick={() => navigate('/admin/users')}>View All</button></div>
             {data.users.recent.map((user, i) => (
               <div key={i} className="activity-item"><span className="dot blue"></span><span>{user.firstName} {user.lastName}</span><small>{user.role}</small></div>
             ))}

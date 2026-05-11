@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import  eventService  from '../services/eventService';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import api from '../services/api';
+
+const getMediaUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+};
 
 const EventDetailPage = () => {
   const { id } = useParams();
@@ -11,17 +17,9 @@ const EventDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
   const { isAuthenticated, user } = useAuth();
-  const [eventDetails, setEventDetails] = useState(null);
 
   useEffect(() => {
     loadEvent();
-    axios.get('/api/event-details')
-      .then(response => {
-        setEventDetails(response.data);
-      })
-      .catch(error => {
-        console.error('Error fetching event details:', error);
-      });
   }, [id]);
 
   const loadEvent = async () => {
@@ -63,6 +61,12 @@ const EventDetailPage = () => {
     <div className="container">
       <div className="event-detail">
         <h1>{event.title}</h1>
+        {event.featuredImage && (
+          <img src={getMediaUrl(event.featuredImage)} alt={event.title} className="event-media-image" />
+        )}
+        {event.eventVideo && (
+          <video src={getMediaUrl(event.eventVideo)} controls className="event-media-video" />
+        )}
         <div className="event-meta">
           <p>📅 {new Date(event.startDate).toLocaleDateString()}</p>
           <p>⏰ {event.startTime} - {event.endTime}</p>
@@ -101,12 +105,16 @@ const EventDetailPage = () => {
 
         <button onClick={() => navigate('/events')} className="btn-secondary">← Back to Events</button>
       </div>
-      {eventDetails && (
-        <div className="event-details">
-          <h1>{eventDetails.name}</h1>
-          <p>{eventDetails.description}</p>
-        </div>
-      )}
+      <style>{`
+        .event-media-image, .event-media-video {
+          width: 100%;
+          max-height: 420px;
+          object-fit: cover;
+          border-radius: 12px;
+          margin: 1rem 0;
+          background: #111;
+        }
+      `}</style>
     </div>
   );
 };

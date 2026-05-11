@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import  announcementService  from '../services/announcementService';
+import api from '../services/api';
+
+const getMediaUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+};
 
 const AnnouncementDetailPage = () => {
   const { id } = useParams();
@@ -48,6 +55,12 @@ const AnnouncementDetailPage = () => {
         </div>
         
         <h1>{announcement.title}</h1>
+        {announcement.featuredImage && (
+          <img src={getMediaUrl(announcement.featuredImage)} alt={announcement.title} className="announcement-media-image" />
+        )}
+        {announcement.announcementVideo && (
+          <video src={getMediaUrl(announcement.announcementVideo)} controls className="announcement-media-video" />
+        )}
         
         <div className="announcement-content">
           <p>{announcement.content}</p>
@@ -62,8 +75,9 @@ const AnnouncementDetailPage = () => {
 
       <style>{`
         .announcement-detail {
-          background: rgba(255,255,255,0.95);
-          border-radius: 16px;
+          max-width: 100%;
+          overflow: hidden;
+          border-radius: 8px;
           padding: 2rem;
           margin: 1rem 0;
         }
@@ -84,10 +98,45 @@ const AnnouncementDetailPage = () => {
         .priority-high, .priority-critical { background: #f44336; color: white; }
         .priority-medium { background: #ff9800; color: white; }
         .priority-low { background: #4CAF50; color: white; }
-        .announcement-date { color: #888; font-size: 0.85rem; }
-        .announcement-detail h1 { color: #333; margin: 1rem 0; }
-        .announcement-content { margin: 1.5rem 0; line-height: 1.8; color: #444; }
-        .announcement-author { padding-top: 1rem; border-top: 1px solid #eee; color: #999; font-size: 0.85rem; }
+        .announcement-date { color: rgba(255, 255, 255, 0.72); font-size: 0.85rem; }
+        .announcement-detail h1 {
+          color: white;
+          margin: 1rem 0;
+          max-width: 100%;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          line-height: 1.15;
+        }
+        .announcement-media-image, .announcement-media-video {
+          width: 100%;
+          max-height: 420px;
+          object-fit: cover;
+          border-radius: 12px;
+          margin: 1rem 0;
+          background: #111;
+        }
+        .announcement-content {
+          max-width: 100%;
+          margin: 1.5rem 0;
+          line-height: 1.8;
+          color: rgba(255, 255, 255, 0.78);
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          white-space: pre-wrap;
+        }
+        .announcement-content p {
+          max-width: 100%;
+          overflow-wrap: anywhere;
+          word-break: break-word;
+          white-space: pre-wrap;
+        }
+        .announcement-author {
+          padding-top: 1rem;
+          border-top: 1px solid rgba(255,255,255,0.14);
+          color: rgba(255, 255, 255, 0.64);
+          font-size: 0.85rem;
+          overflow-wrap: anywhere;
+        }
       `}</style>
     </div>
   );

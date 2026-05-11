@@ -8,6 +8,8 @@ const donationSchema = new mongoose.Schema({
   isAnonymous: { type: Boolean, default: false },
   donorName: String,
   donorEmail: String,
+  phoneNumber: String,
+  provider: { type: String, enum: ['MTN', 'Airtel'] },
   paymentMethod: { type: String, enum: ['mobile_money', 'credit_card', 'bank_transfer', 'cash'], required: true },
   transactionId: String,
   status: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: 'pending' },

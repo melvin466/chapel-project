@@ -1,22 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import  eventService  from '../services/eventService';
-import prayerService from '../services/prayerService';  // ← FIXED: removed curly braces
-import  notificationService  from '../services/notificationService';
+import eventService from '../services/eventService';
+import notificationService from '../services/notificationService';
+import prayerService from '../services/prayerService';
 
 const DashboardPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [myEvents, setMyEvents] = useState([]);
-  const [myPrayers, setMyPrayers] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [prayers, setPrayers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    registeredEvents: 0,
-    prayerRequests: 0,
-    unreadNotifications: 0
-  });
 
   useEffect(() => {
     loadDashboardData();
@@ -26,24 +21,14 @@ const DashboardPage = () => {
     try {
       setLoading(true);
       const [eventsRes, prayersRes, notificationsRes] = await Promise.all([
-        eventService.getEvents(),
-        prayerService.getPrayerRequests(),
-        notificationService.getNotifications()
+        eventService.getEvents({ limit: 3 }),
+        prayerService.getPrayerRequests({ limit: 3 }),
+        notificationService.getNotifications(),
       ]);
-      
-      const events = eventsRes.data?.events || [];
-      const prayers = prayersRes.data?.prayerRequests || [];
-      const notifs = notificationsRes.data?.notifications || [];
-      
-      setMyEvents(events);
-      setMyPrayers(prayers);
-      setNotifications(notifs);
-      
-      setStats({
-        registeredEvents: events.length,
-        prayerRequests: prayers.length,
-        unreadNotifications: notifs.filter(n => !n.isRead).length
-      });
+
+      setEvents(eventsRes.data?.events || []);
+      setPrayers(prayersRes.data?.prayerRequests || []);
+      setNotifications(notificationsRes.data?.notifications || []);
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {
@@ -51,253 +36,91 @@ const DashboardPage = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
   };
 
   if (loading) {
     return (
       <div className="loading-container">
         <div className="loader"></div>
-        <p>Loading dashboard...</p>
+        <p>Loading your dashboard...</p>
       </div>
     );
   }
 
+  const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+
   return (
-    <div className="dashboard-page">
-      <div className="container">
-        {/* Welcome Section */}
-        <div className="welcome-section">
-          <h1>Welcome back, {user?.firstName}! 👋</h1>
-          <p>Here's what's happening in your spiritual journey.</p>
-          <button onClick={handleLogout} className="btn-logout">Logout</button>
+    <div className="container member-dashboard">
+      <section className="member-dashboard-hero">
+        <div>
+          <span className="profile-role">Member dashboard</span>
+          <h1>Welcome back, {user?.firstName || 'friend'}.</h1>
+          <p>Your chapel activity, prayer life, and community links are gathered here.</p>
         </div>
+        <button onClick={handleLogout} className="logout-btn member-logout">Logout</button>
+      </section>
 
-        {/* Stats Cards */}
-        <div className="dashboard-stats">
-          <div className="stat-card" onClick={() => navigate('/my-events')}>
-            <h3>{stats.registeredEvents}</h3>
-            <p>Events Registered</p>
-          </div>
-          <div className="stat-card" onClick={() => navigate('/my-prayers')}>
-            <h3>{stats.prayerRequests}</h3>
-            <p>Prayer Requests</p>
-          </div>
-          <div className="stat-card" onClick={() => navigate('/notifications')}>
-            <h3>{stats.unreadNotifications}</h3>
-            <p>Unread Notifications</p>
-          </div>
-        </div>
+      <section className="member-stat-grid">
+        <Link to="/events" className="member-stat-card">
+          <strong>{events.length}</strong>
+          <span>Upcoming events</span>
+        </Link>
+        <Link to="/prayer" className="member-stat-card">
+          <strong>{prayers.length}</strong>
+          <span>Prayer requests</span>
+        </Link>
+        <Link to="/notifications" className="member-stat-card">
+          <strong>{unreadCount}</strong>
+          <span>Unread notifications</span>
+        </Link>
+      </section>
 
-        {/* Quick Actions */}
-        <div className="dashboard-section">
-          <h2>Quick Actions</h2>
-          <div className="quick-actions">
-            <button onClick={() => navigate('/events')} className="btn-primary">
-              📅 View Events
-            </button>
-            <button onClick={() => navigate('/prayer')} className="btn-primary">
-              🙏 Submit Prayer
-            </button>
-            <button onClick={() => navigate('/donations')} className="btn-primary">
-              💰 Give Offering
-            </button>
-            <button onClick={() => navigate('/profile')} className="btn-secondary">
-              👤 Update Profile
-            </button>
-          </div>
-        </div>
+      <section className="member-actions">
+        <Link to="/prayer">Submit Prayer</Link>
+        <Link to="/give">Give Online</Link>
+        <Link to="/bookings">Book Support</Link>
+        <Link to="/profile">Update Profile</Link>
+      </section>
 
-        {/* My Events */}
-        {myEvents.length > 0 && (
-          <div className="dashboard-section">
-            <h2>Your Upcoming Events</h2>
-            <div className="events-list">
-              {myEvents.slice(0, 3).map(event => (
-                <div key={event._id} className="event-item" onClick={() => navigate(`/events/${event._id}`)}>
-                  <div className="event-info">
-                    <h4>{event.title}</h4>
-                    <p>📅 {new Date(event.startDate).toLocaleDateString()}</p>
-                    <p>📍 {event.location}</p>
-                  </div>
-                  <button className="btn-small">View</button>
-                </div>
-              ))}
-            </div>
+      <div className="member-dashboard-grid">
+        <section className="member-panel">
+          <div className="member-panel-header">
+            <h2>Upcoming Events</h2>
+            <Link to="/events">View all</Link>
           </div>
-        )}
+          {events.length === 0 ? (
+            <p className="member-empty">No upcoming events yet.</p>
+          ) : (
+            events.map((event) => (
+              <Link key={event._id} to={`/events/${event._id}`} className="member-list-item">
+                <strong>{event.title}</strong>
+                <span>{event.startDate ? new Date(event.startDate).toLocaleDateString() : 'Date to be announced'}</span>
+              </Link>
+            ))
+          )}
+        </section>
 
-        {/* My Prayers */}
-        {myPrayers.length > 0 && (
-          <div className="dashboard-section">
-            <h2>Your Prayer Requests</h2>
-            <div className="prayers-list">
-              {myPrayers.slice(0, 3).map(prayer => (
-                <div key={prayer._id} className="prayer-item">
-                  <h4>{prayer.title}</h4>
-                  <p>{prayer.description?.substring(0, 100)}...</p>
-                  <span className={`status ${prayer.status}`}>{prayer.status}</span>
-                </div>
-              ))}
-            </div>
+        <section className="member-panel">
+          <div className="member-panel-header">
+            <h2>Prayer Requests</h2>
+            <Link to="/prayer">Open prayer page</Link>
           </div>
-        )}
+          {prayers.length === 0 ? (
+            <p className="member-empty">No prayer requests yet.</p>
+          ) : (
+            prayers.map((prayer) => (
+              <div key={prayer._id} className="member-list-item">
+                <strong>{prayer.title}</strong>
+                <span>{prayer.status}</span>
+                {prayer.adminResponse && <p>{prayer.adminResponse}</p>}
+              </div>
+            ))
+          )}
+        </section>
       </div>
-
-      <style>{`
-        .dashboard-page {
-          padding: 2rem 0;
-          min-height: 70vh;
-        }
-        
-        .welcome-section {
-          text-align: center;
-          margin-bottom: 2rem;
-        }
-        
-        .welcome-section h1 {
-          font-size: 2rem;
-          color: white;
-          margin-bottom: 0.5rem;
-        }
-        
-        .welcome-section p {
-          color: rgba(255,255,255,0.8);
-        }
-        
-        .btn-logout {
-          margin-top: 1rem;
-          padding: 0.5rem 1rem;
-          background: rgba(255,255,255,0.2);
-          border: none;
-          border-radius: 5px;
-          color: white;
-          cursor: pointer;
-        }
-        
-        .dashboard-stats {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 1.5rem;
-          margin: 2rem 0;
-        }
-        
-        .stat-card {
-          background: rgba(255,255,255,0.95);
-          padding: 1.5rem;
-          border-radius: 12px;
-          text-align: center;
-          cursor: pointer;
-          transition: transform 0.3s;
-        }
-        
-        .stat-card:hover {
-          transform: translateY(-5px);
-        }
-        
-        .stat-card h3 {
-          font-size: 2.5rem;
-          color: #4CAF50;
-          margin-bottom: 0.5rem;
-        }
-        
-        .stat-card p {
-          color: #666;
-        }
-        
-        .dashboard-section {
-          background: rgba(255,255,255,0.95);
-          border-radius: 12px;
-          padding: 1.5rem;
-          margin-bottom: 1.5rem;
-        }
-        
-        .dashboard-section h2 {
-          color: #333;
-          margin-bottom: 1rem;
-        }
-        
-        .quick-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 1rem;
-        }
-        
-        .events-list, .prayers-list {
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-        }
-        
-        .event-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 1rem;
-          background: #f5f5f5;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-        
-        .event-item:hover {
-          background: #e8f5e9;
-        }
-        
-        .event-info h4 {
-          color: #333;
-          margin-bottom: 0.25rem;
-        }
-        
-        .event-info p {
-          color: #666;
-          font-size: 0.85rem;
-        }
-        
-        .btn-small {
-          padding: 0.4rem 1rem;
-          background: #4CAF50;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-        }
-        
-        .prayer-item {
-          padding: 1rem;
-          background: #f5f5f5;
-          border-radius: 8px;
-        }
-        
-        .prayer-item h4 {
-          color: #333;
-          margin-bottom: 0.25rem;
-        }
-        
-        .prayer-item p {
-          color: #666;
-          font-size: 0.85rem;
-        }
-        
-        .status {
-          display: inline-block;
-          padding: 0.2rem 0.5rem;
-          border-radius: 4px;
-          font-size: 0.7rem;
-          margin-top: 0.5rem;
-        }
-        
-        .status.active {
-          background: #4CAF50;
-          color: white;
-        }
-        
-        .status.answered {
-          background: #2196F3;
-          color: white;
-        }
-      `}</style>
     </div>
   );
 };

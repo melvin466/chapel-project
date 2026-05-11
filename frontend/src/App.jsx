@@ -58,11 +58,23 @@ const AdminRoute = ({ children }) => {
   return children;
 };
 
+// Content Manager Route Component - Accessible to admin or chaplain
+const ContentManagerRoute = ({ children }) => {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+  if (user?.role !== 'admin' && user?.role !== 'chaplain') {
+    return <Navigate to="/dashboard" />;
+  }
+  return children;
+};
+
 // Public Route - Redirect to dashboard if already logged in
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to={user?.role === 'admin' ? '/admin' : '/'} />;
   }
   return children;
 };
@@ -75,10 +87,8 @@ function App() {
           <Navbar />
           <main>
             <Routes>
-              {/* ===== PUBLIC ROUTE - ONLY HOME ===== */}
+              {/* ===== PUBLIC ROUTES (No login required) ===== */}
               <Route path="/" element={<HomePage />} />
-              
-              {/* ===== AUTH ROUTES (redirect if already logged in) ===== */}
               <Route path="/login" element={
                 <PublicRoute>
                   <LoginPage />
@@ -90,7 +100,7 @@ function App() {
                 </PublicRoute>
               } />
               
-              {/* ===== PROTECTED ROUTES (ALL require login) ===== */}
+              {/* ===== PROTECTED ROUTES (Login required) ===== */}
               <Route path="/events" element={
                 <ProtectedRoute>
                   <EventsPage />
@@ -167,21 +177,21 @@ function App() {
                 </ProtectedRoute>
               } />
               
-              {/* ===== ADMIN MANAGEMENT ROUTES ===== */}
+              {/* ===== ADMIN ONLY ROUTES ===== */}
               <Route path="/admin" element={
                 <AdminRoute>
                   <AdminDashboardPage />
                 </AdminRoute>
               } />
               <Route path="/admin/events" element={
-                <AdminRoute>
+                <ContentManagerRoute>
                   <AdminEvents />
-                </AdminRoute>
+                </ContentManagerRoute>
               } />
               <Route path="/admin/announcements" element={
-                <AdminRoute>
+                <ContentManagerRoute>
                   <AdminAnnouncements />
-                </AdminRoute>
+                </ContentManagerRoute>
               } />
               <Route path="/admin/prayers" element={
                 <AdminRoute>
@@ -198,27 +208,32 @@ function App() {
                   <AdminSettings />
                 </AdminRoute>
               } />
-              
-              {/* ===== ADMIN CREATE/EDIT ROUTES (NEW) ===== */}
-              <Route path="/admin/events/create" element={
+              <Route path="/admin/export" element={
                 <AdminRoute>
-                  <AdminEventForm />
+                  <AdminExport />
                 </AdminRoute>
+              } />
+              
+              {/* ===== ADMIN/CHAPLAIN CREATE/EDIT ROUTES ===== */}
+              <Route path="/admin/events/create" element={
+                <ContentManagerRoute>
+                  <AdminEventForm />
+                </ContentManagerRoute>
               } />
               <Route path="/admin/events/edit/:id" element={
-                <AdminRoute>
+                <ContentManagerRoute>
                   <AdminEventForm />
-                </AdminRoute>
+                </ContentManagerRoute>
               } />
               <Route path="/admin/announcements/create" element={
-                <AdminRoute>
+                <ContentManagerRoute>
                   <AdminAnnouncementForm />
-                </AdminRoute>
+                </ContentManagerRoute>
               } />
               <Route path="/admin/announcements/edit/:id" element={
-                <AdminRoute>
+                <ContentManagerRoute>
                   <AdminAnnouncementForm />
-                </AdminRoute>
+                </ContentManagerRoute>
               } />
               <Route path="/admin/users/create" element={
                 <AdminRoute>
@@ -228,11 +243,6 @@ function App() {
               <Route path="/admin/users/edit/:id" element={
                 <AdminRoute>
                   <AdminUserForm />
-                </AdminRoute>
-              } />
-              <Route path="/admin/export" element={
-                <AdminRoute>
-                  <AdminExport />
                 </AdminRoute>
               } />
               

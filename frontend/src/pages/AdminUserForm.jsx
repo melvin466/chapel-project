@@ -7,6 +7,7 @@ const AdminUserForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -14,7 +15,9 @@ const AdminUserForm = () => {
     password: '',
     phoneNumber: '',
     role: 'member',
-    isActive: true
+    isActive: true,
+    isEmailVerified: false,
+    profilePicture: ''
   });
 
   useEffect(() => {
@@ -35,7 +38,9 @@ const AdminUserForm = () => {
         password: '',
         phoneNumber: user.phoneNumber,
         role: user.role,
-        isActive: user.isActive
+        isActive: user.isActive,
+        isEmailVerified: user.isEmailVerified || false,
+        profilePicture: user.profilePicture || ''
       });
     } catch (error) {
       console.error('Error loading user:', error);
@@ -50,22 +55,31 @@ const AdminUserForm = () => {
     });
   };
 
+  const buildPayload = () => {
+    const payload = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === 'password' && !value) return;
+      payload.append(key, value ?? '');
+    });
+    if (profilePicture) payload.append('profilePicture', profilePicture);
+    return payload;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (isEditing) {
-        const updateData = { ...formData };
-        if (!updateData.password) delete updateData.password;
-        await userService.updateUser(id, updateData);
+        await userService.updateUser(id, buildPayload());
         alert('User updated successfully!');
       } else {
-        await userService.createUser(formData);
+        await userService.createUser(buildPayload());
         alert('User created successfully!');
       }
       navigate('/admin/users');
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save user');
+      console.error('Failed to save user:', error.response?.data || error);
+      alert(error.response?.data?.message || `Failed to save user (${error.response?.status || 'network error'})`);
     } finally {
       setLoading(false);
     }
@@ -89,16 +103,29 @@ const AdminUserForm = () => {
           {!isEditing && (
             <input type="password" name="password" placeholder="Password" value={formData.password} onChange={handleChange} required />
           )}
+
+          <div className="media-upload-section">
+            <label>
+              Profile picture
+              <input type="file" name="profilePicture" accept="image/*" onChange={(e) => setProfilePicture(e.target.files[0] || null)} />
+            </label>
+            {formData.profilePicture && <small>Current image: {formData.profilePicture}</small>}
+          </div>
           
           <div className="form-row">
             <select name="role" value={formData.role} onChange={handleChange}>
               <option value="member">Member</option>
               <option value="chaplain">Chaplain</option>
               <option value="admin">Admin</option>
+              <option value="student_leader">Student Leader</option>
             </select>
             <label className="checkbox-label">
               <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleChange} />
               Active Account
+            </label>
+            <label className="checkbox-label">
+              <input type="checkbox" name="isEmailVerified" checked={formData.isEmailVerified} onChange={handleChange} />
+              Email Verified
             </label>
           </div>
 
@@ -112,16 +139,19 @@ const AdminUserForm = () => {
       </div>
 
       <style>{`
-        .admin-form-container { min-height: 80vh; display: flex; justify-content: center; align-items: center; padding: 2rem; background: linear-gradient(135deg, #667eea, #764ba2); }
-        .admin-form-card { background: white; border-radius: 24px; padding: 2rem; max-width: 600px; width: 100%; }
+        .admin-form-container { min-height: 80vh; display: flex; justify-content: center; align-items: center; padding: 2rem; }
+        .admin-form-card { background: rgba(255,255,255,0.96); border-radius: 8px; padding: 2rem; max-width: 600px; width: 100%; box-shadow: 0 18px 45px rgba(16,24,40,0.16); border: 1px solid rgba(255,255,255,0.55); }
         .admin-form-card h1 { color: #333; margin-bottom: 1.5rem; }
         .admin-form-card input, .admin-form-card select { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 8px; }
+        .media-upload-section { display: grid; gap: 0.5rem; margin-bottom: 1rem; }
+        .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; color: #333; font-weight: 500; }
+        .media-upload-section small { color: #666; overflow-wrap: anywhere; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
         .form-row input, .form-row select { flex: 1; }
         .checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
         .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem; }
-        .btn-primary { background: #4CAF50; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
-        .btn-secondary { background: #9e9e9e; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-primary { background: #2f7d46; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
+        .btn-secondary { background: #315f72; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
       `}</style>
     </div>
   );

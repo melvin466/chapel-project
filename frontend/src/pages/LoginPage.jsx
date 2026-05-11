@@ -19,7 +19,7 @@ const LoginPage = () => {
     const sanitizedPassword = DOMPurify.sanitize(password);
     const response = await login(sanitizedEmail, sanitizedPassword);
     if (response.success) {
-      navigate('/');
+      navigate(response.user?.role === 'admin' ? '/admin' : '/', { replace: true });
     } else {
       setError(response.message || 'Login failed');
     }

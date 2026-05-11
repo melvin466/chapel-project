@@ -8,6 +8,25 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
 };
 
+const getFilePath = (file) => {
+  if (!file) return undefined;
+  const normalizedPath = file.path.replace(/\\/g, '/');
+  const uploadIndex = normalizedPath.indexOf('/uploads/');
+  return uploadIndex >= 0 ? normalizedPath.slice(uploadIndex) : `/${normalizedPath}`;
+};
+
+const toSafeUser = (user) => ({
+  _id: user._id,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email,
+  phoneNumber: user.phoneNumber,
+  role: user.role,
+  profilePicture: user.profilePicture,
+  bio: user.bio,
+  isEmailVerified: user.isEmailVerified,
+});
+
 const register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, phoneNumber } = req.body;
@@ -73,11 +92,7 @@ const login = async (req, res) => {
       message: 'Login successful',
       data: {
         user: {
-          _id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          role: user.role
+          ...toSafeUser(user)
         },
         token
       }
@@ -96,4 +111,33 @@ const getMe = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe };
+const updateMe = async (req, res) => {
+  try {
+    const allowedFields = ['firstName', 'lastName', 'phoneNumber', 'bio'];
+    const updateData = {};
+
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) updateData[field] = req.body[field];
+    });
+
+    const profilePicture = getFilePath(req.file);
+    if (profilePicture) updateData.profilePicture = profilePicture;
+
+    const user = await User.findByIdAndUpdate(req.user.id, updateData, {
+      new: true,
+      runValidators: true,
+    }).select('-password');
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    res.json({ success: true, data: { user } });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const message = Object.values(error.errors).map((err) => err.message).join(', ');
+      return res.status(400).json({ success: false, message });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { register, login, getMe, updateMe };

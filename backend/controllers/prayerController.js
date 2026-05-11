@@ -5,10 +5,11 @@ const getPrayerRequests = async (req, res) => {
     const { page = 1, limit = 10, status } = req.query;
     const filter = {};
     if (status) filter.status = status;
-    if (req.user.role !== 'admin') filter.status = 'active';
+    if (req.user.role !== 'admin') filter.status = { $in: ['active', 'answered'] };
 
     const prayerRequests = await PrayerRequest.find(filter)
       .populate('requestedBy', 'firstName lastName')
+      .populate('answeredBy', 'firstName lastName')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -53,12 +54,23 @@ const prayForRequest = async (req, res) => {
 
 const updatePrayerStatus = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, adminResponse = '' } = req.body;
+    if (!['active', 'answered', 'closed'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid prayer status' });
+    }
+
+    const updateData = {
+      status,
+      adminResponse: status === 'answered' ? adminResponse : '',
+      answeredBy: status === 'answered' ? req.user.id : null,
+      answeredAt: status === 'answered' ? new Date() : null
+    };
+
     const prayer = await PrayerRequest.findByIdAndUpdate(
-      req.params.id, 
-      { status, answeredAt: status === 'answered' ? new Date() : null },
+      req.params.id,
+      updateData,
       { new: true }
-    );
+    ).populate('requestedBy', 'firstName lastName').populate('answeredBy', 'firstName lastName');
     if (!prayer) return res.status(404).json({ success: false, message: 'Prayer request not found' });
     res.json({ success: true, data: { prayer } });
   } catch (error) {
@@ -66,4 +78,14 @@ const updatePrayerStatus = async (req, res) => {
   }
 };
 
-module.exports = { getPrayerRequests, createPrayerRequest, prayForRequest, updatePrayerStatus };
+const deletePrayerRequest = async (req, res) => {
+  try {
+    const prayer = await PrayerRequest.findByIdAndDelete(req.params.id);
+    if (!prayer) return res.status(404).json({ success: false, message: 'Prayer request not found' });
+    res.json({ success: true, message: 'Prayer request deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+module.exports = { getPrayerRequests, createPrayerRequest, prayForRequest, updatePrayerStatus, deletePrayerRequest };

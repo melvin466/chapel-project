@@ -8,6 +8,7 @@ const announcementSchema = new mongoose.Schema({
   priority: { type: String, enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
   targetAudience: { type: String, enum: ['everyone', 'students', 'staff', 'cell_members', 'ministry_members', 'leaders'], default: 'everyone' },
   featuredImage: { type: String, default: '' },
+  announcementVideo: { type: String, default: '' },
   isFeatured: { type: Boolean, default: false },
   status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft' },
   publishDate: { type: Date, default: Date.now },
