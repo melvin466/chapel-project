@@ -36,6 +36,7 @@ const LoginPage = () => {
           <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <button type="submit" disabled={loading} className="btn-primary">{loading ? 'Logging in...' : 'Login'}</button>
         </form>
+        <p><Link to="/forgot-password">Forgot password?</Link></p>
         <p>Don't have an account? <Link to="/register">Register</Link></p>
       </div>
     </div>

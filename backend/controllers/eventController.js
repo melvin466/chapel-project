@@ -37,7 +37,7 @@ const getEvents = async (req, res) => {
       data: { events, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -50,7 +50,7 @@ const getEventById = async (req, res) => {
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
     res.json({ success: true, data: { event } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -74,7 +74,7 @@ const getManageEvents = async (req, res) => {
       data: { events, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -83,7 +83,7 @@ const createEvent = async (req, res) => {
     const event = await Event.create({ ...withUploadedEventFiles(req.body, req.files), createdBy: req.user.id });
     res.status(201).json({ success: true, data: { event } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -93,7 +93,7 @@ const updateEvent = async (req, res) => {
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
     res.json({ success: true, data: { event } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -103,7 +103,7 @@ const deleteEvent = async (req, res) => {
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
     res.json({ success: true, message: 'Event deleted' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -122,7 +122,7 @@ const registerForEvent = async (req, res) => {
     
     res.json({ success: true, message: 'Registered successfully' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -134,7 +134,7 @@ const getUpcomingEvents = async (req, res) => {
       .limit(limit);
     res.json({ success: true, data: { events } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

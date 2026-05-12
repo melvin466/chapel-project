@@ -1,35 +1,39 @@
-const SibApiV3Sdk = require('sib-api-v3-sdk');
 require('dotenv').config();
 
-const client = SibApiV3Sdk.ApiClient.instance;
-const apiKey = client.authentications['api-key'];
-apiKey.apiKey = process.env.BREVO_API_KEY;
-
 const sendEmail = async ({ to, subject, htmlContent }) => {
-  try {
-    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+  const apiKey = process.env.BREVO_API_KEY;
+  const senderEmail = process.env.BREVO_SENDER_EMAIL;
+  const senderName = process.env.BREVO_SENDER_NAME || 'Chapel Management';
 
-    const sender = {
-      email: process.env.BREVO_SENDER_EMAIL,
-      name: process.env.BREVO_SENDER_NAME,
-    };
+  if (!apiKey || !senderEmail) {
+    if (process.env.NODE_ENV !== 'test') {
+      console.warn('Email not sent: BREVO_API_KEY and BREVO_SENDER_EMAIL are not configured.');
+    }
+    return { skipped: true };
+  }
 
-    const receivers = [{ email: to }];
-
-    const emailData = {
-      sender,
-      to: receivers,
+  const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'api-key': apiKey,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      sender: { email: senderEmail, name: senderName },
+      to: [{ email: to }],
       subject,
       htmlContent,
-    };
+    }),
+  });
 
-    const response = await apiInstance.sendTransacEmail(emailData);
-    console.log('Email sent successfully:', response);
-    return response;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || `Email provider returned ${response.status}`);
   }
+
+  return data;
 };
 
 module.exports = sendEmail;

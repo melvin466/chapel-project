@@ -84,6 +84,26 @@ export const authService = {
     return response.data;
   },
 
+  verifyEmail: async (token) => {
+    const response = await api.post('/auth/verify-email', { token });
+    return response.data;
+  },
+
+  resendVerification: async (email) => {
+    const response = await api.post('/auth/resend-verification', { email });
+    return response.data;
+  },
+
+  forgotPassword: async (email) => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  resetPassword: async (token, password) => {
+    const response = await api.post('/auth/reset-password', { token, password });
+    return response.data;
+  },
+
   getCurrentUser: () => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;

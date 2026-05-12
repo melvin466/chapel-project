@@ -21,7 +21,7 @@ const getPrayerRequests = async (req, res) => {
       data: { prayerRequests, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -30,7 +30,7 @@ const createPrayerRequest = async (req, res) => {
     const prayerRequest = await PrayerRequest.create({ ...req.body, requestedBy: req.user.id });
     res.status(201).json({ success: true, data: { prayerRequest } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -48,7 +48,7 @@ const prayForRequest = async (req, res) => {
     
     res.json({ success: true, message: 'Prayer recorded', prayerCount: prayer.prayerCount });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -74,7 +74,7 @@ const updatePrayerStatus = async (req, res) => {
     if (!prayer) return res.status(404).json({ success: false, message: 'Prayer request not found' });
     res.json({ success: true, data: { prayer } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -84,7 +84,7 @@ const deletePrayerRequest = async (req, res) => {
     if (!prayer) return res.status(404).json({ success: false, message: 'Prayer request not found' });
     res.json({ success: true, message: 'Prayer request deleted' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

@@ -35,5 +35,7 @@ const eventSchema = new mongoose.Schema({
 
 eventSchema.index({ startDate: 1, status: 1 });
 eventSchema.index({ type: 1, startDate: -1 });
+eventSchema.index({ attendees: 1, status: 1, startDate: 1 });
+eventSchema.index({ createdBy: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Event', eventSchema);

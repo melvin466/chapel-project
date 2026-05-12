@@ -1388,6 +1388,76 @@ main {
   overflow-wrap: anywhere;
 }
 
+.booking-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+
+.booking-form-card {
+  position: sticky;
+  top: 92px;
+}
+
+.booking-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.booking-form-row input {
+  min-width: 0;
+}
+
+.bookings-list {
+  min-width: 0;
+}
+
+.bookings-list > h2 {
+  color: white;
+  font-size: 1.35rem;
+  margin-bottom: 1rem;
+}
+
+.booking-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.booking-status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #8a6d1f;
+}
+
+.status-confirmed {
+  background: var(--brand);
+}
+
+.status-cancelled {
+  background: #6b7280;
+}
+
+.status-completed {
+  background: var(--accent);
+}
+
+.booking-item .btn-secondary {
+  margin-top: 0.5rem;
+}
+
 .info-card h3, .info-card h4 {
   color: #333;
   margin-bottom: 1rem;
@@ -2022,7 +2092,13 @@ main {
 
   .member-stat-grid,
   .member-actions,
-  .member-dashboard-grid {
+  .member-dashboard-grid,
+  .booking-layout,
+  .booking-form-row {
     grid-template-columns: 1fr;
+  }
+
+  .booking-form-card {
+    position: static;
   }
 }

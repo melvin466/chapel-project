@@ -20,4 +20,9 @@ const donationSchema = new mongoose.Schema({
   completedAt: Date
 });
 
+donationSchema.index({ donor: 1, createdAt: -1 });
+donationSchema.index({ status: 1, donationType: 1, createdAt: -1 });
+donationSchema.index({ transactionId: 1 }, { sparse: true });
+donationSchema.index({ receiptNumber: 1 }, { sparse: true });
+
 module.exports = mongoose.model('Donation', donationSchema);

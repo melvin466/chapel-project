@@ -7,11 +7,23 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const winston = require('winston');
 const path = require('path');
+const compression = require('compression');
+const sanitizeRequest = require('./middleware/sanitize');
+const { getErrorMessage } = require('./utils/errorResponse');
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction && !process.env.JWT_SECRET) {
+  throw new Error('JWT_SECRET is required in production');
+}
+
+if (isProduction) {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY || 1));
+}
 
 // Middleware
 const allowedOrigins = [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://localhost:5173'];
@@ -25,15 +37,28 @@ app.use(cors({
     }
   },
 }));
-app.use(express.json());
+app.use(express.json({
+  limit: process.env.JSON_BODY_LIMIT || '1mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  },
+}));
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitizeRequest);
 app.use(helmet());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(compression());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  dotfiles: 'deny',
+  index: false,
+  maxAge: isProduction ? '1d' : 0,
+}));
 
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use(limiter);
@@ -156,7 +181,7 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Server is running',
-    database: process.env.MONGODB_URI,
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     timestamp: new Date(),
   });
 });
@@ -178,30 +203,35 @@ app.use((req, res) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   logger.error(err.stack);
-  res.status(500).json({ 
+  res.status(err.status || 500).json({ 
     success: false, 
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    message: getErrorMessage(err)
   });
 });
 
-// MongoDB connection
-const mongooseOptions = {
-  tls: true, // Enable TLS/SSL
-  tlsAllowInvalidCertificates: true, // Allow self-signed certificates (if needed)
-};
+module.exports = app;
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/chapel-system', mongooseOptions)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`✅ Server running on http://localhost:${PORT}`);
-      // Display routes
-      logRegisteredRoutes();
+if (process.env.NODE_ENV !== 'test') {
+  // MongoDB connection
+  const mongooseOptions = process.env.MONGODB_TLS === 'true'
+    ? {
+        tls: true,
+        tlsAllowInvalidCertificates: process.env.MONGODB_TLS_ALLOW_INVALID_CERTS === 'true',
+      }
+    : {};
+
+  mongoose.connect(process.env.MONGODB_URI || process.env.DB_URI || 'mongodb://localhost:27017/chapel-system', mongooseOptions)
+    .then(() => {
+      console.log('✅ Connected to MongoDB');
+      const PORT = process.env.PORT || 5000;
+      app.listen(PORT, () => {
+        console.log(`✅ Server running on http://localhost:${PORT}`);
+        // Display routes
+        logRegisteredRoutes();
+      });
+    })
+    .catch(err => {
+      console.error('❌ MongoDB Error:', err.message);
+      process.exit(1);
     });
-  })
-  .catch(err => {
-    console.error('❌ MongoDB Error:', err.message);
-    process.exit(1);
-  });
+}

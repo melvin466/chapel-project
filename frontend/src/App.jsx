@@ -8,6 +8,9 @@ import EventsPage from './pages/EventsPage';
 import EventDetailPage from './pages/EventDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import PrayerPage from './pages/PrayerPage';
 import DonationsPage from './pages/DonationsPage';
 import DashboardPage from './pages/DashboardPage';
@@ -28,6 +31,7 @@ import AdminAnnouncements from './pages/AdminAnnouncements';
 import AdminPrayerRequests from './pages/AdminPrayerRequests';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
+import AdminBookings from './pages/AdminBookings';
 
 // NEW IMPORTS FOR CREATE/EDIT FORMS
 import AdminEventForm from './pages/AdminEventForm';
@@ -99,6 +103,17 @@ function App() {
                   <RegisterPage />
                 </PublicRoute>
               } />
+              <Route path="/forgot-password" element={
+                <PublicRoute>
+                  <ForgotPasswordPage />
+                </PublicRoute>
+              } />
+              <Route path="/reset-password" element={
+                <PublicRoute>
+                  <ResetPasswordPage />
+                </PublicRoute>
+              } />
+              <Route path="/verify-email" element={<VerifyEmailPage />} />
               
               {/* ===== PROTECTED ROUTES (Login required) ===== */}
               <Route path="/events" element={
@@ -191,6 +206,11 @@ function App() {
               <Route path="/admin/announcements" element={
                 <ContentManagerRoute>
                   <AdminAnnouncements />
+                </ContentManagerRoute>
+              } />
+              <Route path="/admin/bookings" element={
+                <ContentManagerRoute>
+                  <AdminBookings />
                 </ContentManagerRoute>
               } />
               <Route path="/admin/prayers" element={

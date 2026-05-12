@@ -37,7 +37,7 @@ const getAnnouncements = async (req, res) => {
       data: { announcements, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -47,7 +47,7 @@ const getAnnouncementById = async (req, res) => {
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
     res.json({ success: true, data: { announcement } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -71,7 +71,7 @@ const getManageAnnouncements = async (req, res) => {
       data: { announcements, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -90,7 +90,7 @@ const createAnnouncement = async (req, res) => {
     const announcement = await Announcement.create({ ...withUploadedAnnouncementFiles({ ...req.body, type }, req.files), createdBy: req.user.id });
     res.status(201).json({ success: true, data: { announcement } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -100,7 +100,7 @@ const updateAnnouncement = async (req, res) => {
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
     res.json({ success: true, data: { announcement } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -110,7 +110,7 @@ const deleteAnnouncement = async (req, res) => {
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
     res.json({ success: true, message: 'Announcement deleted' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

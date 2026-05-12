@@ -10,4 +10,6 @@ const settingSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
+settingSchema.index({ isPublic: 1, category: 1 });
+
 module.exports = mongoose.model('Setting', settingSchema);

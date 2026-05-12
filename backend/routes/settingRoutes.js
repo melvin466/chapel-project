@@ -8,7 +8,7 @@ router.get('/public', async (req, res) => {
     const settings = await Setting.find({ isPublic: true });
     res.json({ success: true, data: { settings } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 });
 
@@ -17,7 +17,7 @@ router.get('/', protect, admin, async (req, res) => {
     const settings = await Setting.find();
     res.json({ success: true, data: { settings } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 });
 
@@ -30,7 +30,7 @@ router.put('/:key', protect, admin, async (req, res) => {
     );
     res.json({ success: true, data: { setting } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 });
 

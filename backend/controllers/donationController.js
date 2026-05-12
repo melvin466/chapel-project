@@ -27,7 +27,7 @@ const getDonations = async (req, res) => {
       data: { donations, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -120,7 +120,7 @@ const createDonation = async (req, res) => {
 
     res.status(201).json({ success: true, data: { donation } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -141,28 +141,33 @@ const getDonationStats = async (req, res) => {
       data: { totalAmount: total[0]?.total || 0, totalCount: total[0]?.count || 0, byType }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
 const handlePaymentCallback = async (req, res) => {
   try {
     const { transactionId, status } = req.body;
+    const normalizedStatus = String(status || '').toUpperCase();
+
+    if (!transactionId || !['SUCCESS', 'FAILED'].includes(normalizedStatus)) {
+      return res.status(400).json({ success: false, message: 'Invalid payment callback payload' });
+    }
 
     const donation = await Donation.findOne({ transactionId });
     if (!donation) {
       return res.status(404).json({ success: false, message: 'Donation not found' });
     }
 
-    donation.status = status === 'SUCCESS' ? 'completed' : 'failed';
-    if (status === 'SUCCESS') {
+    donation.status = normalizedStatus === 'SUCCESS' ? 'completed' : 'failed';
+    if (normalizedStatus === 'SUCCESS') {
       donation.completedAt = new Date();
     }
     await donation.save();
 
     res.json({ success: true, message: 'Payment status updated' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

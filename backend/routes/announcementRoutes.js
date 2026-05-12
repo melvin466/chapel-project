@@ -31,7 +31,7 @@ router.post('/upload', protect, admin, upload.single('featuredImage'), (req, res
   try {
     res.status(200).json({ success: true, message: 'File uploaded successfully', filePath: `/uploads/${req.file.filename}` });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 });
 

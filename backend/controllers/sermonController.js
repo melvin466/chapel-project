@@ -19,7 +19,7 @@ const getSermons = async (req, res) => {
       data: { sermons, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -31,7 +31,7 @@ const getSermonById = async (req, res) => {
     await sermon.save();
     res.json({ success: true, data: { sermon } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -40,7 +40,7 @@ const createSermon = async (req, res) => {
     const sermon = await Sermon.create({ ...req.body, createdBy: req.user.id });
     res.status(201).json({ success: true, data: { sermon } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -59,7 +59,7 @@ const likeSermon = async (req, res) => {
     
     res.json({ success: true, liked: !liked, likesCount: sermon.likes.length });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

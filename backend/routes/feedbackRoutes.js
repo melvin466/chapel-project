@@ -8,7 +8,7 @@ router.get('/', protect, admin, async (req, res) => {
     const feedback = await Feedback.find().populate('user', 'firstName lastName').sort({ createdAt: -1 });
     res.json({ success: true, data: { feedback } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 });
 
@@ -17,7 +17,7 @@ router.post('/', protect, async (req, res) => {
     const feedback = await Feedback.create({ ...req.body, user: req.user.id });
     res.status(201).json({ success: true, data: { feedback } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 });
 

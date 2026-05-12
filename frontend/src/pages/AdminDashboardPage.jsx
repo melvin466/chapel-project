@@ -158,13 +158,14 @@ const AdminDashboardPage = () => {
     { title: 'Prayer Requests', value: data.prayers.total, icon: 'PR', color: '#8a5a1f', change: `${data.prayers.active} active`, path: '/admin/prayers' },
     { title: 'Donations', value: `UGX ${(data.donations.amount / 1000000).toFixed(1)}M`, icon: 'DN', color: '#7a4665', change: `${data.donations.total} gifts`, path: '/admin/donations' },
     { title: 'Announcements', value: data.announcements.total, icon: 'AN', color: '#4c5f7a', change: `${data.announcements.published} published`, path: '/admin/announcements' },
-    { title: 'Answered Prayers', value: data.prayers.answered, icon: 'OK', color: '#31706d', change: `${((data.prayers.answered / (data.prayers.total || 1)) * 100).toFixed(0)}% rate`, path: '/admin/prayers' }
+    { title: 'Bookings', value: 'Review', icon: 'BK', color: '#31706d', change: 'Manage requests', path: '/admin/bookings' }
   ];
 
   const quickActions = [
     { name: 'Create Event', icon: 'New', color: '#2f7d46', path: '/admin/events/create', desc: 'Add new service or event' },
     { name: 'Post Announcement', icon: 'Post', color: '#315f72', path: '/admin/announcements/create', desc: 'Share news with community' },
     { name: 'Add User', icon: 'User', color: '#4c5f7a', path: '/admin/users/create', desc: 'Register new member' },
+    { name: 'Review Bookings', icon: 'Book', color: '#31706d', path: '/admin/bookings', desc: 'Confirm chapel requests' },
     { name: 'Review Prayers', icon: 'Care', color: '#8a5a1f', path: '/admin/prayers', desc: 'Respond to requests' },
     { name: 'Export Data', icon: 'CSV', color: '#31706d', path: '/admin/export', desc: 'Download reports' },
     { name: 'Settings', icon: 'Set', color: '#607D8B', path: '/admin/settings', desc: 'Configure system' }
@@ -209,6 +210,10 @@ const AdminDashboardPage = () => {
           <button className={`nav-item ${activeTab === 'prayers' ? 'active' : ''}`} onClick={() => navigate('/admin/prayers')}>
             <span className="nav-icon">PR</span>
             {sidebarOpen && <span>Prayers</span>}
+          </button>
+          <button className={`nav-item ${activeTab === 'bookings' ? 'active' : ''}`} onClick={() => navigate('/admin/bookings')}>
+            <span className="nav-icon">BK</span>
+            {sidebarOpen && <span>Bookings</span>}
           </button>
           <button className={`nav-item ${activeTab === 'donations' ? 'active' : ''}`} onClick={() => navigate('/admin/donations')}>
             <span className="nav-icon">DN</span>

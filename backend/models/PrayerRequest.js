@@ -16,4 +16,8 @@ const prayerRequestSchema = new mongoose.Schema({
   answeredAt: Date
 });
 
+prayerRequestSchema.index({ status: 1, createdAt: -1 });
+prayerRequestSchema.index({ requestedBy: 1, createdAt: -1 });
+prayerRequestSchema.index({ answeredBy: 1, answeredAt: -1 });
+
 module.exports = mongoose.model('PrayerRequest', prayerRequestSchema);

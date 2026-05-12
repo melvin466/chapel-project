@@ -20,7 +20,7 @@ const getUsers = async (req, res) => {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
     res.json({ success: true, data: { users } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -30,7 +30,7 @@ const getUserById = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     res.json({ success: true, data: { user } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -78,7 +78,7 @@ const createUser = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -107,7 +107,7 @@ const updateUser = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     res.json({ success: true, data: { user } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -121,7 +121,7 @@ const deleteUser = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     res.json({ success: true, message: 'User deleted' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

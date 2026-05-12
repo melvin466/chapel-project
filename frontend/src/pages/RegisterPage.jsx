@@ -8,6 +8,7 @@ const RegisterPage = () => {
     isStudent: true, studentId: '', program: '', yearOfStudy: '', faculty: ''
   });
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { register } = useAuth();
@@ -17,10 +18,12 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setMessage('');
     setLoading(true);
     const response = await register(formData);
     if (response.success) {
-      navigate('/');
+      setMessage('Account created. Please check your email to verify your account.');
+      setTimeout(() => navigate('/login'), 1200);
     } else {
       setError(response.message || 'Registration failed');
     }
@@ -32,6 +35,7 @@ const RegisterPage = () => {
       <div className="auth-card">
         <h2>Register</h2>
         {error && <div className="error">{error}</div>}
+        {message && <div className="success-message">{message}</div>}
         <form onSubmit={handleSubmit}>
           <input type="text" name="firstName" placeholder="First Name" onChange={handleChange} required />
           <input type="text" name="lastName" placeholder="Last Name" onChange={handleChange} required />

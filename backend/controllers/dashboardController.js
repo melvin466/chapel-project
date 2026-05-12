@@ -29,7 +29,7 @@ const getDashboardStats = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting dashboard stats:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -56,7 +56,7 @@ const getMyEvents = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting my events:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -79,7 +79,7 @@ const getMyPrayers = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting my prayers:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -111,7 +111,7 @@ const getMyNotifications = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting my notifications:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -172,7 +172,7 @@ const getDashboardData = async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting dashboard data:', error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

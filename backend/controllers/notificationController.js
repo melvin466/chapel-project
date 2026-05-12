@@ -17,7 +17,7 @@ const getNotifications = async (req, res) => {
       data: { notifications, unreadCount, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -31,7 +31,7 @@ const markAsRead = async (req, res) => {
     if (!notification) return res.status(404).json({ success: false, message: 'Notification not found' });
     res.json({ success: true, data: { notification } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -43,7 +43,7 @@ const markAllAsRead = async (req, res) => {
     );
     res.json({ success: true, message: 'All notifications marked as read' });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 

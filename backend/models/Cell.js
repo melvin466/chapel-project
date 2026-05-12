@@ -17,4 +17,7 @@ const cellSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+cellSchema.index({ isActive: 1, zone: 1 });
+cellSchema.index({ leader: 1 });
+
 module.exports = mongoose.model('Cell', cellSchema);

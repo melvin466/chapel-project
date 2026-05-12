@@ -19,7 +19,7 @@ const getCells = async (req, res) => {
       data: { cells, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 const getCellById = async (req, res) => {
@@ -30,7 +30,7 @@ const getCellById = async (req, res) => {
     if (!cell) return res.status(404).json({ success: false, message: 'Cell not found' });
     res.json({ success: true, data: { cell } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -39,7 +39,7 @@ const createCell = async (req, res) => {
     const cell = await Cell.create(req.body);
     res.status(201).json({ success: true, data: { cell } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
@@ -60,7 +60,7 @@ const joinCell = async (req, res) => {
     
     res.json({ success: true, message: `Joined ${cell.name} successfully` });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
 };
 
