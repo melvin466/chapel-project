@@ -50,8 +50,8 @@ const validateCell = [
   body('meetingTime').notEmpty().withMessage('Meeting time required'),
   body('meetingVenue').notEmpty().withMessage('Meeting venue required'),
   body('leader').isMongoId().withMessage('Valid leader ID required'),
-  body('assistantLeader').optional().isMongoId().withMessage('Valid assistant leader ID required'),
-  body('maxCapacity').optional().isInt({ min: 1 }).withMessage('Max capacity must be at least 1'),
+  body('assistantLeader').optional({ checkFalsy: true }).isMongoId().withMessage('Valid assistant leader ID required'),
+  body('maxCapacity').optional({ checkFalsy: true }).isInt({ min: 1 }).withMessage('Max capacity must be at least 1'),
   validate
 ];
 
@@ -61,8 +61,8 @@ const validateSermon = [
   body('date').isISO8601().withMessage('Valid date required'),
   body('serviceType').optional().isIn(['sunday', 'wednesday', 'friday', 'conference', 'special']).withMessage('Valid service type required'),
   body('description').notEmpty().withMessage('Description required'),
-  body('bibleVerses').optional().isArray().withMessage('Bible verses must be an array'),
-  body('duration').optional().isInt({ min: 0 }).withMessage('Duration must be a positive number'),
+  body('bibleVerses').optional({ checkFalsy: true }).custom((value) => Array.isArray(value) || typeof value === 'string').withMessage('Bible verses must be a list or comma-separated text'),
+  body('duration').optional({ checkFalsy: true }).isInt({ min: 0 }).withMessage('Duration must be a positive number'),
   validate
 ];
 

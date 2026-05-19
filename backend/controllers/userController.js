@@ -1,17 +1,11 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const { recordAuditLog } = require('../utils/auditLogger');
-
-const getFilePath = (file) => {
-  if (!file) return undefined;
-  const normalizedPath = file.path.replace(/\\/g, '/');
-  const uploadIndex = normalizedPath.indexOf('/uploads/');
-  return uploadIndex >= 0 ? normalizedPath.slice(uploadIndex) : `/${normalizedPath}`;
-};
+const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const withUploadedUserFile = (body, file) => {
   const data = { ...body };
-  const profilePicture = getFilePath(file);
+  const profilePicture = getUploadedFilePath(file);
   if (profilePicture) data.profilePicture = profilePicture;
   return data;
 };

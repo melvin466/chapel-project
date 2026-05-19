@@ -16,6 +16,7 @@ CORS_ORIGINS=https://your-frontend-domain.com
 BASE_URL=https://your-backend-domain.com
 TRUST_PROXY=1
 UPLOAD_MAX_FILE_SIZE_MB=25
+CLOUDINARY_URL=
 ```
 
 Do not set `MONGODB_TLS_ALLOW_INVALID_CERTS=true` in production. The backend will fail startup if that unsafe diagnostic flag is enabled with `NODE_ENV=production`.
@@ -34,6 +35,8 @@ MTN_API_KEY=
 AIRTEL_API_URL=
 AIRTEL_API_KEY=
 ```
+
+For production uploads, set either `CLOUDINARY_URL` or the three-part Cloudinary config (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`). If none are set, uploads fall back to local `backend/uploads`, which is only safe with persistent storage.
 
 ## Frontend environment
 

@@ -6,6 +6,11 @@ const cellService = {
     return response.data;
   },
 
+  getManageCells: async () => {
+    const response = await api.get('/cells/manage/all');
+    return response.data;
+  },
+
   getCellById: async (id) => {
     const response = await api.get(`/cells/${id}`);
     return response.data;
@@ -33,6 +38,16 @@ const cellService = {
 
   deleteCell: async (id) => {
     const response = await api.delete(`/cells/${id}`);
+    return response.data;
+  },
+
+  assignMember: async (cellId, userId) => {
+    const response = await api.post(`/cells/${cellId}/members`, { userId });
+    return response.data;
+  },
+
+  removeMember: async (cellId, userId) => {
+    const response = await api.delete(`/cells/${cellId}/members/${userId}`);
     return response.data;
   }
 };

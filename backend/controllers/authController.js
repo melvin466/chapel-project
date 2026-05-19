@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const sendEmail = require('../services/emailService');
 const crypto = require('crypto');
 const { sendServerError } = require('../utils/errorResponse');
+const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
@@ -21,13 +22,6 @@ const getFrontendUrl = (path) => `${process.env.FRONTEND_URL || 'http://localhos
 const getDevTokenPayload = (key, token) => (
   process.env.NODE_ENV === 'production' ? {} : { data: { [key]: token } }
 );
-
-const getFilePath = (file) => {
-  if (!file) return undefined;
-  const normalizedPath = file.path.replace(/\\/g, '/');
-  const uploadIndex = normalizedPath.indexOf('/uploads/');
-  return uploadIndex >= 0 ? normalizedPath.slice(uploadIndex) : `/${normalizedPath}`;
-};
 
 const toSafeUser = (user) => ({
   _id: user._id,
@@ -267,7 +261,7 @@ const updateMe = async (req, res) => {
       if (req.body[field] !== undefined) updateData[field] = req.body[field];
     });
 
-    const profilePicture = getFilePath(req.file);
+    const profilePicture = getUploadedFilePath(req.file);
     if (profilePicture) updateData.profilePicture = profilePicture;
 
     const user = await User.findByIdAndUpdate(req.user.id, updateData, {

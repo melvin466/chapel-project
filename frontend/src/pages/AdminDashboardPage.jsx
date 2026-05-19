@@ -158,12 +158,16 @@ const AdminDashboardPage = () => {
     { title: 'Prayer Requests', value: data.prayers.total, icon: 'PR', color: '#8a5a1f', change: `${data.prayers.active} active`, path: '/admin/prayers' },
     { title: 'Donations', value: `UGX ${(data.donations.amount / 1000000).toFixed(1)}M`, icon: 'DN', color: '#7a4665', change: `${data.donations.total} gifts`, path: '/admin/donations' },
     { title: 'Announcements', value: data.announcements.total, icon: 'AN', color: '#4c5f7a', change: `${data.announcements.published} published`, path: '/admin/announcements' },
-    { title: 'Bookings', value: 'Review', icon: 'BK', color: '#31706d', change: 'Manage requests', path: '/admin/bookings' }
+    { title: 'Bookings', value: 'Review', icon: 'BK', color: '#31706d', change: 'Manage requests', path: '/admin/bookings' },
+    { title: 'Sermons', value: 'Media', icon: 'SM', color: '#6b5b95', change: 'Audio and video', path: '/admin/sermons' },
+    { title: 'Cells', value: 'Assign', icon: 'CL', color: '#2f7d46', change: 'Manage members', path: '/admin/cells' }
   ];
 
   const quickActions = [
     { name: 'Create Event', icon: 'New', color: '#2f7d46', path: '/admin/events/create', desc: 'Add new service or event' },
     { name: 'Post Announcement', icon: 'Post', color: '#315f72', path: '/admin/announcements/create', desc: 'Share news with community' },
+    { name: 'Upload Sermon', icon: 'Serm', color: '#6b5b95', path: '/admin/sermons', desc: 'Add audio or video' },
+    { name: 'Assign Cells', icon: 'Cell', color: '#2f7d46', path: '/admin/cells', desc: 'Manage cell membership' },
     { name: 'Add User', icon: 'User', color: '#4c5f7a', path: '/admin/users/create', desc: 'Register new member' },
     { name: 'Review Bookings', icon: 'Book', color: '#31706d', path: '/admin/bookings', desc: 'Confirm chapel requests' },
     { name: 'Review Prayers', icon: 'Care', color: '#8a5a1f', path: '/admin/prayers', desc: 'Respond to requests' },
@@ -223,6 +227,14 @@ const AdminDashboardPage = () => {
           <button className={`nav-item ${activeTab === 'announcements' ? 'active' : ''}`} onClick={() => navigate('/admin/announcements')}>
             <span className="nav-icon">AN</span>
             {sidebarOpen && <span>Announcements</span>}
+          </button>
+          <button className={`nav-item ${activeTab === 'sermons' ? 'active' : ''}`} onClick={() => navigate('/admin/sermons')}>
+            <span className="nav-icon">SM</span>
+            {sidebarOpen && <span>Sermons</span>}
+          </button>
+          <button className={`nav-item ${activeTab === 'cells' ? 'active' : ''}`} onClick={() => navigate('/admin/cells')}>
+            <span className="nav-icon">CL</span>
+            {sidebarOpen && <span>Cells</span>}
           </button>
           <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => navigate('/admin/settings')}>
             <span className="nav-icon">ST</span>

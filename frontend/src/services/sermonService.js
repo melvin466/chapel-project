@@ -6,6 +6,11 @@ const sermonService = {
     return response.data;
   },
 
+  getManageSermons: async (params = {}) => {
+    const response = await api.get('/sermons/manage/all', { params });
+    return response.data;
+  },
+
   getSermonById: async (id) => {
     const response = await api.get(`/sermons/${id}`);
     return response.data;
@@ -17,12 +22,16 @@ const sermonService = {
   },
 
   createSermon: async (data) => {
-    const response = await api.post('/sermons', data);
+    const response = await api.post('/sermons', data, data instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    } : undefined);
     return response.data;
   },
 
   updateSermon: async (id, data) => {
-    const response = await api.put(`/sermons/${id}`, data);
+    const response = await api.put(`/sermons/${id}`, data, data instanceof FormData ? {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    } : undefined);
     return response.data;
   },
 

@@ -34,6 +34,8 @@ import AdminSettings from './pages/AdminSettings';
 import AdminBookings from './pages/AdminBookings';
 import AdminDonations from './pages/AdminDonations';
 import AdminAuditLogs from './pages/AdminAuditLogs';
+import AdminSermons from './pages/AdminSermons';
+import AdminCells from './pages/AdminCells';
 
 // NEW IMPORTS FOR CREATE/EDIT FORMS
 import AdminEventForm from './pages/AdminEventForm';
@@ -218,6 +220,16 @@ function App() {
               <Route path="/admin/donations" element={
                 <AdminRoute>
                   <AdminDonations />
+                </AdminRoute>
+              } />
+              <Route path="/admin/sermons" element={
+                <ContentManagerRoute>
+                  <AdminSermons />
+                </ContentManagerRoute>
+              } />
+              <Route path="/admin/cells" element={
+                <AdminRoute>
+                  <AdminCells />
                 </AdminRoute>
               } />
               <Route path="/admin/prayers" element={

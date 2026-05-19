@@ -1,17 +1,11 @@
 const Event = require('../models/Event');
 const { recordAuditLog } = require('../utils/auditLogger');
-
-const getFilePath = (file) => {
-  if (!file) return undefined;
-  const normalizedPath = file.path.replace(/\\/g, '/');
-  const uploadIndex = normalizedPath.indexOf('/uploads/');
-  return uploadIndex >= 0 ? normalizedPath.slice(uploadIndex) : `/${normalizedPath}`;
-};
+const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const withUploadedEventFiles = (body, files = {}) => {
   const data = { ...body };
-  const featuredImage = getFilePath(files.featuredImage?.[0]);
-  const eventVideo = getFilePath(files.eventVideo?.[0]);
+  const featuredImage = getUploadedFilePath(files.featuredImage?.[0]);
+  const eventVideo = getUploadedFilePath(files.eventVideo?.[0]);
 
   if (featuredImage) data.featuredImage = featuredImage;
   if (eventVideo) data.eventVideo = eventVideo;

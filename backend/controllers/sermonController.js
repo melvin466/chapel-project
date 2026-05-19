@@ -1,4 +1,30 @@
 const Sermon = require('../models/Sermon');
+const { recordAuditLog } = require('../utils/auditLogger');
+const { getUploadedFilePath } = require('../utils/uploadedFile');
+
+const parseList = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (typeof value === 'string') {
+    return value.split(',').map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+};
+
+const withUploadedSermonFiles = (body, files = {}) => {
+  const data = { ...body };
+  const thumbnail = getUploadedFilePath(files.thumbnail?.[0]);
+  const audioUrl = getUploadedFilePath(files.sermonAudio?.[0]);
+  const videoUrl = getUploadedFilePath(files.sermonVideo?.[0]);
+
+  if (thumbnail) data.thumbnail = thumbnail;
+  if (audioUrl) data.audioUrl = audioUrl;
+  if (videoUrl) data.videoUrl = videoUrl;
+  if (data.bibleVerses !== undefined) data.bibleVerses = parseList(data.bibleVerses);
+  if (data.tags !== undefined) data.tags = parseList(data.tags);
+  if (data.duration === '') delete data.duration;
+
+  return data;
+};
 
 const getSermons = async (req, res) => {
   try {
@@ -8,6 +34,30 @@ const getSermons = async (req, res) => {
     if (series) filter.series = series;
 
     const sermons = await Sermon.find(filter)
+      .sort({ date: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await Sermon.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: { sermons, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+const getManageSermons = async (req, res) => {
+  try {
+    const { page = 1, limit = 100, speaker, series } = req.query;
+    const filter = {};
+    if (speaker) filter.speaker = speaker;
+    if (series) filter.series = series;
+
+    const sermons = await Sermon.find(filter)
+      .populate('createdBy', 'firstName lastName')
       .sort({ date: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -37,8 +87,47 @@ const getSermonById = async (req, res) => {
 
 const createSermon = async (req, res) => {
   try {
-    const sermon = await Sermon.create({ ...req.body, createdBy: req.user.id });
+    const sermon = await Sermon.create({ ...withUploadedSermonFiles(req.body, req.files), createdBy: req.user.id });
+    await recordAuditLog(req, {
+      action: 'sermon.create',
+      resource: 'Sermon',
+      resourceId: sermon._id,
+      metadata: { title: sermon.title, speaker: sermon.speaker, date: sermon.date },
+    });
     res.status(201).json({ success: true, data: { sermon } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+const updateSermon = async (req, res) => {
+  try {
+    const updateData = withUploadedSermonFiles(req.body, req.files);
+    const sermon = await Sermon.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
+    if (!sermon) return res.status(404).json({ success: false, message: 'Sermon not found' });
+    await recordAuditLog(req, {
+      action: 'sermon.update',
+      resource: 'Sermon',
+      resourceId: sermon._id,
+      metadata: { title: sermon.title, changedFields: Object.keys(updateData) },
+    });
+    res.json({ success: true, data: { sermon } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+const deleteSermon = async (req, res) => {
+  try {
+    const sermon = await Sermon.findByIdAndDelete(req.params.id);
+    if (!sermon) return res.status(404).json({ success: false, message: 'Sermon not found' });
+    await recordAuditLog(req, {
+      action: 'sermon.delete',
+      resource: 'Sermon',
+      resourceId: sermon._id,
+      metadata: { title: sermon.title, speaker: sermon.speaker },
+    });
+    res.json({ success: true, message: 'Sermon deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
@@ -63,4 +152,4 @@ const likeSermon = async (req, res) => {
   }
 };
 
-module.exports = { getSermons, getSermonById, createSermon, likeSermon };
+module.exports = { getSermons, getManageSermons, getSermonById, createSermon, updateSermon, deleteSermon, likeSermon };

@@ -2,6 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import  sermonService  from '../services/sermonService';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
+
+const getMediaUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+};
+
+const isEmbeddableVideoUrl = (url) => /youtube\.com|youtu\.be|vimeo\.com/i.test(url || '');
 
 const SermonDetailPage = () => {
   const { id } = useParams();
@@ -77,14 +86,18 @@ const SermonDetailPage = () => {
         {sermon.audioUrl && (
           <div className="sermon-audio">
             <h3>Audio</h3>
-            <audio controls src={sermon.audioUrl} style={{ width: '100%' }} />
+            <audio controls src={getMediaUrl(sermon.audioUrl)} style={{ width: '100%' }} />
           </div>
         )}
         
         {sermon.videoUrl && (
           <div className="sermon-video">
             <h3>Video</h3>
-            <iframe src={sermon.videoUrl} title={sermon.title} width="100%" height="400" frameBorder="0" allowFullScreen />
+            {isEmbeddableVideoUrl(sermon.videoUrl) ? (
+              <iframe src={sermon.videoUrl} title={sermon.title} width="100%" height="400" frameBorder="0" allowFullScreen />
+            ) : (
+              <video controls src={getMediaUrl(sermon.videoUrl)} style={{ width: '100%', maxHeight: '480px' }} />
+            )}
           </div>
         )}
         
