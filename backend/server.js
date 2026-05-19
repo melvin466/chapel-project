@@ -16,9 +16,18 @@ dotenv.config();
 
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
+const isTest = process.env.NODE_ENV === 'test';
 
 if (isProduction && !process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET is required in production');
+}
+
+if (isProduction && !(process.env.MONGODB_URI || process.env.DB_URI)) {
+  throw new Error('MONGODB_URI is required in production');
+}
+
+if (isProduction && process.env.MONGODB_TLS_ALLOW_INVALID_CERTS === 'true') {
+  throw new Error('MONGODB_TLS_ALLOW_INVALID_CERTS must not be enabled in production');
 }
 
 if (isProduction) {
@@ -26,13 +35,15 @@ if (isProduction) {
 }
 
 // Middleware
-const allowedOrigins = [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://localhost:5173'];
+const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.error(`CORS error: Origin ${origin} not allowed`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -68,12 +79,12 @@ app.use(morgan('combined'));
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.json(),
-  transports: [
+  transports: isTest ? [] : [
     new winston.transports.File({ filename: 'error.log', level: 'error' }),
     new winston.transports.File({ filename: 'combined.log' }),
   ],
 });
-if (process.env.NODE_ENV !== 'production') {
+if (!isProduction && !isTest) {
   logger.add(new winston.transports.Console({
     format: winston.format.simple(),
   }));
@@ -165,13 +176,16 @@ const routes = [
   { path: '/api/feedback', route: require('./routes/feedbackRoutes') },
   { path: '/api/settings', route: require('./routes/settingRoutes') },
   { path: '/api/dashboard', route: require('./routes/dashboardRoutes') }, // ADDED DASHBOARD ROUTES
+  { path: '/api/audit-logs', route: require('./routes/auditRoutes') },
 ];
 
 const verificationRoutes = require('./routes/verificationRoutes');
 
 routes.forEach(({ path, route }) => {
   app.use(path, route);
-  console.log(`✅ Route registered: ${path}`);
+  if (!isProduction && !isTest) {
+    console.log(`Route registered: ${path}`);
+  }
 });
 
 app.use('/api', verificationRoutes);
@@ -181,7 +195,16 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Server is running',
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    uptime: process.uptime(),
+    timestamp: new Date(),
+  });
+});
+
+app.get('/api/ready', (req, res) => {
+  const databaseReady = mongoose.connection.readyState === 1;
+  res.status(databaseReady ? 200 : 503).json({
+    status: databaseReady ? 'ready' : 'not_ready',
+    database: databaseReady ? 'connected' : 'disconnected',
     timestamp: new Date(),
   });
 });
@@ -213,25 +236,24 @@ module.exports = app;
 
 if (process.env.NODE_ENV !== 'test') {
   // MongoDB connection
+  const allowInvalidMongoCerts = !isProduction && process.env.MONGODB_TLS_ALLOW_INVALID_CERTS === 'true';
   const mongooseOptions = process.env.MONGODB_TLS === 'true'
     ? {
         tls: true,
-        tlsAllowInvalidCertificates: process.env.MONGODB_TLS_ALLOW_INVALID_CERTS === 'true',
+        tlsAllowInvalidCertificates: allowInvalidMongoCerts,
       }
     : {};
 
   mongoose.connect(process.env.MONGODB_URI || process.env.DB_URI || 'mongodb://localhost:27017/chapel-system', mongooseOptions)
     .then(() => {
-      console.log('✅ Connected to MongoDB');
+      console.log('Connected to MongoDB');
       const PORT = process.env.PORT || 5000;
       app.listen(PORT, () => {
-        console.log(`✅ Server running on http://localhost:${PORT}`);
-        // Display routes
-        logRegisteredRoutes();
+        console.log(`Server running on port ${PORT}`);
       });
     })
     .catch(err => {
-      console.error('❌ MongoDB Error:', err.message);
+      console.error('MongoDB Error:', err.message);
       process.exit(1);
     });
 }

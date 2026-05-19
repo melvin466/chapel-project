@@ -167,6 +167,7 @@ const AdminDashboardPage = () => {
     { name: 'Add User', icon: 'User', color: '#4c5f7a', path: '/admin/users/create', desc: 'Register new member' },
     { name: 'Review Bookings', icon: 'Book', color: '#31706d', path: '/admin/bookings', desc: 'Confirm chapel requests' },
     { name: 'Review Prayers', icon: 'Care', color: '#8a5a1f', path: '/admin/prayers', desc: 'Respond to requests' },
+    { name: 'Audit Logs', icon: 'Log', color: '#7a4665', path: '/admin/audit-logs', desc: 'Review admin changes' },
     { name: 'Export Data', icon: 'CSV', color: '#31706d', path: '/admin/export', desc: 'Download reports' },
     { name: 'Settings', icon: 'Set', color: '#607D8B', path: '/admin/settings', desc: 'Configure system' }
   ];
@@ -226,6 +227,10 @@ const AdminDashboardPage = () => {
           <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => navigate('/admin/settings')}>
             <span className="nav-icon">ST</span>
             {sidebarOpen && <span>Settings</span>}
+          </button>
+          <button className={`nav-item ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => navigate('/admin/audit-logs')}>
+            <span className="nav-icon">LG</span>
+            {sidebarOpen && <span>Audit Logs</span>}
           </button>
         </nav>
         

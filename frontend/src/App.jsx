@@ -32,6 +32,8 @@ import AdminPrayerRequests from './pages/AdminPrayerRequests';
 import AdminUsers from './pages/AdminUsers';
 import AdminSettings from './pages/AdminSettings';
 import AdminBookings from './pages/AdminBookings';
+import AdminDonations from './pages/AdminDonations';
+import AdminAuditLogs from './pages/AdminAuditLogs';
 
 // NEW IMPORTS FOR CREATE/EDIT FORMS
 import AdminEventForm from './pages/AdminEventForm';
@@ -213,6 +215,11 @@ function App() {
                   <AdminBookings />
                 </ContentManagerRoute>
               } />
+              <Route path="/admin/donations" element={
+                <AdminRoute>
+                  <AdminDonations />
+                </AdminRoute>
+              } />
               <Route path="/admin/prayers" element={
                 <AdminRoute>
                   <AdminPrayerRequests />
@@ -226,6 +233,11 @@ function App() {
               <Route path="/admin/settings" element={
                 <AdminRoute>
                   <AdminSettings />
+                </AdminRoute>
+              } />
+              <Route path="/admin/audit-logs" element={
+                <AdminRoute>
+                  <AdminAuditLogs />
                 </AdminRoute>
               } />
               <Route path="/admin/export" element={

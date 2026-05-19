@@ -1,4 +1,5 @@
 const Event = require('../models/Event');
+const { recordAuditLog } = require('../utils/auditLogger');
 
 const getFilePath = (file) => {
   if (!file) return undefined;
@@ -81,6 +82,12 @@ const getManageEvents = async (req, res) => {
 const createEvent = async (req, res) => {
   try {
     const event = await Event.create({ ...withUploadedEventFiles(req.body, req.files), createdBy: req.user.id });
+    await recordAuditLog(req, {
+      action: 'event.create',
+      resource: 'Event',
+      resourceId: event._id,
+      metadata: { title: event.title, status: event.status, startDate: event.startDate },
+    });
     res.status(201).json({ success: true, data: { event } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
@@ -91,6 +98,12 @@ const updateEvent = async (req, res) => {
   try {
     const event = await Event.findByIdAndUpdate(req.params.id, withUploadedEventFiles(req.body, req.files), { new: true });
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    await recordAuditLog(req, {
+      action: 'event.update',
+      resource: 'Event',
+      resourceId: event._id,
+      metadata: { title: event.title, status: event.status, changedFields: Object.keys(req.body || {}) },
+    });
     res.json({ success: true, data: { event } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
@@ -101,6 +114,12 @@ const deleteEvent = async (req, res) => {
   try {
     const event = await Event.findByIdAndDelete(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    await recordAuditLog(req, {
+      action: 'event.delete',
+      resource: 'Event',
+      resourceId: event._id,
+      metadata: { title: event.title, status: event.status },
+    });
     res.json({ success: true, message: 'Event deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

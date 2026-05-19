@@ -10,6 +10,7 @@ const DonationsPage = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState(null);
   const { isAuthenticated } = useAuth();
   const [donationOptions, setDonationOptions] = useState([
     { id: 'tithe', name: 'Tithe' },
@@ -32,8 +33,9 @@ const DonationsPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage(null);
     if (!isAuthenticated) {
-      alert('Please login to make a donation');
+      setMessage({ type: 'error', text: 'Please log in to make a donation.' });
       return;
     }
     setSubmitting(true);
@@ -46,11 +48,16 @@ const DonationsPage = () => {
         phoneNumber,
         isAnonymous
       });
-      alert(paymentMethod === 'mobile_money' ? 'Donation saved. Check your phone to complete the payment.' : 'Thank you for your donation!');
+      setMessage({
+        type: 'success',
+        text: paymentMethod === 'mobile_money'
+          ? 'Donation saved. Check your phone to complete the payment.'
+          : 'Thank you for your donation.',
+      });
       setAmount('');
       setPhoneNumber('');
     } catch (error) {
-      alert(error.response?.data?.message || 'Donation failed');
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Donation failed.' });
     } finally {
       setSubmitting(false);
     }
@@ -63,6 +70,11 @@ const DonationsPage = () => {
       <div className="two-columns">
         <div className="form-card">
           <h2>Make a Donation</h2>
+          {message && (
+            <div className={`form-message ${message.type}`} role={message.type === 'error' ? 'alert' : 'status'}>
+              {message.text}
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             <input type="number" placeholder="Amount (UGX)" value={amount} onChange={(e) => setAmount(e.target.value)} required />
             <select value={donationType} onChange={(e) => setDonationType(e.target.value)}>

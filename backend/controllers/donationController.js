@@ -1,4 +1,5 @@
 const Donation = require('../models/Donation');
+const { recordAuditLog } = require('../utils/auditLogger');
 
 const donationOptions = [
   { id: 'tithe', name: 'Tithe' },
@@ -33,6 +34,31 @@ const getDonations = async (req, res) => {
 
 const getDonationOptions = (req, res) => {
   res.json({ success: true, data: { options: donationOptions } });
+};
+
+const getManageDonations = async (req, res) => {
+  try {
+    const { page = 1, limit = 100, status, type, paymentMethod } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    if (type) filter.donationType = type;
+    if (paymentMethod) filter.paymentMethod = paymentMethod;
+
+    const donations = await Donation.find(filter)
+      .populate('donor', 'firstName lastName email phoneNumber')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await Donation.countDocuments(filter);
+
+    res.json({
+      success: true,
+      data: { donations, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
 };
 
 const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
@@ -171,4 +197,63 @@ const handlePaymentCallback = async (req, res) => {
   }
 };
 
-module.exports = { getDonations, getDonationOptions, createDonation, getDonationStats, handlePaymentCallback };
+const updateManagedDonation = async (req, res) => {
+  try {
+    const allowedStatuses = ['pending', 'completed', 'failed', 'refunded'];
+    const updateData = {};
+
+    if (req.body.status !== undefined) {
+      if (!allowedStatuses.includes(req.body.status)) {
+        return res.status(400).json({ success: false, message: 'Invalid donation status' });
+      }
+      updateData.status = req.body.status;
+      if (req.body.status === 'completed') {
+        updateData.completedAt = new Date();
+      }
+      if (req.body.status !== 'completed') {
+        updateData.completedAt = null;
+      }
+    }
+
+    if (req.body.receiptNumber !== undefined) updateData.receiptNumber = req.body.receiptNumber;
+    if (req.body.receiptSent !== undefined) updateData.receiptSent = Boolean(req.body.receiptSent);
+    if (req.body.transactionId !== undefined) updateData.transactionId = req.body.transactionId;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, message: 'No donation updates provided' });
+    }
+
+    const donation = await Donation.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    }).populate('donor', 'firstName lastName email phoneNumber');
+
+    if (!donation) return res.status(404).json({ success: false, message: 'Donation not found' });
+
+    await recordAuditLog(req, {
+      action: 'donation.manage_update',
+      resource: 'Donation',
+      resourceId: donation._id,
+      metadata: {
+        status: donation.status,
+        receiptNumber: donation.receiptNumber,
+        receiptSent: donation.receiptSent,
+        transactionId: donation.transactionId,
+      },
+    });
+
+    res.json({ success: true, data: { donation } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+module.exports = {
+  getDonations,
+  getManageDonations,
+  getDonationOptions,
+  createDonation,
+  getDonationStats,
+  updateManagedDonation,
+  handlePaymentCallback,
+};

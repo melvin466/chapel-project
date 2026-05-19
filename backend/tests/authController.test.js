@@ -6,6 +6,8 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Announcement = require('../models/Announcement');
 const Booking = require('../models/Booking');
+const Donation = require('../models/Donation');
+const AuditLog = require('../models/AuditLog');
 
 let mongoServer;
 
@@ -409,6 +411,157 @@ describe('Auth Controller', () => {
 
     const res = await request(app)
       .get('/api/bookings/manage/all')
+      .set('Authorization', `Bearer ${loginRes.body.data.token}`);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('should allow an admin to review and update donations', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Donation',
+        lastName: 'Member',
+        email: 'donationmember@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890'
+      });
+
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Finance',
+        lastName: 'Admin',
+        email: 'financeadmin@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890'
+      });
+
+    await User.findOneAndUpdate({ email: 'financeadmin@example.com' }, { role: 'admin' });
+
+    const memberLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'donationmember@example.com', password: 'Password123!' });
+
+    const adminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'financeadmin@example.com', password: 'Password123!' });
+
+    const donationRes = await request(app)
+      .post('/api/donations')
+      .set('Authorization', `Bearer ${memberLogin.body.data.token}`)
+      .send({
+        amount: 5000,
+        donationType: 'offering',
+        paymentMethod: 'mobile_money',
+        provider: 'MTN',
+        phoneNumber: '256700000000'
+      });
+
+    const listRes = await request(app)
+      .get('/api/donations/manage/all')
+      .set('Authorization', `Bearer ${adminLogin.body.data.token}`);
+
+    expect(listRes.statusCode).toBe(200);
+    expect(listRes.body.data.donations.length).toBe(1);
+    expect(listRes.body.data.donations[0].donor.email).toBe('donationmember@example.com');
+
+    const updateRes = await request(app)
+      .put(`/api/donations/${donationRes.body.data.donation._id}/manage`)
+      .set('Authorization', `Bearer ${adminLogin.body.data.token}`)
+      .send({ status: 'completed', receiptNumber: 'RCP-TEST-001', receiptSent: true });
+
+    expect(updateRes.statusCode).toBe(200);
+    expect(updateRes.body.data.donation.status).toBe('completed');
+    expect(updateRes.body.data.donation.receiptNumber).toBe('RCP-TEST-001');
+
+    const donation = await Donation.findById(donationRes.body.data.donation._id);
+    expect(donation.receiptSent).toBe(true);
+    expect(donation.completedAt).toBeTruthy();
+  });
+
+  it('should block regular users from donation management endpoints', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Giving',
+        lastName: 'Member',
+        email: 'givingmember@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890'
+      });
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'givingmember@example.com', password: 'Password123!' });
+
+    const res = await request(app)
+      .get('/api/donations/manage/all')
+      .set('Authorization', `Bearer ${loginRes.body.data.token}`);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it('should record and expose audit logs for admin actions', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Audit',
+        lastName: 'Admin',
+        email: 'auditadmin@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890'
+      });
+
+    await User.findOneAndUpdate({ email: 'auditadmin@example.com' }, { role: 'admin' });
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'auditadmin@example.com', password: 'Password123!' });
+
+    const createUserRes = await request(app)
+      .post('/api/users')
+      .set('Authorization', `Bearer ${loginRes.body.data.token}`)
+      .send({
+        firstName: 'Audited',
+        lastName: 'Member',
+        email: 'auditedmember@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890',
+        role: 'member'
+      });
+
+    expect(createUserRes.statusCode).toBe(201);
+
+    const log = await AuditLog.findOne({ action: 'user.create', resource: 'User' });
+    expect(log).not.toBeNull();
+    expect(log.resourceId).toBe(createUserRes.body.data.user._id);
+
+    const logsRes = await request(app)
+      .get('/api/audit-logs')
+      .set('Authorization', `Bearer ${loginRes.body.data.token}`);
+
+    expect(logsRes.statusCode).toBe(200);
+    expect(logsRes.body.data.logs.some((item) => item.action === 'user.create')).toBe(true);
+  });
+
+  it('should block regular users from audit logs', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Audit',
+        lastName: 'Member',
+        email: 'auditmember@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890'
+      });
+
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'auditmember@example.com', password: 'Password123!' });
+
+    const res = await request(app)
+      .get('/api/audit-logs')
       .set('Authorization', `Bearer ${loginRes.body.data.token}`);
 
     expect(res.statusCode).toBe(403);

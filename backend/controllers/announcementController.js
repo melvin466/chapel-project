@@ -1,4 +1,5 @@
 const Announcement = require('../models/Announcement');
+const { recordAuditLog } = require('../utils/auditLogger');
 
 const getFilePath = (file) => {
   if (!file) return undefined;
@@ -88,6 +89,12 @@ const createAnnouncement = async (req, res) => {
     }
 
     const announcement = await Announcement.create({ ...withUploadedAnnouncementFiles({ ...req.body, type }, req.files), createdBy: req.user.id });
+    await recordAuditLog(req, {
+      action: 'announcement.create',
+      resource: 'Announcement',
+      resourceId: announcement._id,
+      metadata: { title: announcement.title, status: announcement.status, type: announcement.type },
+    });
     res.status(201).json({ success: true, data: { announcement } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
@@ -98,6 +105,12 @@ const updateAnnouncement = async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndUpdate(req.params.id, withUploadedAnnouncementFiles(req.body, req.files), { new: true });
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
+    await recordAuditLog(req, {
+      action: 'announcement.update',
+      resource: 'Announcement',
+      resourceId: announcement._id,
+      metadata: { title: announcement.title, status: announcement.status, changedFields: Object.keys(req.body || {}) },
+    });
     res.json({ success: true, data: { announcement } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
@@ -108,6 +121,12 @@ const deleteAnnouncement = async (req, res) => {
   try {
     const announcement = await Announcement.findByIdAndDelete(req.params.id);
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
+    await recordAuditLog(req, {
+      action: 'announcement.delete',
+      resource: 'Announcement',
+      resourceId: announcement._id,
+      metadata: { title: announcement.title, status: announcement.status },
+    });
     res.json({ success: true, message: 'Announcement deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { recordAuditLog } = require('../utils/auditLogger');
 
 const getFilePath = (file) => {
   if (!file) return undefined;
@@ -69,6 +70,12 @@ const createUser = async (req, res) => {
     });
 
     const safeUser = await User.findById(user._id).select('-password');
+    await recordAuditLog(req, {
+      action: 'user.create',
+      resource: 'User',
+      resourceId: safeUser._id,
+      metadata: { email: safeUser.email, role: safeUser.role, isActive: safeUser.isActive },
+    });
     res.status(201).json({ success: true, data: { user: safeUser } });
   } catch (error) {
     if (error.name === 'ValidationError') {
@@ -105,6 +112,18 @@ const updateUser = async (req, res) => {
     }).select('-password');
 
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    await recordAuditLog(req, {
+      action: 'user.update',
+      resource: 'User',
+      resourceId: user._id,
+      metadata: {
+        changedFields: Object.keys(updateData).filter((field) => field !== 'password'),
+        passwordChanged: Boolean(req.body.password),
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
+    });
     res.json({ success: true, data: { user } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
@@ -119,6 +138,12 @@ const deleteUser = async (req, res) => {
 
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    await recordAuditLog(req, {
+      action: 'user.delete',
+      resource: 'User',
+      resourceId: user._id,
+      metadata: { email: user.email, role: user.role },
+    });
     res.json({ success: true, message: 'User deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

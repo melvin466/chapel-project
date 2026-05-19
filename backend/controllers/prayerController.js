@@ -1,4 +1,5 @@
 const PrayerRequest = require('../models/PrayerRequest');
+const { recordAuditLog } = require('../utils/auditLogger');
 
 const getPrayerRequests = async (req, res) => {
   try {
@@ -72,6 +73,12 @@ const updatePrayerStatus = async (req, res) => {
       { new: true }
     ).populate('requestedBy', 'firstName lastName').populate('answeredBy', 'firstName lastName');
     if (!prayer) return res.status(404).json({ success: false, message: 'Prayer request not found' });
+    await recordAuditLog(req, {
+      action: 'prayer.status_update',
+      resource: 'PrayerRequest',
+      resourceId: prayer._id,
+      metadata: { title: prayer.title, status: prayer.status, answeredBy: prayer.answeredBy?._id },
+    });
     res.json({ success: true, data: { prayer } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
@@ -82,6 +89,12 @@ const deletePrayerRequest = async (req, res) => {
   try {
     const prayer = await PrayerRequest.findByIdAndDelete(req.params.id);
     if (!prayer) return res.status(404).json({ success: false, message: 'Prayer request not found' });
+    await recordAuditLog(req, {
+      action: 'prayer.delete',
+      resource: 'PrayerRequest',
+      resourceId: prayer._id,
+      metadata: { title: prayer.title, status: prayer.status },
+    });
     res.json({ success: true, message: 'Prayer request deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

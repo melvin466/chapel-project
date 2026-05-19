@@ -1300,6 +1300,25 @@ main {
   border: 1px solid rgba(47, 125, 70, 0.2);
 }
 
+.form-message {
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.form-message.success {
+  background: rgba(232, 243, 236, 0.95);
+  color: #25693a;
+  border: 1px solid rgba(47, 125, 70, 0.22);
+}
+
+.form-message.error {
+  background: rgba(254, 226, 226, 0.96);
+  color: #991b1b;
+  border: 1px solid rgba(194, 65, 58, 0.25);
+}
+
 .events-page,
 .prayer-page,
 .bookings-page {

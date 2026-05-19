@@ -1,4 +1,5 @@
 const Booking = require('../models/Booking');
+const { recordAuditLog } = require('../utils/auditLogger');
 
 const getBookings = async (req, res) => {
   try {
@@ -111,6 +112,17 @@ const updateManagedBooking = async (req, res) => {
       .populate('event', 'title startDate');
 
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    await recordAuditLog(req, {
+      action: 'booking.manage_update',
+      resource: 'Booking',
+      resourceId: booking._id,
+      metadata: {
+        status: booking.status,
+        assignedTo: booking.assignedTo,
+        requestedBy: booking.user,
+      },
+    });
 
     res.json({ success: true, data: { booking } });
   } catch (error) {

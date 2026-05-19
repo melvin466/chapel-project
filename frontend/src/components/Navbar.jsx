@@ -59,6 +59,8 @@ const Navbar = () => {
                     <NavLink to="/admin/bookings" onClick={closeMenu}>Bookings</NavLink>
                     {isAdmin && <NavLink to="/admin/users" onClick={closeMenu}>Users</NavLink>}
                     {isAdmin && <NavLink to="/admin/prayers" onClick={closeMenu}>Prayers</NavLink>}
+                    {isAdmin && <NavLink to="/admin/donations" onClick={closeMenu}>Donations</NavLink>}
+                    {isAdmin && <NavLink to="/admin/audit-logs" onClick={closeMenu}>Audit Logs</NavLink>}
                     {isAdmin && <NavLink to="/admin/settings" onClick={closeMenu}>Settings</NavLink>}
                   </div>
                 </div>
