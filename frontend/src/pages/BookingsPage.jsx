@@ -178,7 +178,16 @@ const BookingsPage = () => {
                 <p><strong>People:</strong> {booking.numberOfPeople || 1}</p>
                 <p>{booking.purpose}</p>
                 {booking.specialRequests && <p><strong>Notes:</strong> {booking.specialRequests}</p>}
-                {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                {booking.reviewReason && (
+                  <div className="booking-review-note">
+                    <strong>{booking.status === 'denied' ? 'Reason denied' : 'Admin note'}</strong>
+                    <p>{booking.reviewReason}</p>
+                    {booking.reviewedBy && (
+                      <span>Reviewed by {booking.reviewedBy.firstName} {booking.reviewedBy.lastName}</span>
+                    )}
+                  </div>
+                )}
+                {['pending', 'approved'].includes(booking.status) && (
                   <button type="button" className="btn-secondary" onClick={() => handleCancel(booking._id)}>
                     Cancel
                   </button>

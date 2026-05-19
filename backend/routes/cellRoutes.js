@@ -7,7 +7,8 @@ const {
   createCell,
   updateCell,
   deleteCell,
-  joinCell,
+  requestJoinCell,
+  reviewJoinRequest,
   assignMemberToCell,
   removeMemberFromCell,
 } = require('../controllers/cellController');
@@ -22,6 +23,7 @@ router.put('/:id', protect, admin, validateCell, updateCell);
 router.delete('/:id', protect, admin, deleteCell);
 router.post('/:id/members', protect, admin, assignMemberToCell);
 router.delete('/:id/members/:userId', protect, admin, removeMemberFromCell);
-router.post('/:id/join', protect, joinCell);
+router.post('/:id/join', protect, requestJoinCell);
+router.put('/join-requests/:requestId', protect, admin, reviewJoinRequest);
 
 module.exports = router;

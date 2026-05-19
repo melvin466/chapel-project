@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import cellService from '../services/cellService';
 import userService from '../services/userService';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const emptyForm = {
   name: '',
@@ -26,6 +27,7 @@ const AdminCells = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [assignments, setAssignments] = useState({});
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const leaders = useMemo(() => users.filter((user) => ['admin', 'chaplain', 'student_leader'].includes(user.role)), [users]);
   const assignableUsers = useMemo(() => users.filter((user) => user.role !== 'admin'), [users]);
@@ -92,11 +94,12 @@ const AdminCells = () => {
     }
   };
 
-  const deleteCell = async (id) => {
-    if (!window.confirm('Delete this cell and remove its member assignments?')) return;
+  const deleteCell = async () => {
+    if (!deleteTarget) return;
     try {
-      await cellService.deleteCell(id);
+      await cellService.deleteCell(deleteTarget._id);
       setMessage('Cell deleted.');
+      setDeleteTarget(null);
       loadData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete cell');
@@ -123,6 +126,17 @@ const AdminCells = () => {
       loadData();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to remove member');
+    }
+  };
+
+  const reviewJoinRequest = async (requestId, status) => {
+    try {
+      await cellService.reviewJoinRequest(requestId, { status });
+      setMessage(`Join request ${status}.`);
+      setError('');
+      loadData();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to review join request');
     }
   };
 
@@ -196,6 +210,18 @@ const AdminCells = () => {
                 </div>
               ))}
             </div>
+            <div className="join-request-list">
+              <strong>Join requests</strong>
+              {(cell.joinRequests || []).length === 0 ? <p>No pending requests.</p> : cell.joinRequests.map((request) => (
+                <div key={request._id} className="join-request-row">
+                  <span>{request.user?.firstName} {request.user?.lastName}</span>
+                  <div>
+                    <button onClick={() => reviewJoinRequest(request._id, 'approved')}>Approve</button>
+                    <button className="btn-delete" onClick={() => reviewJoinRequest(request._id, 'denied')}>Deny</button>
+                  </div>
+                </div>
+              ))}
+            </div>
             <div className="assign-row">
               <select value={assignments[cell._id] || ''} onChange={(e) => setAssignments({ ...assignments, [cell._id]: e.target.value })}>
                 <option value="">Assign member</option>
@@ -205,7 +231,7 @@ const AdminCells = () => {
             </div>
             <div className="cell-actions">
               <button className="btn-edit" onClick={() => handleEdit(cell)}>Edit</button>
-              <button className="btn-delete" onClick={() => deleteCell(cell._id)}>Delete</button>
+              <button className="btn-delete" onClick={() => setDeleteTarget(cell)}>Delete</button>
             </div>
           </article>
         ))}
@@ -219,23 +245,34 @@ const AdminCells = () => {
         .admin-form h2 { color: #1f2933; margin-bottom: 1rem; }
         .admin-form form { display: grid; gap: 1rem; }
         .form-row { display: flex; flex-wrap: wrap; gap: 1rem; }
-        .form-row > *, .admin-form textarea { flex: 1 1 190px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: white; }
+        .form-row > *, .admin-form textarea { flex: 1 1 190px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: rgba(255,255,255,0.84); }
         .checkbox-label { display: flex; gap: 0.5rem; align-items: center; color: #1f2933; }
         .cells-admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
         .cell-admin-card { background: rgba(255,255,255,0.96); border-radius: 8px; padding: 1rem; color: #1f2933; }
         .cell-admin-header { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
         .cell-admin-header h3 { margin-bottom: 0.2rem; }
         .cell-admin-header span { font-weight: 700; color: #2f7d46; }
-        .member-list { margin: 1rem 0; display: grid; gap: 0.4rem; }
-        .member-row, .assign-row, .cell-actions { display: flex; gap: 0.5rem; align-items: center; }
+        .member-list, .join-request-list { margin: 1rem 0; display: grid; gap: 0.4rem; }
+        .join-request-list strong { color: #1f2933; }
+        .member-row, .assign-row, .cell-actions, .join-request-row { display: flex; gap: 0.5rem; align-items: center; }
         .member-row { justify-content: space-between; padding: 0.45rem; background: #f5f7f6; border-radius: 6px; }
+        .join-request-row { justify-content: space-between; padding: 0.45rem; background: #eef6f5; border-radius: 6px; }
+        .join-request-row div { display: flex; gap: 0.4rem; }
         .assign-row select { flex: 1; min-width: 0; padding: 0.6rem; border-radius: 6px; border: 1px solid #d0d5dd; }
-        .assign-row button, .member-row button, .btn-edit, .btn-delete, .btn-secondary { padding: 0.45rem 0.75rem; border: 0; border-radius: 6px; cursor: pointer; color: white; }
-        .assign-row button, .btn-edit { background: #315f72; }
+        .assign-row button, .member-row button, .join-request-row button, .btn-edit, .btn-delete, .btn-secondary { padding: 0.45rem 0.75rem; border: 0; border-radius: 6px; cursor: pointer; color: white; }
+        .assign-row button, .join-request-row button, .btn-edit { background: #315f72; }
         .member-row button, .btn-delete { background: #c2413a; }
         .btn-secondary { background: #4c5f7a; }
         .cell-actions { margin-top: 1rem; }
       `}</style>
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Delete cell"
+        message={`Delete "${deleteTarget?.name || 'this cell'}" and remove its member assignments? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={deleteCell}
+      />
     </div>
   );
 };

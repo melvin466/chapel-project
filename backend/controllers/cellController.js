@@ -1,6 +1,8 @@
 const Cell = require('../models/Cell');
+const CellJoinRequest = require('../models/CellJoinRequest');
 const User = require('../models/User');
 const { recordAuditLog } = require('../utils/auditLogger');
+const { notifyUser } = require('../utils/notificationDispatcher');
 
 const getCells = async (req, res) => {
   try {
@@ -48,7 +50,11 @@ const getManageCells = async (req, res) => {
         .select('firstName lastName email role')
         .sort({ firstName: 1, lastName: 1 })
         .lean();
-      return { ...cell, members, memberCount: members.length };
+      const joinRequests = await CellJoinRequest.find({ cell: cell._id, status: 'pending' })
+        .populate('user', 'firstName lastName email role')
+        .sort({ createdAt: 1 })
+        .lean();
+      return { ...cell, members, joinRequests, memberCount: members.length };
     }));
 
     res.json({ success: true, data: { cells: cellsWithMembers } });
@@ -111,22 +117,29 @@ const deleteCell = async (req, res) => {
   }
 };
 
-const joinCell = async (req, res) => {
+const requestJoinCell = async (req, res) => {
   try {
     const cell = await Cell.findById(req.params.id);
     if (!cell) return res.status(404).json({ success: false, message: 'Cell not found' });
+    if (!cell.isActive) return res.status(400).json({ success: false, message: 'This cell is not accepting requests' });
     
     const user = await User.findById(req.user.id);
     if (user.cellId) {
       return res.status(400).json({ success: false, message: 'You are already in a cell' });
     }
+
+    const existingRequest = await CellJoinRequest.findOne({ user: user._id, status: 'pending' });
+    if (existingRequest) {
+      return res.status(400).json({ success: false, message: 'You already have a pending cell request' });
+    }
+
+    await CellJoinRequest.create({
+      cell: cell._id,
+      user: user._id,
+      reason: req.body.reason,
+    });
     
-    user.cellId = cell._id;
-    cell.memberCount += 1;
-    await user.save();
-    await cell.save();
-    
-    res.json({ success: true, message: `Joined ${cell.name} successfully` });
+    res.status(201).json({ success: true, message: `Request sent to join ${cell.name}` });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
@@ -195,6 +208,62 @@ const removeMemberFromCell = async (req, res) => {
   }
 };
 
+const reviewJoinRequest = async (req, res) => {
+  try {
+    const { status, reason } = req.body;
+    if (!['approved', 'denied'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid request status' });
+    }
+
+    const joinRequest = await CellJoinRequest.findById(req.params.requestId)
+      .populate('cell', 'name maxCapacity')
+      .populate('user', 'firstName lastName email cellId');
+
+    if (!joinRequest) return res.status(404).json({ success: false, message: 'Join request not found' });
+    if (joinRequest.status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'This request has already been reviewed' });
+    }
+
+    joinRequest.status = status;
+    joinRequest.reason = reason;
+    joinRequest.reviewedBy = req.user.id;
+    joinRequest.reviewedAt = new Date();
+
+    if (status === 'approved') {
+      if (joinRequest.user.cellId) {
+        return res.status(400).json({ success: false, message: 'User is already assigned to a cell' });
+      }
+      const memberCount = await User.countDocuments({ cellId: joinRequest.cell._id });
+      if (memberCount >= joinRequest.cell.maxCapacity) {
+        return res.status(400).json({ success: false, message: 'Cell is already at capacity' });
+      }
+      joinRequest.user.cellId = joinRequest.cell._id;
+      await joinRequest.user.save();
+      await refreshMemberCount(joinRequest.cell._id);
+    }
+
+    await joinRequest.save();
+
+    await notifyUser(joinRequest.user._id, {
+      type: 'system',
+      title: status === 'approved' ? 'Cell request approved' : 'Cell request denied',
+      message: reason || `Your request to join ${joinRequest.cell.name} was ${status}.`,
+      data: { cellId: joinRequest.cell._id, requestId: joinRequest._id, status },
+    });
+
+    await recordAuditLog(req, {
+      action: `cell.join_request.${status}`,
+      resource: 'Cell',
+      resourceId: joinRequest.cell._id,
+      metadata: { userId: joinRequest.user._id, requestId: joinRequest._id },
+    });
+
+    res.json({ success: true, data: { joinRequest } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
 module.exports = {
   getCells,
   getManageCells,
@@ -202,7 +271,8 @@ module.exports = {
   createCell,
   updateCell,
   deleteCell,
-  joinCell,
+  requestJoinCell,
+  reviewJoinRequest,
   assignMemberToCell,
   removeMemberFromCell,
 };

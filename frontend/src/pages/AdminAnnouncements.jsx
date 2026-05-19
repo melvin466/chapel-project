@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import  announcementService  from '../services/announcementService';
 import { useAuth } from '../context/AuthContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const AdminAnnouncements = () => {
   const { isAdmin } = useAuth();
@@ -14,12 +15,16 @@ const AdminAnnouncements = () => {
     summary: '',
     type: 'general',
     priority: 'medium',
+    targetAudience: 'everyone',
     status: 'published'
   });
   const [mediaFiles, setMediaFiles] = useState({
     featuredImage: null,
     announcementVideo: null
   });
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadAnnouncements();
@@ -31,8 +36,7 @@ const AdminAnnouncements = () => {
       const response = await announcementService.getManageAnnouncements({ limit: 100 });
       setAnnouncements(response.data?.announcements || []);
     } catch (error) {
-      console.error('Error loading announcements:', error);
-      alert('Failed to load announcements');
+      setError(error.response?.data?.message || 'Failed to load announcements');
     } finally {
       setLoading(false);
     }
@@ -62,33 +66,36 @@ const AdminAnnouncements = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+    setError('');
     try {
       if (editingItem) {
         await announcementService.updateAnnouncement(editingItem._id, buildPayload());
-        alert('Announcement updated!');
+        setMessage('Announcement updated.');
       } else {
         await announcementService.createAnnouncement(buildPayload());
-        alert('Announcement created!');
+        setMessage('Announcement created.');
       }
       setShowForm(false);
       setEditingItem(null);
-      setFormData({ title: '', content: '', summary: '', type: 'general', priority: 'medium', status: 'published' });
+      setFormData({ title: '', content: '', summary: '', type: 'general', priority: 'medium', targetAudience: 'everyone', status: 'published' });
       setMediaFiles({ featuredImage: null, announcementVideo: null });
       loadAnnouncements();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save announcement');
+      setError(error.response?.data?.message || 'Failed to save announcement');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Delete this announcement?')) {
-      try {
-        await announcementService.deleteAnnouncement(id);
-        alert('Announcement deleted!');
-        loadAnnouncements();
-      } catch (error) {
-        alert('Failed to delete announcement');
-      }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await announcementService.deleteAnnouncement(deleteTarget._id);
+      setMessage('Announcement deleted.');
+      setError('');
+      setDeleteTarget(null);
+      loadAnnouncements();
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to delete announcement');
     }
   };
 
@@ -100,6 +107,7 @@ const AdminAnnouncements = () => {
       summary: item.summary || '',
       type: item.type,
       priority: item.priority,
+      targetAudience: item.targetAudience || 'everyone',
       status: item.status
     });
     setShowForm(true);
@@ -115,6 +123,9 @@ const AdminAnnouncements = () => {
           {showForm ? 'Cancel' : 'New Announcement'}
         </button>
       </div>
+
+      {message && <div className="success-message">{message}</div>}
+      {error && <div className="error-message">{error}</div>}
 
       {showForm && (
         <div className="admin-form">
@@ -150,6 +161,15 @@ const AdminAnnouncements = () => {
                 <option value="medium">Medium Priority</option>
                 <option value="high">High Priority</option>
                 <option value="critical">Critical</option>
+              </select>
+
+              <select name="targetAudience" value={formData.targetAudience} onChange={handleChange}>
+                <option value="everyone">Everyone</option>
+                <option value="students">Students</option>
+                <option value="staff">Staff</option>
+                <option value="cell_members">Cell Members</option>
+                <option value="ministry_members">Ministry Members</option>
+                <option value="leaders">Leaders</option>
               </select>
               
               <select name="status" value={formData.status} onChange={handleChange}>
@@ -189,7 +209,7 @@ const AdminAnnouncements = () => {
                   <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                   <td>
                     <button onClick={() => handleEdit(item)} className="btn-edit">Edit</button>
-                    {isAdmin && <button onClick={() => handleDelete(item._id)} className="btn-delete">Delete</button>}
+                    {isAdmin && <button onClick={() => setDeleteTarget(item)} className="btn-delete">Delete</button>}
                   </td>
                 </tr>
               ))
@@ -207,7 +227,7 @@ const AdminAnnouncements = () => {
         .admin-form form { display: flex; flex-direction: column; gap: 1rem; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
         .form-row > * { flex: 1 1 180px; min-width: 0; }
-        .admin-form input, .admin-form textarea, .admin-form select { width: 100%; max-width: 100%; min-width: 0; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: white; overflow-wrap: anywhere; }
+        .admin-form input, .admin-form textarea, .admin-form select { width: 100%; max-width: 100%; min-width: 0; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: rgba(255,255,255,0.84); overflow-wrap: anywhere; }
         .admin-form textarea { resize: vertical; line-height: 1.5; }
         .media-upload-section { display: grid; gap: 0.75rem; }
         .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; color: #333; font-weight: 500; }
@@ -231,6 +251,14 @@ const AdminAnnouncements = () => {
         .status-badge.status-draft { background: #f8efe3; color: #8a5a1f; }
         .status-badge.status-archived { background: #edf0f2; color: #62707c; }
       `}</style>
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Delete announcement"
+        message={`Delete "${deleteTarget?.title || 'this announcement'}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

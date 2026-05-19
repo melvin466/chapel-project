@@ -16,6 +16,8 @@ const EventDetailPage = () => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
@@ -27,7 +29,7 @@ const EventDetailPage = () => {
       const response = await eventService.getEventById(id);
       setEvent(response.data.event);
     } catch (error) {
-      console.error('Error loading event:', error);
+      setError(error.response?.data?.message || 'Failed to load event.');
     } finally {
       setLoading(false);
     }
@@ -41,10 +43,11 @@ const EventDetailPage = () => {
     try {
       setRegistering(true);
       await eventService.registerForEvent(id);
-      alert('Successfully registered!');
+      setMessage('Successfully registered.');
+      setError('');
       loadEvent();
     } catch (error) {
-      alert(error.response?.data?.message || 'Registration failed');
+      setError(error.response?.data?.message || 'Registration failed');
     } finally {
       setRegistering(false);
     }
@@ -61,6 +64,8 @@ const EventDetailPage = () => {
     <div className="container">
       <div className="event-detail">
         <h1>{event.title}</h1>
+        {message && <div className="success-message">{message}</div>}
+        {error && <div className="error-message">{error}</div>}
         {event.featuredImage && (
           <img src={getMediaUrl(event.featuredImage)} alt={event.title} className="event-media-image" />
         )}

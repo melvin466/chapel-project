@@ -6,6 +6,8 @@ const CellsPage = () => {
   const [cells, setCells] = useState([]);
   const [loading, setLoading] = useState(true);
   const [zone, setZone] = useState('');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -18,7 +20,7 @@ const CellsPage = () => {
       const response = await cellService.getCells(params);
       setCells(response.data?.cells || []);
     } catch (error) {
-      console.error('Error loading cells:', error);
+      setError(error.response?.data?.message || 'Failed to load cell groups.');
     } finally {
       setLoading(false);
     }
@@ -26,15 +28,16 @@ const CellsPage = () => {
 
   const handleJoinCell = async (cellId) => {
     if (!isAuthenticated) {
-      alert('Please login to join a cell');
+      setError('Please log in to join a cell.');
       return;
     }
     try {
       await cellService.joinCell(cellId);
-      alert('Successfully joined the cell!');
+      setMessage('Your request to join this cell has been sent.');
+      setError('');
       loadCells();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to join cell');
+      setError(error.response?.data?.message || 'Failed to join cell');
     }
   };
 
@@ -45,6 +48,8 @@ const CellsPage = () => {
   return (
     <div className="container">
       <h1 className="page-title">Cell Groups</h1>
+      {message && <div className="success-message">{message}</div>}
+      {error && <div className="error-message">{error}</div>}
       
       <div className="filters">
         <select value={zone} onChange={(e) => setZone(e.target.value === 'All' ? '' : e.target.value)}>
@@ -65,7 +70,7 @@ const CellsPage = () => {
               <p>📍 Venue: {cell.meetingVenue}</p>
               <p>👥 Members: {cell.memberCount || 0} / {cell.maxCapacity || 30}</p>
               {cell.leader && <p>👤 Leader: {cell.leader.firstName} {cell.leader.lastName}</p>}
-              <button onClick={() => handleJoinCell(cell._id)} className="btn-primary">Join This Cell</button>
+              <button onClick={() => handleJoinCell(cell._id)} className="btn-primary">Request to Join</button>
             </div>
           ))}
         </div>

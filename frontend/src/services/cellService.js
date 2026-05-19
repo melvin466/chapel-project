@@ -1,8 +1,8 @@
 import api from './api';
 
 const cellService = {
-  getCells: async () => {
-    const response = await api.get('/cells');
+  getCells: async (params = {}) => {
+    const response = await api.get('/cells', { params });
     return response.data;
   },
 
@@ -18,6 +18,11 @@ const cellService = {
 
   joinCell: async (id) => {
     const response = await api.post(`/cells/${id}/join`);
+    return response.data;
+  },
+
+  reviewJoinRequest: async (requestId, data) => {
+    const response = await api.put(`/cells/join-requests/${requestId}`, data);
     return response.data;
   },
 

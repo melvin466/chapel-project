@@ -14,6 +14,7 @@ vi.mock('../context/AuthContext', () => ({
 vi.mock('../services/bookingService', () => ({
   default: {
     getManageBookings: vi.fn(),
+    createBooking: vi.fn(),
     updateManagedBooking: vi.fn(),
   },
 }));
@@ -47,6 +48,7 @@ describe('AdminBookings', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     bookingService.getManageBookings.mockResolvedValue({ data: { bookings } });
+    bookingService.createBooking.mockResolvedValue({ success: true });
     bookingService.updateManagedBooking.mockResolvedValue({ success: true });
     userService.getUsers.mockResolvedValue({
       data: {
@@ -75,5 +77,60 @@ describe('AdminBookings', () => {
       });
     });
     expect(await screen.findByText(/Booking assignment updated/i)).toBeInTheDocument();
+  });
+
+  it('approves a booking with a reason shown to the member', async () => {
+    render(<AdminBookings />);
+
+    expect(await screen.findByText('Wedding planning meeting')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText(/Reason shown to the member/i), {
+      target: { value: 'Approved for the counselling room at 10 AM.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Approve/i }));
+
+    await waitFor(() => {
+      expect(bookingService.updateManagedBooking).toHaveBeenCalledWith('booking-1', {
+        status: 'approved',
+        reviewReason: 'Approved for the counselling room at 10 AM.',
+      });
+    });
+    expect(await screen.findByText(/Booking approved/i)).toBeInTheDocument();
+  });
+
+  it('lets an admin create a booking request', async () => {
+    const { container } = render(<AdminBookings />);
+
+    expect(await screen.findByText('Make a Booking')).toBeInTheDocument();
+
+    fireEvent.change(container.querySelector('select[name="bookingType"]'), {
+      target: { value: 'facility' },
+    });
+    fireEvent.change(container.querySelector('input[name="requestedDate"]'), {
+      target: { value: '2026-08-12' },
+    });
+    fireEvent.change(container.querySelector('input[name="requestedTime"]'), {
+      target: { value: '14:00' },
+    });
+    fireEvent.change(container.querySelector('input[name="numberOfPeople"]'), {
+      target: { value: '20' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Purpose for this booking/i), {
+      target: { value: 'Admin facility reservation' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Create Booking/i }));
+
+    await waitFor(() => {
+      expect(bookingService.createBooking).toHaveBeenCalledWith({
+        bookingType: 'facility',
+        requestedDate: '2026-08-12',
+        requestedTime: '14:00',
+        numberOfPeople: 20,
+        purpose: 'Admin facility reservation',
+        specialRequests: '',
+      });
+    });
+    expect(await screen.findByText(/Booking request created/i)).toBeInTheDocument();
   });
 });

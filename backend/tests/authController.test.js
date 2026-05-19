@@ -6,8 +6,10 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Announcement = require('../models/Announcement');
 const Booking = require('../models/Booking');
+const Cell = require('../models/Cell');
 const Donation = require('../models/Donation');
 const AuditLog = require('../models/AuditLog');
+const Notification = require('../models/Notification');
 
 let mongoServer;
 
@@ -180,6 +182,11 @@ describe('Auth Controller', () => {
     const announcement = await Announcement.findOne({ title: 'Admin Test Announcement' });
     expect(announcement).not.toBeNull();
     expect(announcement.content).toBe('Announcement created by admin test');
+
+    const notification = await Notification.findOne({ title: 'Admin Test Announcement' });
+    expect(notification).not.toBeNull();
+    expect(notification.type).toBe('announcement');
+    expect(notification.data.announcementId.toString()).toBe(announcement._id.toString());
   });
 
   it('should verify a registered user email with a valid token', async () => {
@@ -335,7 +342,7 @@ describe('Auth Controller', () => {
     expect(booking.status).toBe('pending');
   });
 
-  it('should allow a chaplain to view and confirm booking requests', async () => {
+  it('should allow a chaplain to view and approve booking requests with a reason', async () => {
     await request(app)
       .post('/api/auth/register')
       .send({
@@ -388,10 +395,23 @@ describe('Auth Controller', () => {
     const updateRes = await request(app)
       .put(`/api/bookings/${bookingRes.body.data.booking._id}/manage`)
       .set('Authorization', `Bearer ${chaplainLogin.body.data.token}`)
-      .send({ status: 'confirmed' });
+      .send({ status: 'approved', reviewReason: 'Approved for counselling room 2.' });
 
     expect(updateRes.statusCode).toBe(200);
-    expect(updateRes.body.data.booking.status).toBe('confirmed');
+    expect(updateRes.body.data.booking.status).toBe('approved');
+    expect(updateRes.body.data.booking.reviewReason).toBe('Approved for counselling room 2.');
+    expect(updateRes.body.data.booking.reviewedBy.email).toBe('bookingchaplain@example.com');
+
+    const requesterBookings = await request(app)
+      .get('/api/bookings')
+      .set('Authorization', `Bearer ${requesterLogin.body.data.token}`);
+
+    expect(requesterBookings.body.data.bookings[0].reviewReason).toBe('Approved for counselling room 2.');
+
+    const notification = await Notification.findOne({ type: 'booking' });
+    expect(notification).not.toBeNull();
+    expect(notification.title).toBe('Booking approved');
+    expect(notification.message).toBe('Approved for counselling room 2.');
   });
 
   it('should block regular users from booking management endpoints', async () => {
@@ -414,6 +434,73 @@ describe('Auth Controller', () => {
       .set('Authorization', `Bearer ${loginRes.body.data.token}`);
 
     expect(res.statusCode).toBe(403);
+  });
+
+  it('should let a user request a cell and an admin approve it', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Cell',
+        lastName: 'Member',
+        email: 'cellmember@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890'
+      });
+
+    await request(app)
+      .post('/api/auth/register')
+      .send({
+        firstName: 'Cell',
+        lastName: 'Admin',
+        email: 'celladmin@example.com',
+        password: 'Password123!',
+        phoneNumber: '1234567890'
+      });
+
+    const adminUser = await User.findOneAndUpdate({ email: 'celladmin@example.com' }, { role: 'admin' }, { new: true });
+
+    const cell = await Cell.create({
+      name: 'North Campus Cell',
+      code: 'NORTH-1',
+      zone: 'North',
+      location: 'North Campus',
+      meetingDay: 'Sunday',
+      meetingTime: '16:00',
+      meetingVenue: 'Room A',
+      leader: adminUser._id,
+      maxCapacity: 10,
+    });
+
+    const memberLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'cellmember@example.com', password: 'Password123!' });
+
+    const adminLogin = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'celladmin@example.com', password: 'Password123!' });
+
+    const requestRes = await request(app)
+      .post(`/api/cells/${cell._id}/join`)
+      .set('Authorization', `Bearer ${memberLogin.body.data.token}`)
+      .send({ reason: 'I live near this cell.' });
+
+    expect(requestRes.statusCode).toBe(201);
+
+    const manageRes = await request(app)
+      .get('/api/cells/manage/all')
+      .set('Authorization', `Bearer ${adminLogin.body.data.token}`);
+
+    expect(manageRes.body.data.cells[0].joinRequests.length).toBe(1);
+
+    const reviewRes = await request(app)
+      .put(`/api/cells/join-requests/${manageRes.body.data.cells[0].joinRequests[0]._id}`)
+      .set('Authorization', `Bearer ${adminLogin.body.data.token}`)
+      .send({ status: 'approved' });
+
+    expect(reviewRes.statusCode).toBe(200);
+
+    const member = await User.findOne({ email: 'cellmember@example.com' });
+    expect(member.cellId.toString()).toBe(cell._id.toString());
   });
 
   it('should allow an admin to review and update donations', async () => {

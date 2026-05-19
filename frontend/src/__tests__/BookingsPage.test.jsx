@@ -21,7 +21,9 @@ const existingBookings = [
     purpose: 'Wedding ceremony booking',
     numberOfPeople: 80,
     specialRequests: 'Need sound support',
-    status: 'pending',
+    status: 'approved',
+    reviewReason: 'Approved for the main chapel.',
+    reviewedBy: { firstName: 'Paul', lastName: 'Chaplain' },
   },
 ];
 
@@ -38,6 +40,7 @@ describe('BookingsPage', () => {
 
     expect(screen.getByText(/Loading bookings/i)).toBeInTheDocument();
     expect(await screen.findByText('Wedding ceremony booking')).toBeInTheDocument();
+    expect(screen.getByText('Approved for the main chapel.')).toBeInTheDocument();
 
     fireEvent.change(container.querySelector('select[name="bookingType"]'), {
       target: { value: 'baptism' },

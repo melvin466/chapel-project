@@ -1,5 +1,6 @@
 const Announcement = require('../models/Announcement');
 const { recordAuditLog } = require('../utils/auditLogger');
+const { notifyAudience } = require('../utils/notificationDispatcher');
 const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const withUploadedAnnouncementFiles = (body, files = {}) => {
@@ -83,6 +84,14 @@ const createAnnouncement = async (req, res) => {
     }
 
     const announcement = await Announcement.create({ ...withUploadedAnnouncementFiles({ ...req.body, type }, req.files), createdBy: req.user.id });
+    if (announcement.status === 'published') {
+      await notifyAudience(announcement.targetAudience, {
+        type: 'announcement',
+        title: announcement.title,
+        message: announcement.summary || announcement.content.slice(0, 180),
+        data: { announcementId: announcement._id, type: announcement.type, targetAudience: announcement.targetAudience },
+      });
+    }
     await recordAuditLog(req, {
       action: 'announcement.create',
       resource: 'Announcement',
@@ -97,8 +106,19 @@ const createAnnouncement = async (req, res) => {
 
 const updateAnnouncement = async (req, res) => {
   try {
+    const existingAnnouncement = await Announcement.findById(req.params.id);
+    if (!existingAnnouncement) return res.status(404).json({ success: false, message: 'Announcement not found' });
+
     const announcement = await Announcement.findByIdAndUpdate(req.params.id, withUploadedAnnouncementFiles(req.body, req.files), { new: true });
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
+    if (existingAnnouncement.status !== 'published' && announcement.status === 'published') {
+      await notifyAudience(announcement.targetAudience, {
+        type: 'announcement',
+        title: announcement.title,
+        message: announcement.summary || announcement.content.slice(0, 180),
+        data: { announcementId: announcement._id, type: announcement.type, targetAudience: announcement.targetAudience },
+      });
+    }
     await recordAuditLog(req, {
       action: 'announcement.update',
       resource: 'Announcement',

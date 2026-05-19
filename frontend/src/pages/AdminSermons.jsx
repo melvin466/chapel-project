@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import sermonService from '../services/sermonService';
 import { useAuth } from '../context/AuthContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const emptyForm = {
   title: '',
@@ -28,6 +29,7 @@ const AdminSermons = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [formData, setFormData] = useState(emptyForm);
@@ -106,11 +108,17 @@ const AdminSermons = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!isAdmin || !window.confirm('Delete this sermon?')) return;
+  const requestDelete = (sermon) => {
+    if (!isAdmin) return;
+    setDeleteTarget(sermon);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await sermonService.deleteSermon(id);
+      await sermonService.deleteSermon(deleteTarget._id);
       setMessage('Sermon deleted.');
+      setDeleteTarget(null);
       loadSermons();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete sermon');
@@ -178,7 +186,7 @@ const AdminSermons = () => {
                 <td>{[sermon.audioUrl && 'Audio', sermon.videoUrl && 'Video', sermon.thumbnail && 'Thumbnail'].filter(Boolean).join(', ') || '-'}</td>
                 <td>
                   <button className="btn-edit" onClick={() => handleEdit(sermon)}>Edit</button>
-                  {isAdmin && <button className="btn-delete" onClick={() => handleDelete(sermon._id)}>Delete</button>}
+                  {isAdmin && <button className="btn-delete" onClick={() => requestDelete(sermon)}>Delete</button>}
                 </td>
               </tr>
             ))}
@@ -194,7 +202,7 @@ const AdminSermons = () => {
         .admin-form h2 { color: #1f2933; margin-bottom: 1rem; }
         .admin-form form { display: grid; gap: 1rem; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .form-row > *, .admin-form input, .admin-form textarea, .admin-form select { flex: 1 1 180px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: white; }
+        .form-row > *, .admin-form input, .admin-form textarea, .admin-form select { flex: 1 1 180px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: rgba(255,255,255,0.84); }
         .media-upload-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; }
         .media-upload-section label { display: grid; gap: 0.4rem; font-weight: 600; color: #1f2933; }
         .admin-table { width: 100%; border-collapse: collapse; }
@@ -205,6 +213,14 @@ const AdminSermons = () => {
         .btn-delete { background: #c2413a; }
         .btn-secondary { background: #4c5f7a; }
       `}</style>
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Delete sermon"
+        message={`Delete "${deleteTarget?.title || 'this sermon'}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

@@ -18,8 +18,55 @@ const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 const isTest = process.env.NODE_ENV === 'test';
 
-if (isProduction && !process.env.JWT_SECRET) {
-  throw new Error('JWT_SECRET is required in production');
+const weakJwtSecrets = new Set([
+  'secret',
+  'jwt_secret',
+  'your_jwt_secret',
+  'change_me',
+  'changeme',
+  'password',
+]);
+
+const validateJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (isProduction) throw new Error('JWT_SECRET is required in production');
+    return;
+  }
+
+  if (secret.length < 32 || weakJwtSecrets.has(secret.toLowerCase())) {
+    throw new Error('JWT_SECRET must be at least 32 characters and not use a default value');
+  }
+};
+
+validateJwtSecret();
+
+const getAllowedOrigins = () => {
+  const configuredOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  if (isProduction) {
+    if (configuredOrigins.length === 0) {
+      throw new Error('CORS_ORIGINS or FRONTEND_URL is required in production');
+    }
+
+    const localOrigins = configuredOrigins.filter((origin) => /localhost|127\.0\.0\.1|\[::1\]/i.test(origin));
+    if (localOrigins.length > 0) {
+      throw new Error('Production CORS origins must not include localhost addresses');
+    }
+
+    return configuredOrigins;
+  }
+
+  return configuredOrigins.length > 0 ? configuredOrigins : ['http://localhost:3000', 'http://localhost:5173'];
+};
+
+const allowedOrigins = getAllowedOrigins();
+
+if (isProduction && process.env.FRONTEND_URL && process.env.CORS_ORIGINS) {
+  console.warn('Both FRONTEND_URL and CORS_ORIGINS are set; CORS_ORIGINS takes precedence.');
 }
 
 if (isProduction && !(process.env.MONGODB_URI || process.env.DB_URI)) {
@@ -35,10 +82,6 @@ if (isProduction) {
 }
 
 // Middleware
-const allowedOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {

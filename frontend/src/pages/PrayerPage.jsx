@@ -4,6 +4,7 @@ import prayerService from '../services/prayerService';
 const PrayerPage = () => {
   const [prayerRequests, setPrayerRequests] = useState([]);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,7 +26,6 @@ const PrayerPage = () => {
       const response = await prayerService.getPrayerRequests({ limit: 50 });
       setPrayerRequests(response.data?.prayerRequests || []);
     } catch (error) {
-      console.error('Error fetching prayer requests:', error);
       setError(error.response?.data?.message || 'Failed to load prayer requests.');
     } finally {
       setLoading(false);
@@ -35,9 +35,11 @@ const PrayerPage = () => {
   const handlePray = async (id) => {
     try {
       await prayerService.prayForRequest(id);
+      setMessage('Prayer recorded.');
+      setError(null);
       loadPrayerRequests();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to record prayer.');
+      setError(error.response?.data?.message || 'Failed to record prayer.');
     }
   };
 
@@ -55,6 +57,7 @@ const PrayerPage = () => {
     setError(null);
     try {
       await prayerService.createPrayerRequest(formData);
+      setMessage('Prayer request submitted.');
       setFormData({ title: '', description: '', category: 'personal', urgency: 'normal', isAnonymous: false });
       await loadPrayerRequests();
     } catch (error) {
@@ -67,6 +70,7 @@ const PrayerPage = () => {
   return (
     <div className="container prayer-page">
       <h1 className="page-title">Prayer Requests</h1>
+      {message && <div className="success-message">{message}</div>}
       <div className="two-columns prayer-layout">
         <div className="form-card">
           <h2>Share a Request</h2>

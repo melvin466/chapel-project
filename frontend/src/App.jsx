@@ -1,49 +1,46 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HomePage from './pages/HomePage';
-import EventsPage from './pages/EventsPage';
-import EventDetailPage from './pages/EventDetailPage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import VerifyEmailPage from './pages/VerifyEmailPage';
-import PrayerPage from './pages/PrayerPage';
-import DonationsPage from './pages/DonationsPage';
-import DashboardPage from './pages/DashboardPage';
-import ProfilePage from './pages/ProfilePage';
-import NotificationsPage from './pages/NotificationsPage';
-import FeedbackPage from './pages/FeedbackPage';
-import AnnouncementsPage from './pages/AnnouncementsPage';
-import AnnouncementDetailPage from './pages/AnnouncementDetailPage';
-import SermonsPage from './pages/SermonsPage';
-import SermonDetailPage from './pages/SermonDetailPage';
-import CellsPage from './pages/CellsPage';
-import AdminDashboardPage from './pages/AdminDashboardPage';
-import BookingsPage from './pages/BookingsPage';
-import GivePage from './pages/GivePage';
-
-import AdminEvents from './pages/AdminEvents';
-import AdminAnnouncements from './pages/AdminAnnouncements';
-import AdminPrayerRequests from './pages/AdminPrayerRequests';
-import AdminUsers from './pages/AdminUsers';
-import AdminSettings from './pages/AdminSettings';
-import AdminBookings from './pages/AdminBookings';
-import AdminDonations from './pages/AdminDonations';
-import AdminAuditLogs from './pages/AdminAuditLogs';
-import AdminSermons from './pages/AdminSermons';
-import AdminCells from './pages/AdminCells';
-
-// NEW IMPORTS FOR CREATE/EDIT FORMS
-import AdminEventForm from './pages/AdminEventForm';
-import AdminAnnouncementForm from './pages/AdminAnnouncementForm';
-import AdminUserForm from './pages/AdminUserForm';
-import AdminExport from './pages/AdminExport';
-
 import './App.css';
+
+const HomePage = lazy(() => import('./pages/HomePage'));
+const EventsPage = lazy(() => import('./pages/EventsPage'));
+const EventDetailPage = lazy(() => import('./pages/EventDetailPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
+const PrayerPage = lazy(() => import('./pages/PrayerPage'));
+const DonationsPage = lazy(() => import('./pages/DonationsPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
+const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'));
+const AnnouncementDetailPage = lazy(() => import('./pages/AnnouncementDetailPage'));
+const SermonsPage = lazy(() => import('./pages/SermonsPage'));
+const SermonDetailPage = lazy(() => import('./pages/SermonDetailPage'));
+const CellsPage = lazy(() => import('./pages/CellsPage'));
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
+const BookingsPage = lazy(() => import('./pages/BookingsPage'));
+const GivePage = lazy(() => import('./pages/GivePage'));
+const AdminEvents = lazy(() => import('./pages/AdminEvents'));
+const AdminAnnouncements = lazy(() => import('./pages/AdminAnnouncements'));
+const AdminPrayerRequests = lazy(() => import('./pages/AdminPrayerRequests'));
+const AdminUsers = lazy(() => import('./pages/AdminUsers'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const AdminBookings = lazy(() => import('./pages/AdminBookings'));
+const AdminDonations = lazy(() => import('./pages/AdminDonations'));
+const AdminAuditLogs = lazy(() => import('./pages/AdminAuditLogs'));
+const AdminSermons = lazy(() => import('./pages/AdminSermons'));
+const AdminCells = lazy(() => import('./pages/AdminCells'));
+const AdminEventForm = lazy(() => import('./pages/AdminEventForm'));
+const AdminAnnouncementForm = lazy(() => import('./pages/AdminAnnouncementForm'));
+const AdminUserForm = lazy(() => import('./pages/AdminUserForm'));
+const AdminExport = lazy(() => import('./pages/AdminExport'));
 
 // Protected Route Component - Only accessible when logged in
 const ProtectedRoute = ({ children }) => {
@@ -94,6 +91,7 @@ function App() {
         <div className="App">
           <Navbar />
           <main>
+            <Suspense fallback={<div className="loading">Loading page...</div>}>
             <Routes>
               {/* ===== PUBLIC ROUTES (No login required) ===== */}
               <Route path="/" element={<HomePage />} />
@@ -293,6 +291,7 @@ function App() {
               {/* Fallback for any unknown routes */}
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
+            </Suspense>
           </main>
           <Footer />
         </div>

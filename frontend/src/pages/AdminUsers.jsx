@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import userService from '../services/userService';
 import { useAuth } from '../context/AuthContext';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -9,6 +10,9 @@ const AdminUsers = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const { user: currentUser } = useAuth();
   
   const [formData, setFormData] = useState({
@@ -33,7 +37,7 @@ const AdminUsers = () => {
       setUsers(response.data?.users || []);
     } catch (error) {
       console.error('Error loading users:', error);
-      alert('Failed to load users');
+      setError(error.response?.data?.message || 'Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -49,16 +53,18 @@ const AdminUsers = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+    setError('');
     try {
       const payload = { ...formData };
       if (editingUser && !payload.password) delete payload.password;
 
       if (editingUser) {
         await userService.updateUser(editingUser._id, payload);
-        alert('User updated successfully!');
+        setMessage('User updated successfully.');
       } else {
         await userService.createUser(payload);
-        alert('User created successfully!');
+        setMessage('User created successfully.');
       }
       setShowForm(false);
       setEditingUser(null);
@@ -66,7 +72,7 @@ const AdminUsers = () => {
       loadUsers();
     } catch (error) {
       console.error('Failed to save user:', error.response?.data || error);
-      alert(error.response?.data?.message || `Failed to save user (${error.response?.status || 'network error'})`);
+      setError(error.response?.data?.message || `Failed to save user (${error.response?.status || 'network error'})`);
     }
   };
 
@@ -85,17 +91,24 @@ const AdminUsers = () => {
 
   const handleDelete = async (id) => {
     if (id === currentUser?._id) {
-      alert('You cannot delete your own account');
+      setError('You cannot delete your own account');
       return;
     }
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await userService.deleteUser(id);
-        alert('User deleted successfully!');
-        loadUsers();
-      } catch (error) {
-        alert('Failed to delete user');
-      }
+    const userToDelete = users.find((user) => user._id === id);
+    setDeleteTarget(userToDelete || { _id: id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setMessage('');
+    setError('');
+    try {
+      await userService.deleteUser(deleteTarget._id);
+      setMessage('User deleted successfully.');
+      setDeleteTarget(null);
+      loadUsers();
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -115,11 +128,14 @@ const AdminUsers = () => {
   };
 
   const toggleUserStatus = async (id, currentStatus) => {
+    setMessage('');
+    setError('');
     try {
       await userService.updateUser(id, { isActive: !currentStatus });
+      setMessage(`User ${currentStatus ? 'deactivated' : 'activated'} successfully.`);
       loadUsers();
     } catch (error) {
-      alert('Failed to update user status');
+      setError(error.response?.data?.message || 'Failed to update user status');
     }
   };
 
@@ -158,6 +174,9 @@ const AdminUsers = () => {
           <option value="student_leader">Student Leader</option>
         </select>
       </div>
+
+      {message && <div className="success-message">{message}</div>}
+      {error && <div className="error-message">{error}</div>}
 
       {showForm && (
         <div className="admin-form">
@@ -285,6 +304,14 @@ const AdminUsers = () => {
         .btn-toggle { background: #ff9800; color: white; }
         .btn-delete { background: #f44336; color: white; }
       `}</style>
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Delete user"
+        message={`Delete ${deleteTarget?.firstName || 'this'} ${deleteTarget?.lastName || 'user'}? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

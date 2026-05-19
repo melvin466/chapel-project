@@ -6,11 +6,14 @@ const bookingSchema = new mongoose.Schema({
   event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
   requestedDate: { type: Date, required: true },
   requestedTime: { type: String, required: true },
-  status: { type: String, enum: ['pending', 'confirmed', 'cancelled', 'completed'], default: 'pending' },
+  status: { type: String, enum: ['pending', 'approved', 'denied', 'cancelled', 'completed'], default: 'pending' },
   purpose: { type: String, required: true },
   numberOfPeople: { type: Number, default: 1 },
   specialRequests: String,
   assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  reviewReason: String,
+  reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  reviewedAt: Date,
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import prayerService from '../services/prayerService';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const AdminPrayerRequests = () => {
   const [prayers, setPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [responses, setResponses] = useState({});
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadPrayers();
@@ -23,8 +27,7 @@ const AdminPrayerRequests = () => {
         }, {})
       );
     } catch (error) {
-      console.error('Error loading prayers:', error);
-      alert(error.response?.data?.message || 'Failed to load prayer requests');
+      setError(error.response?.data?.message || 'Failed to load prayer requests');
     } finally {
       setLoading(false);
     }
@@ -37,38 +40,41 @@ const AdminPrayerRequests = () => {
   const handleAnswer = async (id) => {
     const responseText = responses[id]?.trim();
     if (!responseText) {
-      alert('Please write an answer before marking this request as answered.');
+      setError('Please write an answer before marking this request as answered.');
       return;
     }
 
     try {
       await prayerService.updatePrayerStatus(id, 'answered', responseText);
-      alert('Prayer request answered.');
+      setMessage('Prayer request answered.');
+      setError('');
       loadPrayers();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to answer prayer request');
+      setError(error.response?.data?.message || 'Failed to answer prayer request');
     }
   };
 
   const handleStatusUpdate = async (id, status) => {
     try {
       await prayerService.updatePrayerStatus(id, status);
-      alert(`Prayer request marked as ${status}`);
+      setMessage(`Prayer request marked as ${status}.`);
+      setError('');
       loadPrayers();
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to update status');
+      setError(error.response?.data?.message || 'Failed to update status');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Delete this prayer request?')) {
-      try {
-        await prayerService.deletePrayerRequest(id);
-        alert('Prayer request deleted');
-        loadPrayers();
-      } catch (error) {
-        alert(error.response?.data?.message || 'Failed to delete prayer request');
-      }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await prayerService.deletePrayerRequest(deleteTarget._id);
+      setMessage('Prayer request deleted.');
+      setError('');
+      setDeleteTarget(null);
+      loadPrayers();
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to delete prayer request');
     }
   };
 
@@ -82,6 +88,9 @@ const AdminPrayerRequests = () => {
           <h1>Prayer Requests</h1>
         </div>
       </div>
+
+      {message && <div className="success-message">{message}</div>}
+      {error && <div className="error-message">{error}</div>}
 
       {prayers.length === 0 ? (
         <p className="no-data">No prayer requests found.</p>
@@ -147,7 +156,7 @@ const AdminPrayerRequests = () => {
                     Close
                   </button>
                 )}
-                <button onClick={() => handleDelete(prayer._id)} className="btn-delete">
+                <button onClick={() => setDeleteTarget(prayer)} className="btn-delete">
                   Delete
                 </button>
               </div>
@@ -215,6 +224,14 @@ const AdminPrayerRequests = () => {
         .status-answered { background: rgba(47,125,70,0.9); color: white; }
         .status-closed { background: rgba(98,112,124,0.9); color: white; }
       `}</style>
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Delete prayer request"
+        message={`Delete "${deleteTarget?.title || 'this prayer request'}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

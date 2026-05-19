@@ -2,12 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const AdminEvents = () => {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadEvents();
@@ -19,27 +23,30 @@ const AdminEvents = () => {
       const response = await eventService.getManageEvents({ limit: 100 });
       setEvents(response.data?.events || []);
     } catch (error) {
-      console.error('Error loading events:', error);
-      alert(error.response?.data?.message || 'Failed to load events');
+      setError(error.response?.data?.message || 'Failed to load events');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
+  const requestDelete = (event) => {
     if (!isAdmin) {
-      alert('Only admins can delete events');
+      setError('Only admins can delete events');
       return;
     }
+    setDeleteTarget(event);
+  };
 
-    if (window.confirm('Delete this event?')) {
-      try {
-        await eventService.deleteEvent(id);
-        alert('Event deleted successfully');
-        loadEvents();
-      } catch (error) {
-        alert(error.response?.data?.message || 'Failed to delete event');
-      }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await eventService.deleteEvent(deleteTarget._id);
+      setMessage('Event deleted successfully.');
+      setError('');
+      setDeleteTarget(null);
+      loadEvents();
+    } catch (error) {
+      setError(error.response?.data?.message || 'Failed to delete event');
     }
   };
 
@@ -53,6 +60,9 @@ const AdminEvents = () => {
           New Event
         </button>
       </div>
+
+      {message && <div className="success-message">{message}</div>}
+      {error && <div className="error-message">{error}</div>}
 
       <div className="admin-table-container">
         <table className="admin-table">
@@ -79,7 +89,7 @@ const AdminEvents = () => {
                   <td>{event.location || '-'}</td>
                   <td>
                     <button onClick={() => navigate(`/admin/events/edit/${event._id}`)} className="btn-edit">Edit</button>
-                    {isAdmin && <button onClick={() => handleDelete(event._id)} className="btn-delete">Delete</button>}
+                    {isAdmin && <button onClick={() => requestDelete(event)} className="btn-delete">Delete</button>}
                   </td>
                 </tr>
               ))
@@ -107,6 +117,14 @@ const AdminEvents = () => {
         .status-cancelled { background: #f44336; }
         .status-completed { background: #607D8B; }
       `}</style>
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Delete event"
+        message={`Delete "${deleteTarget?.title || 'this event'}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 };

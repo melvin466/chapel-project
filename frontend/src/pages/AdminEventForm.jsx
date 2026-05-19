@@ -6,6 +6,7 @@ const AdminEventForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState('');
   const [files, setFiles] = useState({
     featuredImage: null,
     eventVideo: null
@@ -88,17 +89,16 @@ const AdminEventForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       if (isEditing) {
         await eventService.updateEvent(id, buildPayload());
-        alert('Event updated successfully!');
       } else {
         await eventService.createEvent(buildPayload());
-        alert('Event created successfully!');
       }
       navigate('/admin/events');
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to save event');
+      setError(error.response?.data?.message || 'Failed to save event');
     } finally {
       setLoading(false);
     }
@@ -108,6 +108,7 @@ const AdminEventForm = () => {
     <div className="admin-form-container">
       <div className="admin-form-card">
         <h1>{isEditing ? 'Edit Event' : 'Create New Event'}</h1>
+        {error && <div className="form-message error" role="alert">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <input type="text" name="title" placeholder="Event Title" value={formData.title} onChange={handleChange} required />

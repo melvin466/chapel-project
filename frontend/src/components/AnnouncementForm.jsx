@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const AnnouncementForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -22,13 +23,13 @@ const AnnouncementForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     try {
       await announcementService.createAnnouncement(formData);
-      alert('Announcement created successfully!');
       navigate('/admin/announcements');
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to create announcement');
+      setError(error.response?.data?.message || 'Failed to create announcement');
     } finally {
       setLoading(false);
     }
@@ -42,6 +43,8 @@ const AnnouncementForm = () => {
           Cancel
         </button>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
 
       <form onSubmit={handleSubmit} className="announcement-form">
         <div className="form-group">

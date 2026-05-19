@@ -8,9 +8,13 @@ const AdminExport = () => {
   const navigate = useNavigate();
   const [exporting, setExporting] = useState(false);
   const [exportType, setExportType] = useState('events');
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const handleExport = async () => {
     setExporting(true);
+    setMessage('');
+    setError('');
     try {
       let data;
       let filename;
@@ -42,9 +46,9 @@ const AdminExport = () => {
       a.download = filename;
       a.click();
       URL.revokeObjectURL(url);
-      alert('Export completed!');
+      setMessage('Export completed.');
     } catch (error) {
-      alert('Failed to export data');
+      setError(error.response?.data?.message || 'Failed to export data');
     } finally {
       setExporting(false);
     }
@@ -55,6 +59,9 @@ const AdminExport = () => {
       <div className="export-card">
         <h1>📊 Export Data</h1>
         <p>Export your chapel data to JSON format for backup or analysis.</p>
+
+        {message && <div className="success-message">{message}</div>}
+        {error && <div className="error-message">{error}</div>}
         
         <div className="export-options">
           <label className="export-option">
@@ -81,7 +88,7 @@ const AdminExport = () => {
 
       <style>{`
         .export-container { min-height: 80vh; display: flex; justify-content: center; align-items: center; padding: 2rem; background: linear-gradient(135deg, #667eea, #764ba2); }
-        .export-card { background: white; border-radius: 24px; padding: 2rem; max-width: 500px; width: 100%; text-align: center; }
+        .export-card { background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08)); border-radius: 8px; padding: 2rem; max-width: 500px; width: 100%; text-align: center; border: 1px solid rgba(255,255,255,0.22); backdrop-filter: blur(22px) saturate(130%); }
         .export-card h1 { color: #333; margin-bottom: 1rem; }
         .export-card p { color: #666; margin-bottom: 2rem; }
         .export-options { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }

@@ -8,6 +8,7 @@ const AdminUserForm = () => {
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -68,18 +69,16 @@ const AdminUserForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     try {
       if (isEditing) {
         await userService.updateUser(id, buildPayload());
-        alert('User updated successfully!');
       } else {
         await userService.createUser(buildPayload());
-        alert('User created successfully!');
       }
       navigate('/admin/users');
     } catch (error) {
-      console.error('Failed to save user:', error.response?.data || error);
-      alert(error.response?.data?.message || `Failed to save user (${error.response?.status || 'network error'})`);
+      setError(error.response?.data?.message || `Failed to save user (${error.response?.status || 'network error'})`);
     } finally {
       setLoading(false);
     }
@@ -89,6 +88,7 @@ const AdminUserForm = () => {
     <div className="admin-form-container">
       <div className="admin-form-card">
         <h1>{isEditing ? 'Edit User' : 'Create New User'}</h1>
+        {error && <div className="form-message error" role="alert">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <input type="text" name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} required />

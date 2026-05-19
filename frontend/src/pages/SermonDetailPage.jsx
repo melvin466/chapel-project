@@ -18,6 +18,7 @@ const SermonDetailPage = () => {
   const [sermon, setSermon] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [message, setMessage] = useState('');
   const [liked, setLiked] = useState(false);
   const { isAuthenticated } = useAuth();
 
@@ -31,7 +32,6 @@ const SermonDetailPage = () => {
       const response = await sermonService.getSermonById(id);
       setSermon(response.data.sermon);
     } catch (error) {
-      console.error('Error loading sermon:', error);
       setError('Failed to load sermon');
     } finally {
       setLoading(false);
@@ -46,9 +46,11 @@ const SermonDetailPage = () => {
     try {
       const response = await sermonService.likeSermon(id);
       setLiked(response.liked);
+      setMessage(response.liked ? 'Sermon liked.' : 'Sermon like removed.');
+      setError(null);
       loadSermon();
     } catch (error) {
-      alert('Failed to like sermon');
+      setError('Failed to like sermon');
     }
   };
 
@@ -64,6 +66,8 @@ const SermonDetailPage = () => {
       
       <div className="sermon-detail">
         <h1>{sermon.title}</h1>
+        {message && <div className="success-message">{message}</div>}
+        {error && <div className="error-message">{error}</div>}
         
         <div className="sermon-meta">
           <p>🎙️ <strong>Speaker:</strong> {sermon.speaker}</p>

@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const { recordAuditLog } = require('../utils/auditLogger');
+const { notifyUser } = require('../utils/notificationDispatcher');
 
 const getBookings = async (req, res) => {
   try {
@@ -9,6 +10,7 @@ const getBookings = async (req, res) => {
 
     const bookings = await Booking.find(filter)
       .populate('event', 'title startDate')
+      .populate('reviewedBy', 'firstName lastName')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -34,6 +36,7 @@ const getManageBookings = async (req, res) => {
     const bookings = await Booking.find(filter)
       .populate('user', 'firstName lastName email phoneNumber')
       .populate('assignedTo', 'firstName lastName email')
+      .populate('reviewedBy', 'firstName lastName email')
       .populate('event', 'title startDate')
       .sort({ requestedDate: 1, requestedTime: 1 })
       .skip((page - 1) * limit)
@@ -72,7 +75,7 @@ const createBooking = async (req, res) => {
 const cancelBooking = async (req, res) => {
   try {
     const booking = await Booking.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id, status: { $in: ['pending', 'confirmed'] } },
+      { _id: req.params.id, user: req.user.id, status: { $in: ['pending', 'approved'] } },
       { status: 'cancelled' }, 
       { new: true }
     );
@@ -85,18 +88,30 @@ const cancelBooking = async (req, res) => {
 
 const updateManagedBooking = async (req, res) => {
   try {
-    const allowedStatuses = ['pending', 'confirmed', 'cancelled', 'completed'];
+    const allowedStatuses = ['pending', 'approved', 'denied', 'cancelled', 'completed'];
     const updateData = {};
 
     if (req.body.status !== undefined) {
       if (!allowedStatuses.includes(req.body.status)) {
         return res.status(400).json({ success: false, message: 'Invalid booking status' });
       }
+      if (['approved', 'denied'].includes(req.body.status) && !req.body.reviewReason?.trim()) {
+        return res.status(400).json({ success: false, message: 'A reason is required to approve or deny a booking' });
+      }
       updateData.status = req.body.status;
     }
 
     if (req.body.assignedTo !== undefined) {
       updateData.assignedTo = req.body.assignedTo || null;
+    }
+
+    if (req.body.reviewReason !== undefined) {
+      updateData.reviewReason = req.body.reviewReason.trim();
+    }
+
+    if (['approved', 'denied'].includes(updateData.status)) {
+      updateData.reviewedBy = req.user.id;
+      updateData.reviewedAt = new Date();
     }
 
     if (Object.keys(updateData).length === 0) {
@@ -109,9 +124,19 @@ const updateManagedBooking = async (req, res) => {
     })
       .populate('user', 'firstName lastName email phoneNumber')
       .populate('assignedTo', 'firstName lastName email')
+      .populate('reviewedBy', 'firstName lastName email')
       .populate('event', 'title startDate');
 
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    if (['approved', 'denied'].includes(updateData.status)) {
+      await notifyUser(booking.user?._id || booking.user, {
+        type: 'booking',
+        title: updateData.status === 'approved' ? 'Booking approved' : 'Booking denied',
+        message: booking.reviewReason,
+        data: { bookingId: booking._id, status: booking.status },
+      });
+    }
 
     await recordAuditLog(req, {
       action: 'booking.manage_update',
@@ -121,6 +146,7 @@ const updateManagedBooking = async (req, res) => {
         status: booking.status,
         assignedTo: booking.assignedTo,
         requestedBy: booking.user,
+        reviewReason: booking.reviewReason,
       },
     });
 

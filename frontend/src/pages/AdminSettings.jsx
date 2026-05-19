@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import settingService from '../services/settingService';
+import ConfirmDialog from '../components/ConfirmDialog';
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState({
@@ -26,6 +27,9 @@ const AdminSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('general');
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadSettings();
@@ -66,20 +70,20 @@ const AdminSettings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    setMessage('');
+    setError('');
     try {
       await settingService.updateSettings(settings);
-      alert('Settings saved successfully!');
+      setMessage('Settings saved successfully.');
     } catch (error) {
-      alert('Failed to save settings');
+      setError(error.response?.data?.message || 'Failed to save settings');
     } finally {
       setSaving(false);
     }
   };
 
   const handleReset = () => {
-    if (window.confirm('Reset all settings to default?')) {
-      window.location.reload();
-    }
+    setShowResetConfirm(true);
   };
 
   if (loading) return <div className="loading">Loading settings...</div>;
@@ -95,6 +99,9 @@ const AdminSettings = () => {
           </button>
         </div>
       </div>
+
+      {message && <div className="success-message">{message}</div>}
+      {error && <div className="error-message">{error}</div>}
 
       <div className="settings-tabs">
         <button className={activeTab === 'general' ? 'active' : ''} onClick={() => setActiveTab('general')}>
@@ -259,6 +266,14 @@ const AdminSettings = () => {
         .form-actions { margin-top: 2rem; text-align: right; }
         .btn-secondary { background: #9e9e9e; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
       `}</style>
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        title="Reset settings"
+        message="Reset all settings to their defaults? Any unsaved changes on this page will be lost."
+        confirmLabel="Reset"
+        onCancel={() => setShowResetConfirm(false)}
+        onConfirm={() => window.location.reload()}
+      />
     </div>
   );
 };

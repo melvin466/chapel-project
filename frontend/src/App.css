@@ -1236,6 +1236,13 @@ main {
 
 .admin-form,
 .admin-form-card,
+.admin-table-container,
+.settings-panel,
+.export-card,
+.announcement-form,
+.cell-card,
+.sermon-card,
+.sermon-detail,
 .feedback-container {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08)) !important;
   backdrop-filter: blur(22px) saturate(130%);
@@ -1247,6 +1254,15 @@ main {
 .admin-form h2,
 .admin-form-card h1,
 .admin-form-card h2,
+.settings-panel h2,
+.export-card h1,
+.announcement-form h1,
+.announcement-form h2,
+.cell-card h3,
+.sermon-card h3,
+.sermon-detail h1,
+.sermon-detail h2,
+.sermon-detail h3,
 .feedback-container h1,
 .feedback-container h2,
 .info-card h3,
@@ -1255,6 +1271,15 @@ main {
 }
 
 .info-card p,
+.settings-panel label,
+.export-card p,
+.export-card span,
+.announcement-form label,
+.cell-card p,
+.sermon-card p,
+.sermon-card span,
+.sermon-detail p,
+.sermon-detail li,
 .feedback-container p,
 .admin-form label,
 .admin-form-card label {
@@ -1267,6 +1292,11 @@ main {
 .admin-form-card input,
 .admin-form-card textarea,
 .admin-form-card select,
+.settings-panel input,
+.settings-panel textarea,
+.announcement-form input,
+.announcement-form textarea,
+.announcement-form select,
 .feedback-form input,
 .feedback-form textarea,
 .feedback-form select,
@@ -1461,8 +1491,12 @@ main {
   background: #8a6d1f;
 }
 
-.status-confirmed {
+.status-approved {
   background: var(--brand);
+}
+
+.status-denied {
+  background: #c2413a;
 }
 
 .status-cancelled {
@@ -1475,6 +1509,29 @@ main {
 
 .booking-item .btn-secondary {
   margin-top: 0.5rem;
+}
+
+.booking-review-note {
+  margin: 0.8rem 0;
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: #f5f7f6;
+  border: 1px solid #e5e7eb;
+}
+
+.booking-review-note strong {
+  display: block;
+  color: #1f2933;
+  margin-bottom: 0.35rem;
+}
+
+.booking-review-note p {
+  white-space: pre-wrap;
+}
+
+.booking-review-note span {
+  color: #6b7280;
+  font-size: 0.85rem;
 }
 
 .info-card h3, .info-card h4 {
