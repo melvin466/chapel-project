@@ -29,7 +29,7 @@ const eventUpload = upload.fields([
 router.get('/', getEvents);
 router.get('/upcoming', getUpcomingEvents);
 router.get('/calendar', getEventsByMonth);
-router.get('/manage/all', protect, chaplain, getManageEvents);
+router.get('/manage/all', protect, admin, getManageEvents);
 router.get('/stats/summary', protect, admin, getEventStats);
 router.get('/export/all', protect, admin, exportEvents);
 router.get('/:id', getEventById);
@@ -39,11 +39,11 @@ router.post('/:id/register', protect, registerForEvent);
 router.delete('/:id/register', protect, cancelRegistration);
 router.post('/:id/feedback', protect, addEventFeedback);
 
-// Admin/Chaplain only routes (create, update, delete events)
-router.post('/', protect, chaplain, eventUpload, createEvent);
-router.put('/:id', protect, chaplain, eventUpload, updateEvent);
+// Admin only routes (create, update, delete events)
+router.post('/', protect, admin, eventUpload, createEvent);
+router.put('/:id', protect, admin, eventUpload, updateEvent);
 router.delete('/:id', protect, admin, deleteEvent);
-router.get('/:id/attendees', protect, chaplain, getEventAttendees);
-router.post('/:id/checkin', protect, chaplain, checkInAttendee);
+router.get('/:id/attendees', protect, admin, getEventAttendees);
+router.post('/:id/checkin', protect, admin, checkInAttendee);
 
 module.exports = router;

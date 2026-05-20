@@ -29,6 +29,7 @@ const eventSchema = new mongoose.Schema({
   speakers: [{ name: String, title: String, photo: String }],
   organizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  checkedInAttendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now }
 });

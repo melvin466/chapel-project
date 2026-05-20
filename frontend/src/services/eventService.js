@@ -26,6 +26,41 @@ const eventService = {
     return response.data;
   },
 
+  cancelRegistration: async (id) => {
+    const response = await api.delete(`/events/${id}/register`);
+    return response.data;
+  },
+
+  addEventFeedback: async (id, feedbackData) => {
+    const response = await api.post(`/events/${id}/feedback`, feedbackData);
+    return response.data;
+  },
+
+  getEventsByMonth: async (params = {}) => {
+    const response = await api.get('/events/calendar', { params });
+    return response.data;
+  },
+
+  getEventStats: async () => {
+    const response = await api.get('/events/stats/summary');
+    return response.data;
+  },
+
+  exportEvents: async () => {
+    const response = await api.get('/events/export/all', { responseType: 'blob' });
+    return response;
+  },
+
+  getEventAttendees: async (id) => {
+    const response = await api.get(`/events/${id}/attendees`);
+    return response.data;
+  },
+
+  checkInAttendee: async (id, attendeeId) => {
+    const response = await api.post(`/events/${id}/checkin`, { attendeeId });
+    return response.data;
+  },
+
   createEvent: async (eventData) => {
     const response = await api.post('/events', eventData, eventData instanceof FormData ? {
       headers: { 'Content-Type': 'multipart/form-data' }

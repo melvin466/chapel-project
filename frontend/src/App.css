@@ -55,6 +55,14 @@ main {
   padding: 1.5rem 0 0;
 }
 
+.admin-app {
+  background: #f3f6f8;
+}
+
+.admin-main {
+  padding: 0;
+}
+
 /* Container */
 .container {
   max-width: 1200px;

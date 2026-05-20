@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import eventService from '../services/eventService';
 import api from '../services/api';
 
 const getMediaUrl = (path) => {
@@ -15,8 +17,8 @@ const EventsPage = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await api.get('/events');
-        setEvents(response.data.data.events);
+        const response = await eventService.getEvents();
+        setEvents(response.data?.events || []);
       } catch (error) {
         console.error('Error fetching events:', error);
         setError('Failed to load events.');
@@ -35,14 +37,15 @@ const EventsPage = () => {
       {error && <p className="error-message">{error}</p>}
       {events.length > 0 ? (
         events.map(event => (
-          <div key={event._id} className="event-item">
+          <Link key={event._id} to={`/events/${event._id}`} className="event-item event-item-link">
             {event.featuredImage && (
               <img src={getMediaUrl(event.featuredImage)} alt={event.title} className="event-image" />
             )}
             <h2>{event.title}</h2>
             <p>{event.startDate ? new Date(event.startDate).toLocaleDateString() : ''}</p>
             <p>{event.description}</p>
-          </div>
+            <span className="event-link-action">View details</span>
+          </Link>
         ))
       ) : (
         !loading && <p>No events available at the moment.</p>
@@ -54,6 +57,17 @@ const EventsPage = () => {
           object-fit: cover;
           border-radius: 8px;
           margin-bottom: 1rem;
+        }
+        .event-item-link {
+          display: block;
+          color: inherit;
+          text-decoration: none;
+        }
+        .event-link-action {
+          display: inline-block;
+          margin-top: 0.75rem;
+          color: #2f7d46;
+          font-weight: 700;
         }
       `}</style>
     </div>

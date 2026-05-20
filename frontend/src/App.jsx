@@ -1,8 +1,9 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import AdminLayout from './components/AdminLayout';
 import './App.css';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -60,7 +61,7 @@ const AdminRoute = ({ children }) => {
   if (user?.role !== 'admin') {
     return <Navigate to="/dashboard" />;
   }
-  return children;
+  return <AdminLayout>{children}</AdminLayout>;
 };
 
 // Content Manager Route Component - Accessible to admin or chaplain
@@ -72,7 +73,7 @@ const ContentManagerRoute = ({ children }) => {
   if (user?.role !== 'admin' && user?.role !== 'chaplain') {
     return <Navigate to="/dashboard" />;
   }
-  return children;
+  return <AdminLayout>{children}</AdminLayout>;
 };
 
 // Public Route - Redirect to dashboard if already logged in
@@ -84,13 +85,14 @@ const PublicRoute = ({ children }) => {
   return children;
 };
 
-function App() {
+function AppRoutes() {
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
+
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Navbar />
-          <main>
+    <div className={`App ${isAdminPath ? 'admin-app' : ''}`}>
+      {!isAdminPath && <Navbar />}
+      <main className={isAdminPath ? 'admin-main' : undefined}>
             <Suspense fallback={<div className="loading">Loading page...</div>}>
             <Routes>
               {/* ===== PUBLIC ROUTES (No login required) ===== */}
@@ -201,9 +203,9 @@ function App() {
                 </AdminRoute>
               } />
               <Route path="/admin/events" element={
-                <ContentManagerRoute>
+                <AdminRoute>
                   <AdminEvents />
-                </ContentManagerRoute>
+                </AdminRoute>
               } />
               <Route path="/admin/announcements" element={
                 <ContentManagerRoute>
@@ -256,16 +258,16 @@ function App() {
                 </AdminRoute>
               } />
               
-              {/* ===== ADMIN/CHAPLAIN CREATE/EDIT ROUTES ===== */}
+              {/* ===== ADMIN CREATE/EDIT ROUTES ===== */}
               <Route path="/admin/events/create" element={
-                <ContentManagerRoute>
+                <AdminRoute>
                   <AdminEventForm />
-                </ContentManagerRoute>
+                </AdminRoute>
               } />
               <Route path="/admin/events/edit/:id" element={
-                <ContentManagerRoute>
+                <AdminRoute>
                   <AdminEventForm />
-                </ContentManagerRoute>
+                </AdminRoute>
               } />
               <Route path="/admin/announcements/create" element={
                 <ContentManagerRoute>
@@ -292,9 +294,17 @@ function App() {
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
             </Suspense>
-          </main>
-          <Footer />
-        </div>
+      </main>
+      {!isAdminPath && <Footer />}
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppRoutes />
       </Router>
     </AuthProvider>
   );
