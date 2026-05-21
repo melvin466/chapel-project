@@ -1,11 +1,17 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { preloadRoute } from '../routePreload';
 
 const AdminLayout = ({ children }) => {
   const { user, logout, isAdmin, isChaplain } = useAuth();
   const navigate = useNavigate();
   const canManageContent = isAdmin || isChaplain;
+
+  const preload = (path) => ({
+    onMouseEnter: () => preloadRoute(path),
+    onFocus: () => preloadRoute(path),
+  });
 
   const handleLogout = () => {
     logout();
@@ -21,18 +27,18 @@ const AdminLayout = ({ children }) => {
         </Link>
 
         <nav className="admin-nav" aria-label="Admin navigation">
-          {isAdmin && <NavLink to="/admin" end>Overview</NavLink>}
-          {isAdmin && <NavLink to="/admin/events">Events</NavLink>}
-          {canManageContent && <NavLink to="/admin/announcements">Announcements</NavLink>}
-          {canManageContent && <NavLink to="/admin/bookings">Bookings</NavLink>}
-          {canManageContent && <NavLink to="/admin/sermons">Sermons</NavLink>}
-          {isAdmin && <NavLink to="/admin/cells">Cells</NavLink>}
-          {isAdmin && <NavLink to="/admin/prayers">Prayers</NavLink>}
-          {isAdmin && <NavLink to="/admin/donations">Donations</NavLink>}
-          {isAdmin && <NavLink to="/admin/users">Users</NavLink>}
-          {isAdmin && <NavLink to="/admin/reports">Reports</NavLink>}
-          {isAdmin && <NavLink to="/admin/audit-logs">Audit Logs</NavLink>}
-          {isAdmin && <NavLink to="/admin/settings">Settings</NavLink>}
+          {isAdmin && <NavLink to="/admin" end {...preload('/admin')}>Overview</NavLink>}
+          {isAdmin && <NavLink to="/admin/events" {...preload('/admin/events')}>Events</NavLink>}
+          {canManageContent && <NavLink to="/admin/announcements" {...preload('/admin/announcements')}>Announcements</NavLink>}
+          {canManageContent && <NavLink to="/admin/bookings" {...preload('/admin/bookings')}>Bookings</NavLink>}
+          {canManageContent && <NavLink to="/admin/sermons" {...preload('/admin/sermons')}>Sermons</NavLink>}
+          {isAdmin && <NavLink to="/admin/cells" {...preload('/admin/cells')}>Cells</NavLink>}
+          {isAdmin && <NavLink to="/admin/prayers" {...preload('/admin/prayers')}>Prayers</NavLink>}
+          {isAdmin && <NavLink to="/admin/donations" {...preload('/admin/donations')}>Donations</NavLink>}
+          {isAdmin && <NavLink to="/admin/users" {...preload('/admin/users')}>Users</NavLink>}
+          {isAdmin && <NavLink to="/admin/reports" {...preload('/admin/reports')}>Reports</NavLink>}
+          {isAdmin && <NavLink to="/admin/audit-logs" {...preload('/admin/audit-logs')}>Audit Logs</NavLink>}
+          {isAdmin && <NavLink to="/admin/settings" {...preload('/admin/settings')}>Settings</NavLink>}
         </nav>
 
         <div className="admin-sidebar-footer">
@@ -63,8 +69,13 @@ const AdminLayout = ({ children }) => {
           min-height: 100vh;
           display: grid;
           grid-template-columns: 260px minmax(0, 1fr);
-          background: #f3f6f8;
-          color: #1f2933;
+          background:
+            linear-gradient(180deg, rgba(16, 22, 28, 0.7), rgba(16, 22, 28, 0.92)),
+            url('https://images.pexels.com/photos/2570062/pexels-photo-2570062.jpeg?auto=compress&cs=tinysrgb&w=1600');
+          background-size: cover;
+          background-position: center;
+          background-attachment: fixed;
+          color: white;
         }
         .admin-sidebar {
           position: sticky;
@@ -140,16 +151,17 @@ const AdminLayout = ({ children }) => {
           justify-content: space-between;
           gap: 1rem;
           padding: 0.9rem 1.5rem;
-          background: #ffffff;
-          border-bottom: 1px solid #dbe3ea;
+          background: linear-gradient(145deg, rgba(18, 26, 33, 0.82), rgba(18, 26, 33, 0.58));
+          border-bottom: 1px solid rgba(255,255,255,0.14);
+          backdrop-filter: blur(18px) saturate(130%);
         }
         .admin-topbar span {
           display: block;
-          color: #6b7280;
+          color: rgba(255,255,255,0.68);
           font-size: 0.8rem;
         }
         .admin-topbar strong {
-          color: #1f2933;
+          color: white;
         }
         .admin-topbar-actions {
           display: flex;
@@ -157,7 +169,7 @@ const AdminLayout = ({ children }) => {
           flex-wrap: wrap;
         }
         .admin-topbar-actions a {
-          color: #315f72;
+          color: #9bd8aa;
           font-weight: 700;
           text-decoration: none;
         }
@@ -181,8 +193,8 @@ const AdminLayout = ({ children }) => {
         .admin-shell .admin-form-card h1,
         .admin-shell .export-card h1,
         .admin-shell .settings-panel h2 {
-          color: #1f2933 !important;
-          text-shadow: none !important;
+          color: white !important;
+          text-shadow: 0 2px 18px rgba(0,0,0,0.32) !important;
         }
         .admin-shell .admin-table-container,
         .admin-shell .admin-form-card,
@@ -193,26 +205,26 @@ const AdminLayout = ({ children }) => {
         .admin-shell .attendee-panel,
         .admin-shell .announcement-form,
         .admin-shell .admin-form {
-          background: #ffffff !important;
-          color: #1f2933 !important;
-          border: 1px solid #dbe3ea !important;
-          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08) !important;
-          backdrop-filter: none !important;
+          background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08)) !important;
+          color: white !important;
+          border: 1px solid rgba(255,255,255,0.22) !important;
+          box-shadow: 0 18px 45px rgba(0,0,0,0.22) !important;
+          backdrop-filter: blur(22px) saturate(130%) !important;
         }
         .admin-shell .admin-table {
-          color: #1f2933 !important;
+          color: white !important;
         }
         .admin-shell .admin-table th {
-          background: #eef4f0 !important;
-          color: #1f2933 !important;
-          border-bottom: 1px solid #dbe3ea !important;
+          background: rgba(13,18,23,0.68) !important;
+          color: white !important;
+          border-bottom: 1px solid rgba(255,255,255,0.12) !important;
         }
         .admin-shell .admin-table td {
-          color: #374151 !important;
-          border-bottom: 1px solid #edf1f4 !important;
+          color: rgba(255,255,255,0.82) !important;
+          border-bottom: 1px solid rgba(255,255,255,0.1) !important;
         }
         .admin-shell .admin-table tr:hover {
-          background: #f7faf8 !important;
+          background: rgba(255,255,255,0.08) !important;
         }
         .admin-shell label,
         .admin-shell p,
@@ -225,14 +237,19 @@ const AdminLayout = ({ children }) => {
         .admin-shell .settings-panel label,
         .admin-shell .announcement-form label,
         .admin-shell .admin-form label {
-          color: #374151 !important;
+          color: rgba(255,255,255,0.78) !important;
         }
         .admin-shell input,
         .admin-shell textarea,
         .admin-shell select {
-          background: #ffffff !important;
-          border: 1px solid #cfd8e3 !important;
-          color: #1f2933 !important;
+          background: rgba(255,255,255,0.08) !important;
+          border: 1px solid rgba(255,255,255,0.22) !important;
+          color: white !important;
+          color-scheme: dark;
+        }
+        .admin-shell select option {
+          background: #111827 !important;
+          color: white !important;
         }
         @media (max-width: 900px) {
           .admin-shell {

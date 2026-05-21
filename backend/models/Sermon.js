@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const sermonSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true },
   speaker: { type: String, required: true },
-  date: { type: Date, required: true },
+  date: { type: Date, default: Date.now },
   serviceType: { type: String, enum: ['sunday', 'wednesday', 'friday', 'conference', 'special'], default: 'sunday' },
   description: { type: String, required: true },
   bibleVerses: [String],

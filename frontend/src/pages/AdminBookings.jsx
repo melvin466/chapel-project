@@ -305,12 +305,12 @@ const AdminBookings = () => {
         .admin-header { display: flex; align-items: center; justify-content: space-between; margin: 1rem 0 1.2rem; }
         .admin-header h1 { color: white; font-size: 2rem; }
         .admin-booking-create {
-          background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
-          border: 1px solid rgba(255,255,255,0.22);
-          border-radius: 8px;
+          background: rgba(255,255,255,0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 20px;
           padding: 1.2rem;
           margin-bottom: 1rem;
-          box-shadow: 0 18px 45px rgba(0,0,0,0.16);
         }
         .admin-booking-create h2 { color: white; margin-bottom: 1rem; }
         .admin-booking-create form { display: grid; gap: 0.75rem; }
@@ -327,20 +327,23 @@ const AdminBookings = () => {
         .admin-booking-toolbar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
         .admin-booking-toolbar select, .admin-booking-assign select, .admin-booking-create input, .admin-booking-create select, .admin-booking-create textarea, .admin-booking-review textarea {
           min-height: 42px;
-          border: 1px solid rgba(31,41,51,0.16);
+          border: 1px solid rgba(255,255,255,0.2);
           border-radius: 8px;
-          background: rgba(255,255,255,0.86);
-          color: #1f2933;
+          background: rgba(255,255,255,0.05);
+          color: white;
           padding: 0.65rem 0.8rem;
+        }
+        .admin-booking-toolbar select option, .admin-booking-assign select option, .admin-booking-create select option, .admin-booking-review textarea {
+          background: #1f2933;
+          color: white;
         }
         .admin-booking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 1rem; }
         .admin-booking-card {
-          background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
-          border: 1px solid rgba(255,255,255,0.22);
-          border-radius: 8px;
+          background: rgba(255,255,255,0.1);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 20px;
           padding: 1.2rem;
-          backdrop-filter: blur(22px) saturate(130%);
-          box-shadow: 0 18px 45px rgba(0,0,0,0.22);
           overflow: hidden;
         }
         .admin-booking-topline, .admin-booking-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
@@ -349,8 +352,8 @@ const AdminBookings = () => {
         .admin-booking-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.65rem; margin-bottom: 1rem; }
         .admin-booking-meta span, .admin-booking-notes, .admin-booking-assigned {
           color: rgba(255,255,255,0.72);
-          background: rgba(255,255,255,0.09);
-          border: 1px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
           border-radius: 8px;
           padding: 0.7rem;
           overflow-wrap: anywhere;

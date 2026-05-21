@@ -21,6 +21,7 @@ const withUploadedSermonFiles = (body, files = {}) => {
   if (videoUrl) data.videoUrl = videoUrl;
   if (data.bibleVerses !== undefined) data.bibleVerses = parseList(data.bibleVerses);
   if (data.tags !== undefined) data.tags = parseList(data.tags);
+  if (data.date === '') delete data.date;
   if (data.duration === '') delete data.duration;
 
   return data;

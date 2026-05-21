@@ -124,13 +124,43 @@ const requestJoinCell = async (req, res) => {
     if (!cell.isActive) return res.status(400).json({ success: false, message: 'This cell is not accepting requests' });
     
     const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
     if (user.cellId) {
+      if (user.cellId.toString() === cell._id.toString()) {
+        return res.status(400).json({ success: false, message: `You are already a member of ${cell.name}` });
+      }
       return res.status(400).json({ success: false, message: 'You are already in a cell' });
     }
 
     const existingRequest = await CellJoinRequest.findOne({ user: user._id, status: 'pending' });
     if (existingRequest) {
       return res.status(400).json({ success: false, message: 'You already have a pending cell request' });
+    }
+
+    const memberCount = await User.countDocuments({ cellId: cell._id });
+    if (memberCount >= cell.maxCapacity) {
+      return res.status(400).json({ success: false, message: 'Cell is already at capacity' });
+    }
+
+    if (user.role === 'admin') {
+      user.cellId = cell._id;
+      await user.save();
+      await refreshMemberCount(cell._id);
+      await CellJoinRequest.deleteMany({ user: user._id, status: 'pending' });
+
+      await recordAuditLog(req, {
+        action: 'cell.member.self_assign',
+        resource: 'Cell',
+        resourceId: cell._id,
+        metadata: { cell: cell.name, userId: user._id },
+      });
+
+      return res.json({
+        success: true,
+        message: `You joined ${cell.name}`,
+        data: { cellId: cell._id, joinedDirectly: true },
+      });
     }
 
     await CellJoinRequest.create({
@@ -159,10 +189,14 @@ const assignMemberToCell = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.cellId && user.cellId.toString() === cell._id.toString()) {
+      return res.status(400).json({ success: false, message: 'User is already assigned to this cell' });
+    }
 
     const previousCellId = user.cellId;
     user.cellId = cell._id;
     await user.save();
+    await CellJoinRequest.deleteMany({ user: user._id, status: 'pending' });
 
     await refreshMemberCount(previousCellId);
     await refreshMemberCount(cell._id);
@@ -239,6 +273,10 @@ const reviewJoinRequest = async (req, res) => {
       }
       joinRequest.user.cellId = joinRequest.cell._id;
       await joinRequest.user.save();
+      await CellJoinRequest.updateMany(
+        { user: joinRequest.user._id, status: 'pending', _id: { $ne: joinRequest._id } },
+        { status: 'denied', reason: 'User was assigned to another cell', reviewedBy: req.user.id, reviewedAt: new Date() }
+      );
       await refreshMemberCount(joinRequest.cell._id);
     }
 

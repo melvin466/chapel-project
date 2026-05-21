@@ -222,31 +222,33 @@ const AdminAnnouncements = () => {
         .admin-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
         .admin-header h1 { color: white; text-shadow: 0 2px 18px rgba(0,0,0,0.28); }
-        .admin-form { background: rgba(255,255,255,0.96); padding: 2rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 18px 45px rgba(16,24,40,0.16); border: 1px solid rgba(255,255,255,0.55); overflow: hidden; }
-        .admin-form h2 { color: #1f2933; margin-bottom: 1rem; font-size: 1.25rem; }
+        .admin-form { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); padding: 2rem; border-radius: 20px; margin-bottom: 2rem; overflow: hidden; }
+        .admin-form h2 { color: white; margin-bottom: 1rem; font-size: 1.25rem; }
         .admin-form form { display: flex; flex-direction: column; gap: 1rem; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
         .form-row > * { flex: 1 1 180px; min-width: 0; }
-        .admin-form input, .admin-form textarea, .admin-form select { width: 100%; max-width: 100%; min-width: 0; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: rgba(255,255,255,0.84); overflow-wrap: anywhere; }
+        .admin-form input, .admin-form textarea, .admin-form select { width: 100%; max-width: 100%; min-width: 0; padding: 0.8rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; background: rgba(255,255,255,0.05); overflow-wrap: anywhere; }
+        .admin-form input::placeholder, .admin-form textarea::placeholder { color: rgba(255,255,255,0.5); }
+        .admin-form select option { background: #1f2933; color: white; }
         .admin-form textarea { resize: vertical; line-height: 1.5; }
         .media-upload-section { display: grid; gap: 0.75rem; }
-        .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; color: #333; font-weight: 500; }
+        .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; color: white; font-weight: 500; }
         .media-upload-section input { overflow: hidden; text-overflow: ellipsis; }
-        .admin-table-container { background: rgba(255,255,255,0.96); border-radius: 8px; overflow-x: auto; box-shadow: 0 18px 45px rgba(16,24,40,0.12); }
+        .admin-table-container { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow-x: auto; }
         .admin-table { width: 100%; border-collapse: collapse; }
-        .admin-table th, .admin-table td { padding: 1rem; text-align: left; border-bottom: 1px solid #eee; }
-        .admin-table th { background: #1f2933; color: white; font-weight: 600; }
-        .admin-table tr:hover { background: #f5f5f5; }
-        .admin-table td { color: #1f2933; overflow-wrap: anywhere; }
+        .admin-table th, .admin-table td { padding: 1rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-table th { background: rgba(255,255,255,0.05); color: white; font-weight: 600; }
+        .admin-table tr:hover { background: rgba(255,255,255,0.05); }
+        .admin-table td { color: white; overflow-wrap: anywhere; }
         .btn-edit, .btn-delete { padding: 0.35rem 0.75rem; margin: 0.15rem; border: none; border-radius: 6px; cursor: pointer; }
         .btn-edit { background: #315f72; color: white; }
         .btn-delete { background: #c2413a; color: white; }
         .type-badge, .priority-low, .priority-medium, .priority-high, .priority-critical, .status-badge { display: inline-block; padding: 0.25rem 0.55rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
-        .type-badge { background: #edf2f0; color: #315f72; }
-        .type-urgent, .priority-critical { background: #f8e8e7; color: #9f2f29; }
-        .priority-high { background: #f8efe3; color: #8a5a1f; }
-        .priority-medium { background: #e8f0f3; color: #315f72; }
-        .priority-low { background: #e8f3ec; color: #2f7d46; }
+        .type-badge { background: rgba(49,95,114,0.3); color: #a8ff78; }
+        .type-urgent, .priority-critical { background: rgba(242,68,56,0.2); color: #ff9999; }
+        .priority-high { background: rgba(255,152,0,0.2); color: #ffcc99; }
+        .priority-medium { background: rgba(33,150,243,0.2); color: #99ccff; }
+        .priority-low { background: rgba(76,175,80,0.2); color: #a8ff78; }
         .status-badge.status-published { background: #e8f3ec; color: #2f7d46; }
         .status-badge.status-draft { background: #f8efe3; color: #8a5a1f; }
         .status-badge.status-archived { background: #edf0f2; color: #62707c; }

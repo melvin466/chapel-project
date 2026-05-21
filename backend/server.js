@@ -65,6 +65,11 @@ const getAllowedOrigins = () => {
 
 const allowedOrigins = getAllowedOrigins();
 
+const isLocalDevOrigin = (origin) => {
+  if (!origin) return false;
+  return /^(https?:\/\/)(localhost|127\.0\.0\.1|\[::1\]|\d+\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin);
+};
+
 if (isProduction && process.env.FRONTEND_URL && process.env.CORS_ORIGINS) {
   console.warn('Both FRONTEND_URL and CORS_ORIGINS are set; CORS_ORIGINS takes precedence.');
 }
@@ -84,7 +89,7 @@ if (isProduction) {
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || (!isProduction && isLocalDevOrigin(origin))) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -99,12 +104,18 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeRequest);
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 app.use(compression());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
   dotfiles: 'deny',
   index: false,
   maxAge: isProduction ? '1d' : 0,
+  setHeaders: (res) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Accept-Ranges', 'bytes');
+  },
 }));
 
 // Rate limiting

@@ -182,16 +182,19 @@ const AdminEventForm = () => {
 
       <style>{`
         .admin-form-container { min-height: 80vh; display: flex; justify-content: center; align-items: center; padding: 2rem; }
-        .admin-form-card { background: rgba(255,255,255,0.96); border-radius: 8px; padding: 2rem; max-width: 700px; width: 100%; box-shadow: 0 18px 45px rgba(16,24,40,0.16); border: 1px solid rgba(255,255,255,0.55); }
-        .admin-form-card h1 { color: #333; margin-bottom: 1.5rem; }
+        .admin-form-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem; max-width: 700px; width: 100%; }
+        .admin-form-card h1 { color: white; margin-bottom: 1.5rem; }
         .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .form-row input, .form-row select { flex: 1; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; }
-        textarea { width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 1rem; }
+        .form-row input, .form-row select { flex: 1; padding: 0.8rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; }
+        .form-row input::placeholder, .form-row select::placeholder { color: rgba(255,255,255,0.5); }
+        .form-row select option { background: #1f2933; color: white; }
+        textarea { width: 100%; padding: 0.8rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; margin-bottom: 1rem; background: rgba(255,255,255,0.05); color: white; }
+        textarea::placeholder { color: rgba(255,255,255,0.5); }
         .media-upload-section { display: grid; gap: 0.75rem; margin-bottom: 1rem; }
-        .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; font-weight: 500; color: #333; }
-        .media-upload-section input { padding: 0.7rem; border: 1px solid #ddd; border-radius: 8px; }
-        .media-upload-section small { color: #666; overflow-wrap: anywhere; }
-        .checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+        .media-upload-section label { display: flex; flex-direction: column; gap: 0.4rem; font-weight: 500; color: white; }
+        .media-upload-section input { padding: 0.7rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; background: rgba(255,255,255,0.05); color: white; }
+        .media-upload-section small { color: rgba(255,255,255,0.6); overflow-wrap: anywhere; }
+        .checkbox-label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: white; }
         .form-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
         .btn-primary { background: #2f7d46; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }
         .btn-secondary { background: #315f72; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; }

@@ -55,6 +55,15 @@ export const authService = {
     return localStorage.getItem('token');
   },
 
+  getMe: async () => {
+    const response = await api.get('/auth/me');
+    const user = response.data.data?.user;
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+    return response.data;
+  },
+
   updateProfile: async (data) => {
     const response = await api.put('/auth/me', data, data instanceof FormData ? {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -89,6 +98,11 @@ export const authService = {
   },
 
   getCurrentUser: () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      localStorage.removeItem('user');
+      return null;
+    }
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },

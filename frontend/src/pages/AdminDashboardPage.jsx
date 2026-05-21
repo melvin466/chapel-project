@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 import  eventService  from '../services/eventService';
 import  announcementService  from '../services/announcementService';
 import userService from '../services/userService';
@@ -12,11 +11,8 @@ import { Pie, Bar, Line } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, Filler, PointElement, LineElement);
 
 const AdminDashboardPage = () => {
-  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
   const [data, setData] = useState({
     events: { total: 0, published: 0, draft: 0, upcoming: 0, past: 0, monthly: [] },
     users: { total: 0, admins: 0, members: 0, chaplains: 0, newThisMonth: 0, recent: [] },
@@ -187,82 +183,6 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="admin-wrapper">
-      {/* Sidebar */}
-      <aside className={`admin-sidebar ${!sidebarOpen ? 'collapsed' : ''}`}>
-        <div className="sidebar-header">
-          <div className="logo">
-            <span className="logo-icon">CMS</span>
-            {sidebarOpen && <span className="logo-text">Chapel Admin</span>}
-          </div>
-          <button className="toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? 'Hide' : 'Show'}
-          </button>
-        </div>
-        
-        <nav className="sidebar-nav">
-          <button className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
-            <span className="nav-icon">OV</span>
-            {sidebarOpen && <span>Overview</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'events' ? 'active' : ''}`} onClick={() => navigate('/admin/events')}>
-            <span className="nav-icon">EV</span>
-            {sidebarOpen && <span>Events</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'users' ? 'active' : ''}`} onClick={() => navigate('/admin/users')}>
-            <span className="nav-icon">US</span>
-            {sidebarOpen && <span>Users</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'prayers' ? 'active' : ''}`} onClick={() => navigate('/admin/prayers')}>
-            <span className="nav-icon">PR</span>
-            {sidebarOpen && <span>Prayers</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'bookings' ? 'active' : ''}`} onClick={() => navigate('/admin/bookings')}>
-            <span className="nav-icon">BK</span>
-            {sidebarOpen && <span>Bookings</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'donations' ? 'active' : ''}`} onClick={() => navigate('/admin/donations')}>
-            <span className="nav-icon">DN</span>
-            {sidebarOpen && <span>Donations</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'announcements' ? 'active' : ''}`} onClick={() => navigate('/admin/announcements')}>
-            <span className="nav-icon">AN</span>
-            {sidebarOpen && <span>Announcements</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'sermons' ? 'active' : ''}`} onClick={() => navigate('/admin/sermons')}>
-            <span className="nav-icon">SM</span>
-            {sidebarOpen && <span>Sermons</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'cells' ? 'active' : ''}`} onClick={() => navigate('/admin/cells')}>
-            <span className="nav-icon">CL</span>
-            {sidebarOpen && <span>Cells</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => navigate('/admin/settings')}>
-            <span className="nav-icon">ST</span>
-            {sidebarOpen && <span>Settings</span>}
-          </button>
-          <button className={`nav-item ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => navigate('/admin/audit-logs')}>
-            <span className="nav-icon">LG</span>
-            {sidebarOpen && <span>Audit Logs</span>}
-          </button>
-        </nav>
-        
-        <div className="sidebar-footer">
-          <div className="user-info">
-            <div className="user-avatar">{user?.firstName?.[0]}{user?.lastName?.[0]}</div>
-            {sidebarOpen && (
-              <div className="user-details">
-                <span className="user-name">{user?.firstName} {user?.lastName}</span>
-                <span className="user-role">Administrator</span>
-              </div>
-            )}
-          </div>
-          <button onClick={logout} className="logout-btn">
-            <span className="nav-icon">OUT</span>
-            {sidebarOpen && <span>Logout</span>}
-          </button>
-        </div>
-      </aside>
-
       {/* Main Content */}
       <main className="admin-main">
         <div className="main-header">
@@ -345,35 +265,10 @@ const AdminDashboardPage = () => {
       </main>
 
       <style jsx>{`
-        .admin-wrapper { display: flex; min-height: 100vh; background: linear-gradient(135deg, #0f0c29, #302b63, #24243e); }
-        
-        /* Sidebar */
-        .admin-sidebar {
-          width: 280px;
-          background: rgba(15, 12, 41, 0.95);
-          backdrop-filter: blur(10px);
-          transition: width 0.3s;
-          display: flex;
-          flex-direction: column;
-          border-right: 1px solid rgba(255,255,255,0.1);
-        }
-        .admin-sidebar.collapsed { width: 80px; }
-        .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .logo { display: flex; align-items: center; gap: 0.5rem; color: white; font-size: 1.2rem; font-weight: bold; }
-        .toggle-btn { background: none; border: none; color: white; cursor: pointer; font-size: 1rem; }
-        .sidebar-nav { flex: 1; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .nav-item { display: flex; align-items: center; gap: 1rem; padding: 0.8rem 1rem; background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; border-radius: 12px; transition: all 0.3s; width: 100%; }
-        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; }
-        .sidebar-footer { padding: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
-        .user-info { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
-        .user-avatar { width: 40px; height: 40px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
-        .user-details { display: flex; flex-direction: column; }
-        .user-name { color: white; font-weight: 500; }
-        .user-role { color: rgba(255,255,255,0.5); font-size: 0.7rem; }
-        .logout-btn { display: flex; align-items: center; gap: 1rem; width: 100%; padding: 0.8rem 1rem; background: rgba(244,67,54,0.2); border: none; border-radius: 12px; color: #f44336; cursor: pointer; }
+        .admin-wrapper { min-height: 100%; }
         
         /* Main Content */
-        .admin-main { flex: 1; padding: 1.5rem; overflow-y: auto; }
+        .admin-main { padding: 0; overflow: visible; }
         .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .main-header h1 { color: white; font-size: 1.8rem; }
         .date-display { background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 50px; color: white; font-size: 0.85rem; }
@@ -428,9 +323,6 @@ const AdminDashboardPage = () => {
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         @media (max-width: 768px) {
-          .admin-sidebar { position: fixed; z-index: 100; height: 100vh; transform: translateX(0); }
-          .admin-sidebar.collapsed { transform: translateX(-100%); }
-          .admin-main { margin-left: 0; }
           .stats-grid { grid-template-columns: 1fr; }
           .charts-row { grid-template-columns: 1fr; }
         }

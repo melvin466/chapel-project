@@ -1,6 +1,10 @@
 :root {
-  --surface: rgba(255, 255, 255, 0.96);
-  --surface-strong: #ffffff;
+  --surface: rgba(255, 255, 255, 0.14);
+  --surface-strong: rgba(255, 255, 255, 0.2);
+  --glass-panel: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  --glass-panel-hover: linear-gradient(145deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.11));
+  --glass-field: rgba(255, 255, 255, 0.08);
+  --glass-field-focus: rgba(255, 255, 255, 0.14);
   --ink: #1f2933;
   --muted: #62707c;
   --line: rgba(31, 41, 51, 0.12);
@@ -56,7 +60,7 @@ main {
 }
 
 .admin-app {
-  background: #f3f6f8;
+  background: #10161c;
 }
 
 .admin-main {
@@ -651,11 +655,12 @@ main {
   width: 100%;
   padding: 0.8rem;
   margin-bottom: 1rem;
-  border: 1px solid rgba(31, 41, 51, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
   font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.82);
-  color: var(--ink);
+  background: var(--glass-field);
+  color: white;
+  color-scheme: dark;
 }
 
 .form-card input:focus,
@@ -663,6 +668,7 @@ main {
 .form-card select:focus {
   outline: none;
   border-color: var(--brand);
+  background: var(--glass-field-focus);
 }
 
 .checkbox-label {
@@ -685,19 +691,19 @@ main {
 }
 
 .auth-card {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.56));
-  backdrop-filter: blur(18px);
+  background: var(--glass-panel);
+  backdrop-filter: blur(22px) saturate(130%);
   padding: 2rem;
   border-radius: 8px;
   width: 100%;
   max-width: 450px;
   box-shadow: var(--shadow);
-  border: 1px solid rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.22);
 }
 
 .auth-card h2 {
   text-align: center;
-  color: #333;
+  color: white;
   margin-bottom: 1.5rem;
 }
 
@@ -705,9 +711,11 @@ main {
   width: 100%;
   padding: 0.8rem;
   margin-bottom: 1rem;
-  border: 1px solid rgba(31, 41, 51, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--glass-field);
+  color: white;
+  color-scheme: dark;
 }
 
 .auth-card .error {
@@ -722,7 +730,7 @@ main {
 .auth-card p {
   text-align: center;
   margin-top: 1rem;
-  color: #666;
+  color: rgba(255, 255, 255, 0.74);
 }
 
 .auth-card a {
@@ -1452,9 +1460,127 @@ main {
   align-items: start;
 }
 
+.booking-hero {
+  min-height: 340px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.2rem;
+  align-items: end;
+  padding: 2rem;
+  margin: 1rem 0 1.2rem;
+  overflow: hidden;
+  border-radius: 8px;
+  color: white;
+  background:
+    linear-gradient(90deg, rgba(10, 16, 21, 0.92), rgba(10, 16, 21, 0.58), rgba(10, 16, 21, 0.86)),
+    url('https://images.pexels.com/photos/208315/pexels-photo-208315.jpeg?auto=compress&cs=tinysrgb&w=1600');
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+}
+
+.booking-hero-copy {
+  max-width: 720px;
+}
+
+.booking-hero-copy span,
+.booking-form-heading span {
+  display: inline-block;
+  color: #9bd8aa;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.booking-hero-copy h1 {
+  font-size: clamp(2rem, 4.4vw, 4rem);
+  line-height: 1;
+  max-width: 760px;
+  margin-bottom: 0.9rem;
+}
+
+.booking-hero-copy p,
+.booking-hero-panel p,
+.booking-form-heading p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.booking-hero-panel {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.booking-hero-panel strong {
+  display: block;
+  color: white;
+  margin-bottom: 0.35rem;
+}
+
+.booking-service-showcase {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.2rem;
+}
+
+.booking-service-card {
+  min-height: 210px;
+  display: grid;
+  grid-template-rows: 94px auto 1fr;
+  gap: 0.65rem;
+  text-align: left;
+  padding: 0.75rem;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  background: var(--glass-panel);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px) saturate(130%);
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.booking-service-card:hover,
+.booking-service-card.active {
+  transform: translateY(-3px);
+  background: var(--glass-panel-hover);
+  border-color: rgba(155, 216, 170, 0.42);
+}
+
+.booking-service-card img {
+  width: 100%;
+  height: 94px;
+  object-fit: cover;
+  border-radius: 7px;
+}
+
+.booking-service-card span {
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.booking-service-card p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
 .booking-form-card {
   position: sticky;
   top: 92px;
+}
+
+.booking-form-heading {
+  margin-bottom: 1rem;
+}
+
+.booking-form-heading h2 {
+  margin-bottom: 0.35rem;
 }
 
 .booking-form-row {
@@ -1674,11 +1800,32 @@ main {
    LOADING & ERROR STATES
    ============================================ */
 .loading {
-  text-align: center;
-  padding: 4rem;
-  font-size: 1.2rem;
-  color: white;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  width: min(720px, calc(100% - 48px));
+  min-height: 220px;
+  margin: 3rem auto;
+  padding: 2rem;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.78);
+  background: var(--glass-panel);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px) saturate(130%);
+}
+
+.loading::before,
+.skeleton-card::before,
+.skeleton-card-block::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
+  transform: translateX(-100%);
+  animation: skeleton-shimmer 1.25s ease-in-out infinite;
 }
 
 .loading-container {
@@ -1703,6 +1850,103 @@ main {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes skeleton-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+.skeleton-page {
+  width: min(1120px, calc(100% - 48px));
+  margin: 2rem auto;
+}
+
+.skeleton-page-admin {
+  min-height: 100vh;
+  width: 100%;
+  margin: 0;
+  padding: 1.5rem;
+}
+
+.skeleton-shell {
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: var(--glass-panel);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(22px) saturate(130%);
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.skeleton-card,
+.skeleton-card-block {
+  min-height: 150px;
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+}
+
+.skeleton-card-block {
+  pointer-events: none;
+}
+
+.skeleton-line,
+.skeleton-pill,
+.skeleton-date-block {
+  display: block;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.skeleton-line {
+  width: 100%;
+  height: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-line-title {
+  width: 68%;
+  height: 1.35rem;
+}
+
+.skeleton-line-short {
+  width: 32%;
+}
+
+.skeleton-line-mid {
+  width: 52%;
+}
+
+.skeleton-pill {
+  width: 84px;
+  height: 1.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.skeleton-date-block {
+  width: 72px;
+  height: 82px;
+  border-radius: 8px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .error-container {
@@ -1739,7 +1983,10 @@ main {
   font-size: 1rem;
   border: none;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--glass-field);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color-scheme: dark;
   cursor: pointer;
 }
 
@@ -1753,8 +2000,9 @@ main {
 
 .pagination button {
   padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
+  background: var(--glass-field);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
@@ -1917,6 +2165,113 @@ main {
 
 .admin-table tr:hover {
   background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ============================================
+   GLASS FORMS & DROPDOWNS
+   ============================================ */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+textarea,
+select,
+.search-input,
+.role-filter {
+  background: var(--glass-field) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  color: white !important;
+  color-scheme: dark;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus,
+textarea:focus,
+select:focus,
+.search-input:focus,
+.role-filter:focus {
+  outline: none !important;
+  background: var(--glass-field-focus) !important;
+  border-color: rgba(155, 216, 170, 0.72) !important;
+  box-shadow: 0 0 0 3px rgba(47, 125, 70, 0.18);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.58) !important;
+}
+
+select,
+select option,
+select optgroup {
+  color: white !important;
+}
+
+select option,
+select optgroup {
+  background: #111827 !important;
+}
+
+.admin-form,
+.admin-form-card,
+.settings-panel,
+.export-card,
+.announcement-form,
+.feedback-container,
+.event-feedback-box,
+.donation-form,
+.profile-form,
+.profile-card,
+.filters,
+.filters-bar,
+.admin-booking-toolbar,
+.audit-toolbar,
+.reports-card,
+.report-panel,
+.reports-header,
+.reports-filter-panel,
+.report-card,
+.reports-summary-grid div {
+  background: var(--glass-panel) !important;
+  backdrop-filter: blur(22px) saturate(130%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+.admin-form:hover,
+.admin-form-card:hover,
+.settings-panel:hover,
+.export-card:hover,
+.announcement-form:hover,
+.feedback-container:hover,
+.event-feedback-box:hover,
+.donation-form:hover,
+.profile-form:hover,
+.profile-card:hover,
+.reports-header:hover,
+.reports-filter-panel:hover,
+.report-card:hover {
+  background: var(--glass-panel-hover) !important;
+}
+
+.reports-header h1,
+.report-card h2,
+.reports-summary-grid strong {
+  color: white !important;
+}
+
+.reports-header p,
+.report-card p,
+.reports-summary-grid span,
+.filter-grid label {
+  color: rgba(255, 255, 255, 0.76) !important;
+}
+
+.booking-review-note,
+.event-meta-box,
+.registration-box,
+.sermon-meta,
+.notification-item.unread,
+.notification-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
 }
 
 /* ============================================
@@ -2177,6 +2532,7 @@ main {
   .member-stat-grid,
   .member-actions,
   .member-dashboard-grid,
+  .booking-hero,
   .booking-layout,
   .booking-form-row {
     grid-template-columns: 1fr;
@@ -2184,5 +2540,13 @@ main {
 
   .booking-form-card {
     position: static;
+  }
+
+  .booking-hero {
+    padding: 1.25rem;
+  }
+
+  .booking-service-showcase {
+    grid-template-columns: 1fr;
   }
 }

@@ -5,7 +5,9 @@ import { useAuth } from '../context/AuthContext';
 const getMediaUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
-  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+  const normalizedPath = path.replace(/\\/g, '/');
+  const uploadPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${encodeURI(uploadPath)}`;
 };
 
 const ProfilePage = () => {

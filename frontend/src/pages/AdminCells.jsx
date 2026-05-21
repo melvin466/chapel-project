@@ -158,7 +158,14 @@ const AdminCells = () => {
           <div className="form-row">
             <input placeholder="Cell name" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
             <input placeholder="Code" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} />
-            <input placeholder="Zone" value={formData.zone} onChange={(e) => setFormData({ ...formData, zone: e.target.value })} required />
+            <select value={formData.zone} onChange={(e) => setFormData({ ...formData, zone: e.target.value })} required>
+              <option value="">Select zone</option>
+              <option value="North">North</option>
+              <option value="South">South</option>
+              <option value="East">East</option>
+              <option value="West">West</option>
+              <option value="Central">Central</option>
+            </select>
           </div>
           <div className="form-row">
             <input placeholder="Location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} required />
@@ -241,24 +248,28 @@ const AdminCells = () => {
         .admin-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
         .admin-header h1 { color: white; }
-        .admin-form { background: rgba(255,255,255,0.96); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
-        .admin-form h2 { color: #1f2933; margin-bottom: 1rem; }
+        .admin-form { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .admin-form h2 { color: white; margin-bottom: 1rem; }
         .admin-form form { display: grid; gap: 1rem; }
         .form-row { display: flex; flex-wrap: wrap; gap: 1rem; }
-        .form-row > *, .admin-form textarea { flex: 1 1 190px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: rgba(255,255,255,0.84); }
-        .checkbox-label { display: flex; gap: 0.5rem; align-items: center; color: #1f2933; }
+        .form-row > *, .admin-form textarea, .admin-form select { flex: 1 1 190px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; background: rgba(255,255,255,0.05); }
+        .form-row > *::placeholder, .admin-form textarea::placeholder { color: rgba(255,255,255,0.5); }
+        .checkbox-label { display: flex; gap: 0.5rem; align-items: center; color: white; }
         .cells-admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
-        .cell-admin-card { background: rgba(255,255,255,0.96); border-radius: 8px; padding: 1rem; color: #1f2933; }
-        .cell-admin-header { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
-        .cell-admin-header h3 { margin-bottom: 0.2rem; }
-        .cell-admin-header span { font-weight: 700; color: #2f7d46; }
+        .cell-admin-card { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 1rem; color: white; }
+        .cell-admin-header { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.75rem; margin-bottom: 0.75rem; }
+        .cell-admin-header h3 { margin-bottom: 0.2rem; color: white; }
+        .cell-admin-header span { font-weight: 700; color: #a8ff78; }
         .member-list, .join-request-list { margin: 1rem 0; display: grid; gap: 0.4rem; }
-        .join-request-list strong { color: #1f2933; }
+        .join-request-list strong { color: white; }
+        .member-list p, .join-request-list p { color: rgba(255,255,255,0.6); }
         .member-row, .assign-row, .cell-actions, .join-request-row { display: flex; gap: 0.5rem; align-items: center; }
-        .member-row { justify-content: space-between; padding: 0.45rem; background: #f5f7f6; border-radius: 6px; }
-        .join-request-row { justify-content: space-between; padding: 0.45rem; background: #eef6f5; border-radius: 6px; }
+        .member-row { justify-content: space-between; padding: 0.45rem; background: rgba(255,255,255,0.05); border-radius: 6px; }
+        .join-request-row { justify-content: space-between; padding: 0.45rem; background: rgba(255,255,255,0.05); border-radius: 6px; }
         .join-request-row div { display: flex; gap: 0.4rem; }
-        .assign-row select { flex: 1; min-width: 0; padding: 0.6rem; border-radius: 6px; border: 1px solid #d0d5dd; }
+        .member-row span, .join-request-row span { color: white; }
+        .assign-row select { flex: 1; min-width: 0; padding: 0.6rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; }
+        .assign-row select option { background: #1f2933; color: white; }
         .assign-row button, .member-row button, .join-request-row button, .btn-edit, .btn-delete, .btn-secondary { padding: 0.45rem 0.75rem; border: 0; border-radius: 6px; cursor: pointer; color: white; }
         .assign-row button, .join-request-row button, .btn-edit { background: #315f72; }
         .member-row button, .btn-delete { background: #c2413a; }

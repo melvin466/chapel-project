@@ -6,7 +6,9 @@ import api from '../services/api';
 const getMediaUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+  const normalizedPath = path.replace(/\\/g, '/');
+  const uploadPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${encodeURI(uploadPath)}`;
 };
 
 const AnnouncementDetailPage = () => {
@@ -59,7 +61,7 @@ const AnnouncementDetailPage = () => {
           <img src={getMediaUrl(announcement.featuredImage)} alt={announcement.title} className="announcement-media-image" />
         )}
         {announcement.announcementVideo && (
-          <video src={getMediaUrl(announcement.announcementVideo)} controls className="announcement-media-video" />
+          <video src={getMediaUrl(announcement.announcementVideo)} controls preload="metadata" className="announcement-media-video" />
         )}
         
         <div className="announcement-content">

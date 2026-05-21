@@ -120,14 +120,26 @@ const HomePage = () => {
         <div className="container">
           <div className="home-section-heading">
             <div>
-              <span className="home-eyebrow">Live from the database</span>
+              <span className="home-eyebrow">Upcoming at Chapel</span>
               <h2>Upcoming Events</h2>
             </div>
             <Link to="/events">View all</Link>
           </div>
 
           {loading.events ? (
-            <div className="home-state">Loading events...</div>
+            <div className="home-events-grid skeleton-list" aria-busy="true">
+              <span className="sr-only">Loading events...</span>
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="home-event-card skeleton-card-block">
+                  <div className="skeleton-date-block" />
+                  <div>
+                    <div className="skeleton-line skeleton-line-short" />
+                    <div className="skeleton-line" />
+                    <div className="skeleton-line skeleton-line-mid" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : error.events ? (
             <div className="home-state error">{error.events}</div>
           ) : events.length > 0 ? (
@@ -164,7 +176,19 @@ const HomePage = () => {
           </div>
 
           {loading.announcements ? (
-            <div className="home-state">Loading announcements...</div>
+            <div className="home-announcement-list skeleton-list" aria-busy="true">
+              <span className="sr-only">Loading announcements...</span>
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="home-announcement-card skeleton-card-block">
+                  <div>
+                    <div className="skeleton-pill" />
+                    <div className="skeleton-line skeleton-line-title" />
+                    <div className="skeleton-line" />
+                  </div>
+                  <div className="skeleton-line skeleton-line-short" />
+                </div>
+              ))}
+            </div>
           ) : error.announcements ? (
             <div className="home-state error">{error.announcements}</div>
           ) : announcements.length > 0 ? (

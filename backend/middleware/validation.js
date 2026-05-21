@@ -35,7 +35,19 @@ const validateEvent = [
 
 const validateBooking = [
   body('bookingType').isIn(['counselling', 'wedding', 'baptism', 'facility', 'appointment']).withMessage('Valid booking type required'),
-  body('requestedDate').isISO8601().withMessage('Valid requested date required'),
+  body('requestedDate')
+    .isISO8601()
+    .withMessage('Valid requested date required')
+    .custom((value) => {
+      const requestedDate = new Date(value);
+      const today = new Date();
+      requestedDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      if (requestedDate < today) {
+        throw new Error('Booking date cannot be in the past');
+      }
+      return true;
+    }),
   body('requestedTime').notEmpty().withMessage('Requested time required'),
   body('purpose').notEmpty().withMessage('Purpose required'),
   body('numberOfPeople').optional().isInt({ min: 1 }).withMessage('Number of people must be at least 1'),
@@ -58,7 +70,7 @@ const validateCell = [
 const validateSermon = [
   body('title').notEmpty().withMessage('Title required'),
   body('speaker').notEmpty().withMessage('Speaker required'),
-  body('date').isISO8601().withMessage('Valid date required'),
+  body('date').optional({ checkFalsy: true }).isISO8601().withMessage('Valid date required'),
   body('serviceType').optional().isIn(['sunday', 'wednesday', 'friday', 'conference', 'special']).withMessage('Valid service type required'),
   body('description').notEmpty().withMessage('Description required'),
   body('bibleVerses').optional({ checkFalsy: true }).custom((value) => Array.isArray(value) || typeof value === 'string').withMessage('Bible verses must be a list or comma-separated text'),

@@ -3,11 +3,36 @@ import '../App.css';
 import api from '../services/api';
 
 const bookingTypes = [
-  { value: 'counselling', label: 'Counselling' },
-  { value: 'wedding', label: 'Wedding' },
-  { value: 'baptism', label: 'Baptism' },
-  { value: 'facility', label: 'Facility use' },
-  { value: 'appointment', label: 'Chaplain appointment' },
+  {
+    value: 'counselling',
+    label: 'Counselling',
+    description: 'A private pastoral conversation for prayer, clarity, care, or support through a difficult season.',
+    image: 'https://images.pexels.com/photos/5699456/pexels-photo-5699456.jpeg?auto=compress&cs=tinysrgb&w=700',
+  },
+  {
+    value: 'wedding',
+    label: 'Wedding',
+    description: 'Begin planning a chapel ceremony, marriage preparation meeting, or pastoral guidance for your day.',
+    image: 'https://images.pexels.com/photos/1730877/pexels-photo-1730877.jpeg?auto=compress&cs=tinysrgb&w=700',
+  },
+  {
+    value: 'baptism',
+    label: 'Baptism',
+    description: 'Book baptism preparation and coordinate the details with the chapel team.',
+    image: 'https://images.pexels.com/photos/8815058/pexels-photo-8815058.jpeg?auto=compress&cs=tinysrgb&w=700',
+  },
+  {
+    value: 'facility',
+    label: 'Facility use',
+    description: 'Request chapel space for fellowships, meetings, rehearsals, ministry sessions, or special gatherings.',
+    image: 'https://images.pexels.com/photos/709552/pexels-photo-709552.jpeg?auto=compress&cs=tinysrgb&w=700',
+  },
+  {
+    value: 'appointment',
+    label: 'Chaplain appointment',
+    description: 'Reserve time with a chaplain for guidance, documentation, ministry planning, or spiritual direction.',
+    image: 'https://images.pexels.com/photos/4101143/pexels-photo-4101143.jpeg?auto=compress&cs=tinysrgb&w=700',
+  },
 ];
 
 const initialForm = {
@@ -40,6 +65,7 @@ const BookingsPage = () => {
   const [error, setError] = useState('');
 
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const selectedBookingType = bookingTypes.find((type) => type.value === formData.bookingType) || bookingTypes[0];
 
   const loadBookings = async () => {
     try {
@@ -98,11 +124,43 @@ const BookingsPage = () => {
 
   return (
     <div className="bookings-page">
-      <h1>Chapel Bookings</h1>
+      <section className="booking-hero">
+        <div className="booking-hero-copy">
+          <span>Chapel care, planned gently</span>
+          <h1>Book the right support for the moment you are in.</h1>
+          <p>
+            Whether you need a quiet conversation, a chapel space, ceremony planning, or time with a chaplain,
+            send the request here and the team will guide the next step.
+          </p>
+        </div>
+        <div className="booking-hero-panel">
+          <strong>What happens next</strong>
+          <p>Submit your preferred date and purpose. The chapel team reviews availability, assigns the right person, and responds with a clear note.</p>
+        </div>
+      </section>
+
+      <section className="booking-service-showcase" aria-label="Booking options">
+        {bookingTypes.map((type) => (
+          <button
+            key={type.value}
+            type="button"
+            className={`booking-service-card ${formData.bookingType === type.value ? 'active' : ''}`}
+            onClick={() => setFormData((current) => ({ ...current, bookingType: type.value }))}
+          >
+            <img src={type.image} alt="" loading="lazy" />
+            <span>{type.label}</span>
+            <p>{type.description}</p>
+          </button>
+        ))}
+      </section>
 
       <div className="booking-layout">
         <section className="form-card booking-form-card">
-          <h2>Make a Booking</h2>
+          <div className="booking-form-heading">
+            <span>{selectedBookingType.label}</span>
+            <h2>Make a Booking</h2>
+            <p>{selectedBookingType.description}</p>
+          </div>
           {message && <div className="success-message">{message}</div>}
           {error && <div className="error-message">{error}</div>}
 

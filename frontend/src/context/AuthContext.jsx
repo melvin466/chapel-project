@@ -12,9 +12,26 @@ export const AuthProvider = ({ children }) => {
     const currentUser = authService.getCurrentUser();
     if (currentUser) {
       setUser(currentUser);
+      authService.getMe()
+        .then((response) => {
+          const freshUser = response.data?.user;
+          if (freshUser) setUser(freshUser);
+        })
+        .catch(() => {
+          // Keep the restored local user unless the API explicitly clears the token.
+        });
+    } else {
+      authService.logout();
     }
     setLoading(false);
   }, []);
+
+  const refreshUser = async () => {
+    const response = await authService.getMe();
+    const freshUser = response.data?.user;
+    if (freshUser) setUser(freshUser);
+    return freshUser;
+  };
 
   const register = async (userData) => {
     try {
@@ -52,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authService.updateProfile(profileData);
       if (response.success) {
-        const updatedUser = response.data?.user;
+        const updatedUser = response.data?.user || response.user;
         setUser(updatedUser);
         return { success: true, user: updatedUser };
       }
@@ -69,6 +86,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     updateProfile,
+    refreshUser,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isChaplain: user?.role === 'chaplain'  // ← ADD THIS LINE

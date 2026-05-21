@@ -7,7 +7,9 @@ import api from '../services/api';
 const getMediaUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+  const normalizedPath = path.replace(/\\/g, '/');
+  const uploadPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${encodeURI(uploadPath)}`;
 };
 
 const EventDetailPage = () => {
@@ -119,7 +121,7 @@ const EventDetailPage = () => {
           <img src={getMediaUrl(event.featuredImage)} alt={event.title} className="event-media-image" />
         )}
         {event.eventVideo && (
-          <video src={getMediaUrl(event.eventVideo)} controls className="event-media-video" />
+          <video src={getMediaUrl(event.eventVideo)} controls preload="metadata" className="event-media-video" />
         )}
         <div className="event-meta">
           <p>Date: {new Date(event.startDate).toLocaleDateString()}</p>

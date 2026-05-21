@@ -4,49 +4,54 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminLayout from './components/AdminLayout';
+import PageSkeleton from './components/PageSkeleton';
+import { routeLoaders, preloadRoute } from './routePreload';
 import './App.css';
 
-const HomePage = lazy(() => import('./pages/HomePage'));
-const EventsPage = lazy(() => import('./pages/EventsPage'));
-const EventDetailPage = lazy(() => import('./pages/EventDetailPage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
-const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
-const PrayerPage = lazy(() => import('./pages/PrayerPage'));
-const DonationsPage = lazy(() => import('./pages/DonationsPage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
-const FeedbackPage = lazy(() => import('./pages/FeedbackPage'));
-const AnnouncementsPage = lazy(() => import('./pages/AnnouncementsPage'));
-const AnnouncementDetailPage = lazy(() => import('./pages/AnnouncementDetailPage'));
-const SermonsPage = lazy(() => import('./pages/SermonsPage'));
-const SermonDetailPage = lazy(() => import('./pages/SermonDetailPage'));
-const CellsPage = lazy(() => import('./pages/CellsPage'));
-const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'));
-const BookingsPage = lazy(() => import('./pages/BookingsPage'));
-const GivePage = lazy(() => import('./pages/GivePage'));
-const AdminEvents = lazy(() => import('./pages/AdminEvents'));
-const AdminAnnouncements = lazy(() => import('./pages/AdminAnnouncements'));
-const AdminPrayerRequests = lazy(() => import('./pages/AdminPrayerRequests'));
-const AdminUsers = lazy(() => import('./pages/AdminUsers'));
-const AdminSettings = lazy(() => import('./pages/AdminSettings'));
-const AdminBookings = lazy(() => import('./pages/AdminBookings'));
-const AdminDonations = lazy(() => import('./pages/AdminDonations'));
-const AdminAuditLogs = lazy(() => import('./pages/AdminAuditLogs'));
-const AdminSermons = lazy(() => import('./pages/AdminSermons'));
-const AdminCells = lazy(() => import('./pages/AdminCells'));
-const AdminEventForm = lazy(() => import('./pages/AdminEventForm'));
-const AdminAnnouncementForm = lazy(() => import('./pages/AdminAnnouncementForm'));
-const AdminUserForm = lazy(() => import('./pages/AdminUserForm'));
-const AdminExport = lazy(() => import('./pages/AdminExport'));
-const AdminReports = lazy(() => import('./pages/AdminReports'));
+const HomePage = lazy(routeLoaders.HomePage);
+const EventsPage = lazy(routeLoaders.EventsPage);
+const EventDetailPage = lazy(routeLoaders.EventDetailPage);
+const LoginPage = lazy(routeLoaders.LoginPage);
+const RegisterPage = lazy(routeLoaders.RegisterPage);
+const ForgotPasswordPage = lazy(routeLoaders.ForgotPasswordPage);
+const ResetPasswordPage = lazy(routeLoaders.ResetPasswordPage);
+const VerifyEmailPage = lazy(routeLoaders.VerifyEmailPage);
+const PrayerPage = lazy(routeLoaders.PrayerPage);
+const DonationsPage = lazy(routeLoaders.DonationsPage);
+const DashboardPage = lazy(routeLoaders.DashboardPage);
+const ProfilePage = lazy(routeLoaders.ProfilePage);
+const NotificationsPage = lazy(routeLoaders.NotificationsPage);
+const FeedbackPage = lazy(routeLoaders.FeedbackPage);
+const AnnouncementsPage = lazy(routeLoaders.AnnouncementsPage);
+const AnnouncementDetailPage = lazy(routeLoaders.AnnouncementDetailPage);
+const SermonsPage = lazy(routeLoaders.SermonsPage);
+const SermonDetailPage = lazy(routeLoaders.SermonDetailPage);
+const CellsPage = lazy(routeLoaders.CellsPage);
+const AdminDashboardPage = lazy(routeLoaders.AdminDashboardPage);
+const BookingsPage = lazy(routeLoaders.BookingsPage);
+const GivePage = lazy(routeLoaders.GivePage);
+const AdminEvents = lazy(routeLoaders.AdminEvents);
+const AdminAnnouncements = lazy(routeLoaders.AdminAnnouncements);
+const AdminPrayerRequests = lazy(routeLoaders.AdminPrayerRequests);
+const AdminUsers = lazy(routeLoaders.AdminUsers);
+const AdminSettings = lazy(routeLoaders.AdminSettings);
+const AdminBookings = lazy(routeLoaders.AdminBookings);
+const AdminDonations = lazy(routeLoaders.AdminDonations);
+const AdminAuditLogs = lazy(routeLoaders.AdminAuditLogs);
+const AdminSermons = lazy(routeLoaders.AdminSermons);
+const AdminCells = lazy(routeLoaders.AdminCells);
+const AdminEventForm = lazy(routeLoaders.AdminEventForm);
+const AdminAnnouncementForm = lazy(routeLoaders.AdminAnnouncementForm);
+const AdminUserForm = lazy(routeLoaders.AdminUserForm);
+const AdminExport = lazy(routeLoaders.AdminExport);
+const AdminReports = lazy(routeLoaders.AdminReports);
 
 // Protected Route Component - Only accessible when logged in
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) {
+    return <PageSkeleton />;
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
@@ -55,7 +60,10 @@ const ProtectedRoute = ({ children }) => {
 
 // Admin Route Component - Only accessible when logged in as admin
 const AdminRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  if (loading) {
+    return <PageSkeleton variant="admin" />;
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
@@ -67,7 +75,10 @@ const AdminRoute = ({ children }) => {
 
 // Content Manager Route Component - Accessible to admin or chaplain
 const ContentManagerRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  if (loading) {
+    return <PageSkeleton variant="admin" />;
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
@@ -79,7 +90,10 @@ const ContentManagerRoute = ({ children }) => {
 
 // Public Route - Redirect to dashboard if already logged in
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  if (loading) {
+    return <PageSkeleton />;
+  }
   if (isAuthenticated) {
     return <Navigate to={user?.role === 'admin' ? '/admin' : '/'} />;
   }
@@ -90,11 +104,29 @@ function AppRoutes() {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
 
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
+  React.useEffect(() => {
+    const warmRoutes = () => {
+      ['/', '/events', '/announcements', '/sermons', '/dashboard'].forEach(preloadRoute);
+    };
+
+    if ('requestIdleCallback' in window) {
+      const idleId = window.requestIdleCallback(warmRoutes, { timeout: 1800 });
+      return () => window.cancelIdleCallback(idleId);
+    }
+
+    const timeoutId = window.setTimeout(warmRoutes, 900);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
   return (
     <div className={`App ${isAdminPath ? 'admin-app' : ''}`}>
       {!isAdminPath && <Navbar />}
       <main className={isAdminPath ? 'admin-main' : undefined}>
-            <Suspense fallback={<div className="loading">Loading page...</div>}>
+            <Suspense fallback={<PageSkeleton variant={isAdminPath ? 'admin' : 'public'} />}>
             <Routes>
               {/* ===== PUBLIC ROUTES (No login required) ===== */}
               <Route path="/" element={<HomePage />} />

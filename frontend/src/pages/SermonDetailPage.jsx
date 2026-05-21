@@ -7,7 +7,9 @@ import api from '../services/api';
 const getMediaUrl = (path) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
-  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${path}`;
+  const normalizedPath = path.replace(/\\/g, '/');
+  const uploadPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
+  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${encodeURI(uploadPath)}`;
 };
 
 const isEmbeddableVideoUrl = (url) => /youtube\.com|youtu\.be|vimeo\.com/i.test(url || '');
@@ -58,6 +60,9 @@ const SermonDetailPage = () => {
   if (error) return <div className="error-container"><p>{error}</p><button onClick={loadSermon} className="btn-primary">Retry</button></div>;
   if (!sermon) return <div className="container"><p>Sermon not found</p><button onClick={() => navigate('/sermons')} className="btn-secondary">Back</button></div>;
 
+  const audioSrc = getMediaUrl(sermon.audioUrl);
+  const videoSrc = getMediaUrl(sermon.videoUrl);
+
   return (
     <div className="container">
       <button onClick={() => navigate('/sermons')} className="btn-secondary" style={{ marginBottom: '1rem' }}>
@@ -90,7 +95,10 @@ const SermonDetailPage = () => {
         {sermon.audioUrl && (
           <div className="sermon-audio">
             <h3>Audio</h3>
-            <audio controls src={getMediaUrl(sermon.audioUrl)} style={{ width: '100%' }} />
+            <audio controls preload="metadata" src={audioSrc} style={{ width: '100%' }}>
+              <a href={audioSrc}>Open audio</a>
+            </audio>
+            <a className="media-open-link" href={audioSrc} target="_blank" rel="noreferrer">Open audio file</a>
           </div>
         )}
         
@@ -100,7 +108,12 @@ const SermonDetailPage = () => {
             {isEmbeddableVideoUrl(sermon.videoUrl) ? (
               <iframe src={sermon.videoUrl} title={sermon.title} width="100%" height="400" frameBorder="0" allowFullScreen />
             ) : (
-              <video controls src={getMediaUrl(sermon.videoUrl)} style={{ width: '100%', maxHeight: '480px' }} />
+              <>
+                <video controls preload="metadata" src={videoSrc} style={{ width: '100%', maxHeight: '480px' }}>
+                  <a href={videoSrc}>Open video</a>
+                </video>
+                <a className="media-open-link" href={videoSrc} target="_blank" rel="noreferrer">Open video file</a>
+              </>
             )}
           </div>
         )}
@@ -117,6 +130,7 @@ const SermonDetailPage = () => {
         .sermon-meta p { color: #666; margin-bottom: 0.5rem; }
         .sermon-description h3, .sermon-verses h3, .sermon-audio h3, .sermon-video h3 { color: #333; margin: 1rem 0 0.5rem; }
         .sermon-description p, .sermon-verses p { color: #666; line-height: 1.6; }
+        .media-open-link { display: inline-block; margin-top: 0.45rem; color: #9bd8aa; font-weight: 700; text-decoration: none; }
       `}</style>
     </div>
   );

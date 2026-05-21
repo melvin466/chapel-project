@@ -6,7 +6,6 @@ import ConfirmDialog from '../components/ConfirmDialog';
 const emptyForm = {
   title: '',
   speaker: '',
-  date: '',
   serviceType: 'sunday',
   description: '',
   bibleVerses: '',
@@ -64,7 +63,6 @@ const AdminSermons = () => {
     setFormData({
       title: sermon.title || '',
       speaker: sermon.speaker || '',
-      date: sermon.date?.split('T')[0] || '',
       serviceType: sermon.serviceType || 'sunday',
       description: sermon.description || '',
       bibleVerses: sermon.bibleVerses?.join(', ') || '',
@@ -143,7 +141,6 @@ const AdminSermons = () => {
           <div className="form-row">
             <input name="title" placeholder="Title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
             <input name="speaker" placeholder="Speaker" value={formData.speaker} onChange={(e) => setFormData({ ...formData, speaker: e.target.value })} required />
-            <input type="date" name="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required />
           </div>
           <textarea name="description" rows="4" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
           <div className="form-row">
@@ -198,16 +195,18 @@ const AdminSermons = () => {
         .admin-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
         .admin-header h1 { color: white; }
-        .admin-form, .admin-table-container { background: rgba(255,255,255,0.96); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; overflow-x: auto; }
-        .admin-form h2 { color: #1f2933; margin-bottom: 1rem; }
+        .admin-form, .admin-table-container { background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; overflow-x: auto; }
+        .admin-form h2 { color: white; margin-bottom: 1rem; }
         .admin-form form { display: grid; gap: 1rem; }
         .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .form-row > *, .admin-form input, .admin-form textarea, .admin-form select { flex: 1 1 180px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(31,41,51,0.16); border-radius: 8px; color: #1f2933; background: rgba(255,255,255,0.84); }
+        .form-row > *, .admin-form input, .admin-form textarea, .admin-form select { flex: 1 1 180px; min-width: 0; width: 100%; padding: 0.8rem; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; background: rgba(255,255,255,0.05); }
+        .form-row > *::placeholder, .admin-form input::placeholder, .admin-form textarea::placeholder { color: rgba(255,255,255,0.5); }
         .media-upload-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.75rem; }
-        .media-upload-section label { display: grid; gap: 0.4rem; font-weight: 600; color: #1f2933; }
+        .media-upload-section label { display: grid; gap: 0.4rem; font-weight: 600; color: white; }
+        .media-upload-section input { padding: 0.5rem; }
         .admin-table { width: 100%; border-collapse: collapse; }
-        .admin-table th, .admin-table td { padding: 0.9rem; border-bottom: 1px solid #eee; text-align: left; color: #1f2933; }
-        .admin-table th { background: #1f2933; color: white; }
+        .admin-table th, .admin-table td { padding: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; color: white; }
+        .admin-table th { background: rgba(255,255,255,0.05); font-weight: 600; }
         .btn-edit, .btn-delete, .btn-secondary { padding: 0.4rem 0.75rem; margin: 0.15rem; border: 0; border-radius: 6px; cursor: pointer; color: white; }
         .btn-edit { background: #315f72; }
         .btn-delete { background: #c2413a; }
