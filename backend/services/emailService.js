@@ -5,10 +5,12 @@ const sendEmail = async ({ to, subject, htmlContent }) => {
   const senderEmail = process.env.BREVO_SENDER_EMAIL;
   const senderName = process.env.BREVO_SENDER_NAME || 'Chapel Management';
 
+  if (process.env.NODE_ENV === 'test') {
+    return { skipped: true };
+  }
+
   if (!apiKey || !senderEmail) {
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn('Email not sent: BREVO_API_KEY and BREVO_SENDER_EMAIL are not configured.');
-    }
+    console.warn('Email not sent: BREVO_API_KEY and BREVO_SENDER_EMAIL are not configured.');
     return { skipped: true };
   }
 

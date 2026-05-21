@@ -42,6 +42,7 @@ const AdminEventForm = lazy(() => import('./pages/AdminEventForm'));
 const AdminAnnouncementForm = lazy(() => import('./pages/AdminAnnouncementForm'));
 const AdminUserForm = lazy(() => import('./pages/AdminUserForm'));
 const AdminExport = lazy(() => import('./pages/AdminExport'));
+const AdminReports = lazy(() => import('./pages/AdminReports'));
 
 // Protected Route Component - Only accessible when logged in
 const ProtectedRoute = ({ children }) => {
@@ -255,6 +256,11 @@ function AppRoutes() {
               <Route path="/admin/export" element={
                 <AdminRoute>
                   <AdminExport />
+                </AdminRoute>
+              } />
+              <Route path="/admin/reports" element={
+                <AdminRoute>
+                  <AdminReports />
                 </AdminRoute>
               } />
               

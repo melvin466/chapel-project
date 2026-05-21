@@ -30,7 +30,7 @@ const AdminLayout = ({ children }) => {
           {isAdmin && <NavLink to="/admin/prayers">Prayers</NavLink>}
           {isAdmin && <NavLink to="/admin/donations">Donations</NavLink>}
           {isAdmin && <NavLink to="/admin/users">Users</NavLink>}
-          {isAdmin && <NavLink to="/admin/export">Export</NavLink>}
+          {isAdmin && <NavLink to="/admin/reports">Reports</NavLink>}
           {isAdmin && <NavLink to="/admin/audit-logs">Audit Logs</NavLink>}
           {isAdmin && <NavLink to="/admin/settings">Settings</NavLink>}
         </nav>

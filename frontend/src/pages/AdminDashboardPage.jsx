@@ -172,7 +172,7 @@ const AdminDashboardPage = () => {
     { name: 'Review Bookings', icon: 'Book', color: '#31706d', path: '/admin/bookings', desc: 'Confirm chapel requests' },
     { name: 'Review Prayers', icon: 'Care', color: '#8a5a1f', path: '/admin/prayers', desc: 'Respond to requests' },
     { name: 'Audit Logs', icon: 'Log', color: '#7a4665', path: '/admin/audit-logs', desc: 'Review admin changes' },
-    { name: 'Export Data', icon: 'CSV', color: '#31706d', path: '/admin/export', desc: 'Download reports' },
+    { name: 'Reports', icon: 'CSV', color: '#31706d', path: '/admin/reports', desc: 'Download reports' },
     { name: 'Settings', icon: 'Set', color: '#607D8B', path: '/admin/settings', desc: 'Configure system' }
   ];
 

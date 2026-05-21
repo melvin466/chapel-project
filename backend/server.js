@@ -220,6 +220,7 @@ const routes = [
   { path: '/api/settings', route: require('./routes/settingRoutes') },
   { path: '/api/dashboard', route: require('./routes/dashboardRoutes') }, // ADDED DASHBOARD ROUTES
   { path: '/api/audit-logs', route: require('./routes/auditRoutes') },
+  { path: '/api/reports', route: require('./routes/reportRoutes') },
 ];
 
 const verificationRoutes = require('./routes/verificationRoutes');
