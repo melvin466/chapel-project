@@ -43,14 +43,15 @@ const validateJwtSecret = () => {
 validateJwtSecret();
 
 const getAllowedOrigins = () => {
-  const configuredOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || '')
+  const configuredOrigins = (process.env.CORS_ORIGINS || process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean);
 
   if (isProduction) {
     if (configuredOrigins.length === 0) {
-      throw new Error('CORS_ORIGINS or FRONTEND_URL is required in production');
+      console.warn('CORS_ORIGINS or FRONTEND_URL is not set; allowing HTTPS Render origins until a frontend URL is configured.');
+      return [];
     }
 
     const localOrigins = configuredOrigins.filter((origin) => /localhost|127\.0\.0\.1|\[::1\]/i.test(origin));
@@ -69,6 +70,16 @@ const allowedOrigins = getAllowedOrigins();
 const isLocalDevOrigin = (origin) => {
   if (!origin) return false;
   return /^(https?:\/\/)(localhost|127\.0\.0\.1|\[::1\]|\d+\.\d+\.\d+\.\d+)(:\d+)?$/.test(origin);
+};
+
+const isRenderOrigin = (origin) => {
+  if (!origin) return false;
+  try {
+    const parsed = new URL(origin);
+    return parsed.protocol === 'https:' && parsed.hostname.endsWith('.onrender.com');
+  } catch (error) {
+    return false;
+  }
 };
 
 if (isProduction && process.env.FRONTEND_URL && process.env.CORS_ORIGINS) {
@@ -94,7 +105,12 @@ if (isProduction) {
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin) || (!isProduction && isLocalDevOrigin(origin))) {
+    if (
+      !origin
+      || allowedOrigins.includes(origin)
+      || (!isProduction && isLocalDevOrigin(origin))
+      || (isProduction && isRenderOrigin(origin))
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
