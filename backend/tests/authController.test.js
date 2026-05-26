@@ -203,6 +203,12 @@ describe('Auth Controller', () => {
     const token = registerRes.body.data.verificationToken;
     expect(token).toBeTruthy();
 
+    const redirectRes = await request(app)
+      .get(`/api/auth/verify-email?token=${token}`);
+
+    expect(redirectRes.statusCode).toBe(302);
+    expect(redirectRes.headers.location).toContain(`/verify-email?token=${token}`);
+
     const verifyRes = await request(app)
       .post('/api/auth/verify-email')
       .send({ token });
@@ -210,9 +216,16 @@ describe('Auth Controller', () => {
     expect(verifyRes.statusCode).toBe(200);
     expect(verifyRes.body).toHaveProperty('success', true);
 
+    const duplicateVerifyRes = await request(app)
+      .post('/api/auth/verify-email')
+      .send({ token });
+
+    expect(duplicateVerifyRes.statusCode).toBe(200);
+    expect(duplicateVerifyRes.body).toHaveProperty('success', true);
+
     const user = await User.findOne({ email: 'verifyuser@example.com' });
     expect(user.isEmailVerified).toBe(true);
-    expect(user.emailVerificationToken).toBeUndefined();
+    expect(user.emailVerificationToken).toBeTruthy();
   });
 
   it('should reset a password with a valid reset token', async () => {

@@ -3,7 +3,12 @@ const { body, validationResult } = require('express-validator');
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, errors: errors.array() });
+    const validationErrors = errors.array();
+    return res.status(400).json({
+      success: false,
+      message: validationErrors[0]?.msg || 'Validation failed',
+      errors: validationErrors,
+    });
   }
   next();
 };
@@ -69,7 +74,7 @@ const validateCell = [
 
 const validateSermon = [
   body('title').notEmpty().withMessage('Title required'),
-  body('speaker').notEmpty().withMessage('Speaker required'),
+  body('speaker').optional({ checkFalsy: true }).isString().withMessage('Speaker must be text'),
   body('date').optional({ checkFalsy: true }).isISO8601().withMessage('Valid date required'),
   body('serviceType').optional().isIn(['sunday', 'wednesday', 'friday', 'conference', 'special']).withMessage('Valid service type required'),
   body('description').notEmpty().withMessage('Description required'),

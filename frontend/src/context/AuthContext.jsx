@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: response.message };
     } catch (error) {
-      return { success: false, message: error.message };
+      return { success: false, message: error.message, status: error.status };
     }
   };
 
@@ -57,6 +57,20 @@ export const AuthProvider = ({ children }) => {
       return { success: false, message: response.message };
     } catch (error) {
       return { success: false, message: error.message };
+    }
+  };
+
+  const verifyEmail = async (token) => {
+    try {
+      const response = await authService.verifyEmail(token);
+      if (response.success) {
+        const verifiedUser = response.data?.user || response.user;
+        if (verifiedUser) setUser(verifiedUser);
+        return { success: true, user: verifiedUser, message: response.message };
+      }
+      return { success: false, message: response.message };
+    } catch (error) {
+      return { success: false, message: error.message || 'Could not verify this email link.' };
     }
   };
 
@@ -84,6 +98,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     register,
     login,
+    verifyEmail,
     logout,
     updateProfile,
     refreshUser,

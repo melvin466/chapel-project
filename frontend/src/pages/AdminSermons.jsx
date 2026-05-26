@@ -5,8 +5,6 @@ import ConfirmDialog from '../components/ConfirmDialog';
 
 const emptyForm = {
   title: '',
-  speaker: '',
-  serviceType: 'sunday',
   description: '',
   bibleVerses: '',
   tags: '',
@@ -21,6 +19,12 @@ const emptyFiles = {
   sermonAudio: null,
   sermonVideo: null,
 };
+
+const getApiErrorMessage = (err, fallback) => (
+  err.response?.data?.message
+  || err.response?.data?.errors?.[0]?.msg
+  || fallback
+);
 
 const AdminSermons = () => {
   const { isAdmin } = useAuth();
@@ -44,7 +48,7 @@ const AdminSermons = () => {
       const response = await sermonService.getManageSermons({ limit: 100 });
       setSermons(response.data?.sermons || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load sermons');
+      setError(getApiErrorMessage(err, 'Failed to load sermons'));
     } finally {
       setLoading(false);
     }
@@ -62,8 +66,6 @@ const AdminSermons = () => {
     setError('');
     setFormData({
       title: sermon.title || '',
-      speaker: sermon.speaker || '',
-      serviceType: sermon.serviceType || 'sunday',
       description: sermon.description || '',
       bibleVerses: sermon.bibleVerses?.join(', ') || '',
       tags: sermon.tags?.join(', ') || '',
@@ -100,7 +102,7 @@ const AdminSermons = () => {
       resetForm();
       loadSermons();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save sermon');
+      setError(getApiErrorMessage(err, 'Failed to save sermon'));
     } finally {
       setSaving(false);
     }
@@ -119,7 +121,7 @@ const AdminSermons = () => {
       setDeleteTarget(null);
       loadSermons();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete sermon');
+      setError(getApiErrorMessage(err, 'Failed to delete sermon'));
     }
   };
 
@@ -140,17 +142,9 @@ const AdminSermons = () => {
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <input name="title" placeholder="Title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
-            <input name="speaker" placeholder="Speaker" value={formData.speaker} onChange={(e) => setFormData({ ...formData, speaker: e.target.value })} required />
           </div>
           <textarea name="description" rows="4" placeholder="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} required />
           <div className="form-row">
-            <select name="serviceType" value={formData.serviceType} onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })}>
-              <option value="sunday">Sunday</option>
-              <option value="wednesday">Wednesday</option>
-              <option value="friday">Friday</option>
-              <option value="conference">Conference</option>
-              <option value="special">Special</option>
-            </select>
             <input name="series" placeholder="Series" value={formData.series} onChange={(e) => setFormData({ ...formData, series: e.target.value })} />
             <input type="number" min="0" name="duration" placeholder="Duration in minutes" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: e.target.value })} />
           </div>
@@ -171,14 +165,17 @@ const AdminSermons = () => {
 
       <div className="admin-table-container">
         <table className="admin-table">
-          <thead><tr><th>Title</th><th>Speaker</th><th>Date</th><th>Media</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Title</th><th>Posted By</th><th>Date</th><th>Media</th><th>Actions</th></tr></thead>
           <tbody>
             {sermons.length === 0 ? (
               <tr><td colSpan="5" style={{ textAlign: 'center' }}>No sermons found</td></tr>
             ) : sermons.map((sermon) => (
               <tr key={sermon._id}>
                 <td>{sermon.title}</td>
-                <td>{sermon.speaker}</td>
+                <td>
+                  {sermon.createdBy ? `${sermon.createdBy.firstName || ''} ${sermon.createdBy.lastName || ''}`.trim() : sermon.speaker}
+                  {sermon.createdBy?.role && <span className="role-chip">{sermon.createdBy.role}</span>}
+                </td>
                 <td>{sermon.date ? new Date(sermon.date).toLocaleDateString() : '-'}</td>
                 <td>{[sermon.audioUrl && 'Audio', sermon.videoUrl && 'Video', sermon.thumbnail && 'Thumbnail'].filter(Boolean).join(', ') || '-'}</td>
                 <td>
@@ -211,6 +208,7 @@ const AdminSermons = () => {
         .btn-edit { background: #315f72; }
         .btn-delete { background: #c2413a; }
         .btn-secondary { background: #4c5f7a; }
+        .role-chip { display: inline-block; margin-left: 0.45rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(155,216,170,0.2); color: #9bd8aa; font-size: 0.72rem; text-transform: capitalize; }
       `}</style>
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}

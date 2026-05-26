@@ -81,6 +81,8 @@ const AdminLayout = ({ children }) => {
           position: sticky;
           top: 0;
           height: 100vh;
+          height: 100dvh;
+          min-height: 0;
           display: flex;
           flex-direction: column;
           gap: 1.25rem;
@@ -88,6 +90,7 @@ const AdminLayout = ({ children }) => {
           background: #111827;
           color: white;
           border-right: 1px solid #243244;
+          overflow: hidden;
         }
         .admin-brand {
           display: grid;
@@ -107,8 +110,27 @@ const AdminLayout = ({ children }) => {
           font-size: 1.2rem;
         }
         .admin-nav {
+          flex: 1 1 auto;
+          min-height: 0;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          padding-right: 0.25rem;
           display: grid;
+          align-content: start;
           gap: 0.25rem;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(155,216,170,0.55) rgba(255,255,255,0.08);
+        }
+        .admin-nav::-webkit-scrollbar {
+          width: 8px;
+        }
+        .admin-nav::-webkit-scrollbar-track {
+          background: rgba(255,255,255,0.08);
+          border-radius: 999px;
+        }
+        .admin-nav::-webkit-scrollbar-thumb {
+          background: rgba(155,216,170,0.55);
+          border-radius: 999px;
         }
         .admin-nav a,
         .admin-sidebar-footer a,
@@ -133,7 +155,7 @@ const AdminLayout = ({ children }) => {
           color: white;
         }
         .admin-sidebar-footer {
-          margin-top: auto;
+          flex: 0 0 auto;
           display: grid;
           gap: 0.25rem;
           padding-top: 1rem;
@@ -258,9 +280,12 @@ const AdminLayout = ({ children }) => {
           .admin-sidebar {
             position: static;
             height: auto;
+            overflow: visible;
           }
           .admin-nav {
             grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            overflow: visible;
+            padding-right: 0;
           }
           .admin-sidebar-footer {
             grid-template-columns: 1fr 1fr;

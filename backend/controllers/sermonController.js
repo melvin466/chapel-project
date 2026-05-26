@@ -13,6 +13,8 @@ const parseList = (value) => {
 
 const withUploadedSermonFiles = (body, files = {}) => {
   const data = { ...body };
+  delete data.createdBy;
+  delete data.createdAt;
   const thumbnail = getUploadedFilePath(files.thumbnail?.[0]);
   const audioUrl = getUploadedFilePath(files.sermonAudio?.[0]);
   const videoUrl = getUploadedFilePath(files.sermonVideo?.[0]);
@@ -22,11 +24,16 @@ const withUploadedSermonFiles = (body, files = {}) => {
   if (videoUrl) data.videoUrl = videoUrl;
   if (data.bibleVerses !== undefined) data.bibleVerses = parseList(data.bibleVerses);
   if (data.tags !== undefined) data.tags = parseList(data.tags);
+  if (data.speaker === '') delete data.speaker;
   if (data.date === '') delete data.date;
   if (data.duration === '') delete data.duration;
 
   return data;
 };
+
+const getUserDisplayName = (user) => (
+  [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim() || user?.email || 'Chapel Team'
+);
 
 const sermonMediaFields = [
   { field: 'thumbnail', resourceType: 'image' },
@@ -57,6 +64,7 @@ const getSermons = async (req, res) => {
     if (series) filter.series = series;
 
     const sermons = await Sermon.find(filter)
+      .populate('createdBy', 'firstName lastName role')
       .sort({ date: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -80,7 +88,7 @@ const getManageSermons = async (req, res) => {
     if (series) filter.series = series;
 
     const sermons = await Sermon.find(filter)
-      .populate('createdBy', 'firstName lastName')
+      .populate('createdBy', 'firstName lastName role')
       .sort({ date: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -98,7 +106,7 @@ const getManageSermons = async (req, res) => {
 
 const getSermonById = async (req, res) => {
   try {
-    const sermon = await Sermon.findById(req.params.id);
+    const sermon = await Sermon.findById(req.params.id).populate('createdBy', 'firstName lastName role');
     if (!sermon) return res.status(404).json({ success: false, message: 'Sermon not found' });
     sermon.views += 1;
     await sermon.save();
@@ -110,7 +118,10 @@ const getSermonById = async (req, res) => {
 
 const createSermon = async (req, res) => {
   try {
-    const sermon = await Sermon.create({ ...withUploadedSermonFiles(req.body, req.files), createdBy: req.user.id });
+    const sermonData = withUploadedSermonFiles(req.body, req.files);
+    if (!sermonData.speaker) sermonData.speaker = getUserDisplayName(req.user);
+
+    const sermon = await Sermon.create({ ...sermonData, createdBy: req.user.id });
     await recordAuditLog(req, {
       action: 'sermon.create',
       resource: 'Sermon',

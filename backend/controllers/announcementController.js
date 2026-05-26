@@ -5,6 +5,8 @@ const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const withUploadedAnnouncementFiles = (body, files = {}) => {
   const data = { ...body };
+  delete data.createdBy;
+  delete data.createdAt;
   const featuredImage = getUploadedFilePath(files.featuredImage?.[0]);
   const announcementVideo = getUploadedFilePath(files.announcementVideo?.[0]);
 
@@ -21,7 +23,7 @@ const getAnnouncements = async (req, res) => {
     if (type) filter.type = type;
 
     const announcements = await Announcement.find(filter)
-      .populate('createdBy', 'firstName lastName')
+      .populate('createdBy', 'firstName lastName role')
       .sort({ publishDate: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -39,7 +41,7 @@ const getAnnouncements = async (req, res) => {
 
 const getAnnouncementById = async (req, res) => {
   try {
-    const announcement = await Announcement.findById(req.params.id).populate('createdBy', 'firstName lastName');
+    const announcement = await Announcement.findById(req.params.id).populate('createdBy', 'firstName lastName role');
     if (!announcement) return res.status(404).json({ success: false, message: 'Announcement not found' });
     res.json({ success: true, data: { announcement } });
   } catch (error) {
@@ -55,7 +57,7 @@ const getManageAnnouncements = async (req, res) => {
     if (status) filter.status = status;
 
     const announcements = await Announcement.find(filter)
-      .populate('createdBy', 'firstName lastName')
+      .populate('createdBy', 'firstName lastName role')
       .sort({ publishDate: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));

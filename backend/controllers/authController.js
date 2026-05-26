@@ -21,7 +21,15 @@ const getFrontendBaseUrl = () => (
   process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173'
 ).replace(/\/+$/, '');
 
-const getFrontendUrl = (path) => `${getFrontendBaseUrl()}${path}`;
+const getFrontendUrl = (path, params = {}) => {
+  const url = new URL(path, `${getFrontendBaseUrl()}/`);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      url.searchParams.set(key, value);
+    }
+  });
+  return url.toString();
+};
 
 const getDevTokenPayload = (key, token) => (
   process.env.NODE_ENV === 'production' ? {} : { data: { [key]: token } }
@@ -67,7 +75,7 @@ const register = async (req, res) => {
       emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
-    const verificationUrl = getFrontendUrl(`/verify-email?token=${verificationToken}`);
+    const verificationUrl = getFrontendUrl('/verify-email', { token: verificationToken });
 
     await sendEmail({
       to: email,
@@ -140,14 +148,30 @@ const verifyEmail = async (req, res) => {
     }
 
     user.isEmailVerified = true;
-    user.emailVerificationToken = undefined;
-    user.emailVerificationExpires = undefined;
+    // Keep the token hash until expiry so duplicate email previews or repeated taps
+    // return success instead of making a verified account look broken.
     await user.save();
 
-    res.json({ success: true, message: 'Email verified successfully' });
+    res.json({
+      success: true,
+      message: 'Email verified successfully. You are now signed in.',
+      data: {
+        user: toSafeUser(user),
+        token: generateToken(user._id),
+      },
+    });
   } catch (error) {
     sendServerError(res, error);
   }
+};
+
+const redirectEmailVerification = (req, res) => {
+  const token = req.query.token;
+  const redirectUrl = token
+    ? getFrontendUrl('/verify-email', { token })
+    : getFrontendUrl('/verify-email');
+
+  res.redirect(302, redirectUrl);
 };
 
 const resendVerificationEmail = async (req, res) => {
@@ -167,7 +191,7 @@ const resendVerificationEmail = async (req, res) => {
     user.emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
     await user.save();
 
-    const verificationUrl = getFrontendUrl(`/verify-email?token=${token}`);
+    const verificationUrl = getFrontendUrl('/verify-email', { token });
     await sendEmail({
       to: user.email,
       subject: 'Verify Your Email',
@@ -201,7 +225,7 @@ const forgotPassword = async (req, res) => {
       user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
       await user.save();
 
-      const resetUrl = getFrontendUrl(`/reset-password?token=${resetToken}`);
+      const resetUrl = getFrontendUrl('/reset-password', { token: resetToken });
       await sendEmail({
         to: user.email,
         subject: 'Reset Your Password',
@@ -253,7 +277,8 @@ const resetPassword = async (req, res) => {
 
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id)
+      .select('-password -emailVerificationToken -emailVerificationExpires -passwordResetToken -passwordResetExpires');
     res.json({ success: true, data: { user } });
   } catch (error) {
     sendServerError(res, error);
@@ -293,6 +318,7 @@ module.exports = {
   register,
   login,
   verifyEmail,
+  redirectEmailVerification,
   resendVerificationEmail,
   forgotPassword,
   resetPassword,

@@ -113,6 +113,12 @@ const AdminAnnouncements = () => {
     setShowForm(true);
   };
 
+  const getPosterName = (item) => (
+    item.createdBy
+      ? `${item.createdBy.firstName || ''} ${item.createdBy.lastName || ''}`.trim()
+      : 'Chapel Team'
+  );
+
   if (loading) return <div className="loading">Loading announcements...</div>;
 
   return (
@@ -192,13 +198,14 @@ const AdminAnnouncements = () => {
               <th>Type</th>
               <th>Priority</th>
               <th>Status</th>
+              <th>Posted By</th>
               <th>Date</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {announcements.length === 0 ? (
-              <tr><td colSpan="6" style={{ textAlign: 'center' }}>No announcements found</td></tr>
+              <tr><td colSpan="7" style={{ textAlign: 'center' }}>No announcements found</td></tr>
             ) : (
               announcements.map(item => (
                 <tr key={item._id}>
@@ -206,6 +213,10 @@ const AdminAnnouncements = () => {
                   <td><span className={`type-badge type-${item.type}`}>{item.type}</span></td>
                   <td><span className={`priority-${item.priority}`}>{item.priority}</span></td>
                   <td><span className={`status-badge status-${item.status}`}>{item.status}</span></td>
+                  <td>
+                    {getPosterName(item)}
+                    {item.createdBy?.role && <span className="role-chip">{item.createdBy.role}</span>}
+                  </td>
                   <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                   <td>
                     <button onClick={() => handleEdit(item)} className="btn-edit">Edit</button>
@@ -252,6 +263,7 @@ const AdminAnnouncements = () => {
         .status-badge.status-published { background: #e8f3ec; color: #2f7d46; }
         .status-badge.status-draft { background: #f8efe3; color: #8a5a1f; }
         .status-badge.status-archived { background: #edf0f2; color: #62707c; }
+        .role-chip { display: inline-block; margin-left: 0.45rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(155,216,170,0.2); color: #9bd8aa; font-size: 0.72rem; text-transform: capitalize; }
       `}</style>
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}

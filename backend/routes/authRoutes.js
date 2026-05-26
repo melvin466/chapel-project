@@ -4,6 +4,7 @@ const {
   register,
   login,
   verifyEmail,
+  redirectEmailVerification,
   resendVerificationEmail,
   forgotPassword,
   resetPassword,
@@ -18,7 +19,7 @@ const { authLimiter } = require('../middleware/rateLimiters');
 router.post('/register', authLimiter, validateRegister, register);
 router.post('/login', authLimiter, validateLogin, login);
 router.post('/verify-email', authLimiter, verifyEmail);
-router.get('/verify-email', authLimiter, verifyEmail);
+router.get('/verify-email', authLimiter, redirectEmailVerification);
 router.post('/resend-verification', authLimiter, resendVerificationEmail);
 router.post('/forgot-password', authLimiter, forgotPassword);
 router.post('/reset-password', authLimiter, resetPassword);

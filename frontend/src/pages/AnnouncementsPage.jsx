@@ -42,6 +42,12 @@ const AnnouncementsPage = () => {
     }
   };
 
+  const getPosterName = (announcement) => (
+    announcement.createdBy
+      ? `${announcement.createdBy.firstName || ''} ${announcement.createdBy.lastName || ''}`.trim()
+      : 'Chapel Team'
+  );
+
   if (loading) return <div className="loading">Loading announcements...</div>;
 
   return (
@@ -59,6 +65,23 @@ const AnnouncementsPage = () => {
           <strong>Keep in step</strong>
           <p>Check here before services, fellowships, and special gatherings so you do not miss important updates.</p>
         </aside>
+      </section>
+
+      <section className="announcements-intro">
+        <div>
+          <span>What you will find here</span>
+          <h2>Official updates from the people serving the chapel community.</h2>
+          <p>
+            Announcements are posted by authorized chapel staff and leaders, with each notice tied
+            to the person and role that published it. Use this page for service changes, ministry
+            notices, urgent updates, prayer information, and administrative reminders.
+          </p>
+        </div>
+        <div className="announcement-guide">
+          <div><strong>Urgent</strong><span>Time-sensitive changes and critical notices.</span></div>
+          <div><strong>Ministry</strong><span>Updates from fellowships, groups, and service teams.</span></div>
+          <div><strong>Pastoral</strong><span>Guidance, prayer notes, and care-related messages.</span></div>
+        </div>
       </section>
 
       {announcements.length === 0 ? (
@@ -87,6 +110,10 @@ const AnnouncementsPage = () => {
                 </span>
               </div>
               <h2>{announcement.title}</h2>
+              <p className="announcement-poster">
+                Posted by {getPosterName(announcement)}
+                {announcement.createdBy?.role && <span>{announcement.createdBy.role}</span>}
+              </p>
               <p>{announcement.content?.substring(0, 200)}...</p>
               <button className="read-more">Read More</button>
             </div>
@@ -142,6 +169,54 @@ const AnnouncementsPage = () => {
           display: block;
           color: white;
           margin-bottom: 0.35rem;
+        }
+        .announcements-intro {
+          width: min(100%, 980px);
+          margin: 0 auto 1.4rem;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+          gap: 1rem;
+        }
+        .announcements-intro > div {
+          padding: 1.2rem;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.12);
+          border: 1px solid rgba(255,255,255,0.18);
+          color: white;
+          backdrop-filter: blur(18px);
+        }
+        .announcements-intro span {
+          display: inline-block;
+          color: #9bd8aa;
+          font-size: 0.76rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          margin-bottom: 0.5rem;
+        }
+        .announcements-intro h2 {
+          color: white;
+          font-size: 1.6rem;
+          line-height: 1.15;
+          margin-bottom: 0.7rem;
+        }
+        .announcements-intro p,
+        .announcement-guide div span {
+          color: rgba(255,255,255,0.76);
+          line-height: 1.6;
+        }
+        .announcement-guide {
+          display: grid;
+          gap: 0.65rem;
+        }
+        .announcement-guide div {
+          display: grid;
+          gap: 0.25rem;
+          padding: 0.75rem;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.08);
+        }
+        .announcement-guide strong {
+          color: white;
         }
         .announcements-list {
           width: min(100%, 980px);
@@ -218,6 +293,23 @@ const AnnouncementsPage = () => {
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+        .announcement-card .announcement-poster {
+          color: rgba(255,255,255,0.68);
+          font-size: 0.82rem;
+          margin-bottom: 0.7rem;
+          -webkit-line-clamp: 2;
+        }
+        .announcement-poster span {
+          display: inline-block;
+          margin-left: 0.45rem;
+          padding: 0.12rem 0.42rem;
+          border-radius: 999px;
+          background: rgba(155,216,170,0.16);
+          color: #9bd8aa;
+          text-transform: capitalize;
+          font-size: 0.72rem;
+          font-weight: 700;
+        }
         .read-more {
           background: none;
           border: none;
@@ -240,7 +332,8 @@ const AnnouncementsPage = () => {
           color: rgba(255,255,255,0.72);
         }
         @media (max-width: 760px) {
-          .listing-hero {
+          .listing-hero,
+          .announcements-intro {
             grid-template-columns: 1fr;
             min-height: auto;
           }
@@ -251,4 +344,3 @@ const AnnouncementsPage = () => {
 };
 
 export default AnnouncementsPage;
-

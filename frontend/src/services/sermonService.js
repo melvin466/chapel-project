@@ -22,16 +22,12 @@ const sermonService = {
   },
 
   createSermon: async (data) => {
-    const response = await api.post('/sermons', data, data instanceof FormData ? {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    } : undefined);
+    const response = await api.post('/sermons', data);
     return response.data;
   },
 
   updateSermon: async (id, data) => {
-    const response = await api.put(`/sermons/${id}`, data, data instanceof FormData ? {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    } : undefined);
+    const response = await api.put(`/sermons/${id}`, data);
     return response.data;
   },
 

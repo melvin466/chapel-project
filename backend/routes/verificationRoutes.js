@@ -1,8 +1,8 @@
 const express = require('express');
-const { verifyEmail } = require('../controllers/authController');
+const { redirectEmailVerification } = require('../controllers/authController');
 
 const router = express.Router();
 
-router.get('/verify-email', verifyEmail);
+router.get('/verify-email', redirectEmailVerification);
 
 module.exports = router;

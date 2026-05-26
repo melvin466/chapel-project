@@ -39,6 +39,9 @@ const AnnouncementDetailPage = () => {
   if (loading) return <div className="loading">Loading announcement...</div>;
   if (error) return <div className="error-container"><p>{error}</p><button onClick={loadAnnouncement} className="btn-primary">Retry</button></div>;
   if (!announcement) return <div className="container"><p>Announcement not found</p><button onClick={() => navigate('/announcements')} className="btn-secondary">Back</button></div>;
+  const posterName = announcement.createdBy
+    ? `${announcement.createdBy.firstName || ''} ${announcement.createdBy.lastName || ''}`.trim()
+    : 'Chapel Team';
 
   return (
     <div className="container">
@@ -70,7 +73,7 @@ const AnnouncementDetailPage = () => {
         
         {announcement.createdBy && (
           <div className="announcement-author">
-            <p>Posted by: {announcement.createdBy.firstName} {announcement.createdBy.lastName}</p>
+            <p>Posted by: {posterName}{announcement.createdBy.role ? ` (${announcement.createdBy.role})` : ''}</p>
           </div>
         )}
       </div>

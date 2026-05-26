@@ -53,6 +53,9 @@ const SermonDetailPage = () => {
   const audioSrc = getMediaUrl(sermon.audioUrl);
   const videoSrc = getMediaUrl(sermon.videoUrl);
   const embedVideoSrc = getEmbeddableVideoUrl(sermon.videoUrl);
+  const posterName = sermon.createdBy
+    ? `${sermon.createdBy.firstName || ''} ${sermon.createdBy.lastName || ''}`.trim()
+    : sermon.speaker;
 
   return (
     <div className="container">
@@ -66,6 +69,7 @@ const SermonDetailPage = () => {
         {error && <div className="error-message">{error}</div>}
         
         <div className="sermon-meta">
+          <p><strong>Posted by:</strong> {posterName}{sermon.createdBy?.role ? ` (${sermon.createdBy.role})` : ''}</p>
           <p>🎙️ <strong>Speaker:</strong> {sermon.speaker}</p>
           <p>📅 <strong>Date:</strong> {new Date(sermon.date).toLocaleDateString()}</p>
           {sermon.duration && <p>⏱️ <strong>Duration:</strong> {sermon.duration} minutes</p>}

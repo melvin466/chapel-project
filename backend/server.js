@@ -11,6 +11,7 @@ const compression = require('compression');
 const sanitizeRequest = require('./middleware/sanitize');
 const { getErrorMessage } = require('./utils/errorResponse');
 const { hasCloudinaryConfig } = require('./utils/cloudinaryMedia');
+const { bootstrapAdmin } = require('./utils/bootstrapAdmin');
 
 // Load environment variables
 dotenv.config();
@@ -321,8 +322,12 @@ if (process.env.NODE_ENV !== 'test') {
     : {};
 
   mongoose.connect(process.env.MONGODB_URI || process.env.DB_URI || 'mongodb://localhost:27017/chapel-system', mongooseOptions)
-    .then(() => {
+    .then(async () => {
       console.log('Connected to MongoDB');
+      const admin = await bootstrapAdmin();
+      if (admin) {
+        console.log(`Admin ready: ${admin.email}`);
+      }
       const PORT = process.env.PORT || 5000;
       app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);

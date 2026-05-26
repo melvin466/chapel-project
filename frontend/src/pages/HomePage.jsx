@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import eventService from '../services/eventService';
 import announcementService from '../services/announcementService';
+import VerseOfDay from '../components/VerseOfDay';
 import '/HomePage.css';
 
 const HomePage = () => {
@@ -95,6 +96,8 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      <VerseOfDay />
 
       <section className="home-actions-section">
         <div className="container home-action-grid">

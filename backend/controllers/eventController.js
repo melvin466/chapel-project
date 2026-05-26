@@ -7,6 +7,8 @@ const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'Jul
 
 const withUploadedEventFiles = (body, files = {}) => {
   const data = { ...body };
+  delete data.createdBy;
+  delete data.createdAt;
   const featuredImage = getUploadedFilePath(files.featuredImage?.[0]);
   const eventVideo = getUploadedFilePath(files.eventVideo?.[0]);
 
@@ -23,7 +25,7 @@ const getEvents = async (req, res) => {
     if (type) filter.type = type;
 
     const events = await Event.find(filter)
-      .populate('createdBy', 'firstName lastName')
+      .populate('createdBy', 'firstName lastName role')
       .sort({ startDate: 1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -42,8 +44,8 @@ const getEvents = async (req, res) => {
 const getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
-      .populate('createdBy', 'firstName lastName')
-      .populate('organizers', 'firstName lastName');
+      .populate('createdBy', 'firstName lastName role')
+      .populate('organizers', 'firstName lastName role');
     
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
     res.json({ success: true, data: { event } });
@@ -60,7 +62,7 @@ const getManageEvents = async (req, res) => {
     if (status) filter.status = status;
 
     const events = await Event.find(filter)
-      .populate('createdBy', 'firstName lastName')
+      .populate('createdBy', 'firstName lastName role')
       .sort({ startDate: 1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));

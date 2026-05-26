@@ -37,7 +37,10 @@ export const authService = {
 
       return response.data;
     } catch (error) {
-      throw error.response?.data || { message: 'Login failed' };
+      throw {
+        ...(error.response?.data || { message: 'Login failed' }),
+        status: error.response?.status,
+      };
     }
   },
 
@@ -79,6 +82,17 @@ export const authService = {
 
   verifyEmail: async (token) => {
     const response = await api.post('/auth/verify-email', { token });
+    const authToken = response.data.data?.token;
+    const user = response.data.data?.user;
+
+    if (authToken) {
+      localStorage.setItem('token', authToken);
+    }
+
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+
     return response.data;
   },
 

@@ -1367,6 +1367,17 @@ input[type="checkbox"] {
   border: 1px solid rgba(47, 125, 70, 0.2);
 }
 
+.link-button {
+  border: 0;
+  background: transparent;
+  color: #25693a;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  text-decoration: underline;
+}
+
 .form-message {
   padding: 0.85rem 1rem;
   border-radius: 8px;
