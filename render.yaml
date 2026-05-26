@@ -22,20 +22,11 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: FRONTEND_URL
-        fromService:
-          type: web
-          name: chapel-system-web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://chapel-system-web.onrender.com
       - key: CORS_ORIGINS
-        fromService:
-          type: web
-          name: chapel-system-web
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://chapel-system-web.onrender.com
       - key: BASE_URL
-        fromService:
-          type: web
-          name: chapel-system-api
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://chapel-system-api.onrender.com
       - key: BREVO_API_KEY
         sync: false
       - key: BREVO_SENDER_EMAIL
@@ -49,7 +40,11 @@ services:
       - key: PESAPAL_CONSUMER_SECRET
         sync: false
       - key: PESAPAL_IPN_ID
-        sync: false
+        value: 6a406275-e3c3-4522-a990-da5619e20645
+      - key: PESAPAL_CALLBACK_URL
+        value: https://chapel-system-api.onrender.com/api/donations/callback
+      - key: PESAPAL_CANCELLATION_URL
+        value: https://chapel-system-web.onrender.com/donations
       - key: TRUST_PROXY
         value: 1
       - key: JSON_BODY_LIMIT
@@ -70,10 +65,7 @@ services:
     autoDeployTrigger: commit
     envVars:
       - key: VITE_API_BASE_URL
-        fromService:
-          type: web
-          name: chapel-system-api
-          envVarKey: RENDER_EXTERNAL_URL
+        value: https://chapel-system-api.onrender.com/api
     routes:
       - type: rewrite
         source: /*
