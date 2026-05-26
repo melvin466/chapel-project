@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import DOMPurify from 'dompurify';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -15,9 +14,7 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const sanitizedEmail = DOMPurify.sanitize(email);
-    const sanitizedPassword = DOMPurify.sanitize(password);
-    const response = await login(sanitizedEmail, sanitizedPassword);
+    const response = await login(email.trim().toLowerCase(), password);
     if (response.success) {
       navigate(response.user?.role === 'admin' ? '/admin' : '/', { replace: true });
     } else {
