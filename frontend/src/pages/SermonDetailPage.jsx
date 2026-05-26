@@ -2,17 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import  sermonService  from '../services/sermonService';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-
-const getMediaUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  const normalizedPath = path.replace(/\\/g, '/');
-  const uploadPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
-  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${encodeURI(uploadPath)}`;
-};
-
-const isEmbeddableVideoUrl = (url) => /youtube\.com|youtu\.be|vimeo\.com/i.test(url || '');
+import { getEmbeddableVideoUrl, getMediaUrl } from '../utils/media';
 
 const SermonDetailPage = () => {
   const { id } = useParams();
@@ -62,6 +52,7 @@ const SermonDetailPage = () => {
 
   const audioSrc = getMediaUrl(sermon.audioUrl);
   const videoSrc = getMediaUrl(sermon.videoUrl);
+  const embedVideoSrc = getEmbeddableVideoUrl(sermon.videoUrl);
 
   return (
     <div className="container">
@@ -105,8 +96,16 @@ const SermonDetailPage = () => {
         {sermon.videoUrl && (
           <div className="sermon-video">
             <h3>Video</h3>
-            {isEmbeddableVideoUrl(sermon.videoUrl) ? (
-              <iframe src={sermon.videoUrl} title={sermon.title} width="100%" height="400" frameBorder="0" allowFullScreen />
+            {embedVideoSrc ? (
+              <iframe
+                src={embedVideoSrc}
+                title={sermon.title}
+                width="100%"
+                height="400"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
             ) : (
               <>
                 <video controls preload="metadata" src={videoSrc} style={{ width: '100%', maxHeight: '480px' }}>

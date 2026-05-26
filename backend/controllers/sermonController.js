@@ -1,5 +1,6 @@
 const Sermon = require('../models/Sermon');
 const { recordAuditLog } = require('../utils/auditLogger');
+const { deleteCloudinaryAsset } = require('../utils/cloudinaryMedia');
 const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const parseList = (value) => {
@@ -25,6 +26,27 @@ const withUploadedSermonFiles = (body, files = {}) => {
   if (data.duration === '') delete data.duration;
 
   return data;
+};
+
+const sermonMediaFields = [
+  { field: 'thumbnail', resourceType: 'image' },
+  { field: 'audioUrl', resourceType: 'video' },
+  { field: 'videoUrl', resourceType: 'video' },
+];
+
+const cleanupReplacedSermonMedia = async (previousSermon, nextData) => {
+  await Promise.all(sermonMediaFields.map(({ field, resourceType }) => {
+    if (!Object.prototype.hasOwnProperty.call(nextData, field) || previousSermon[field] === nextData[field]) {
+      return Promise.resolve();
+    }
+    return deleteCloudinaryAsset(previousSermon[field], resourceType);
+  }));
+};
+
+const cleanupSermonMedia = async (sermon) => {
+  await Promise.all(sermonMediaFields.map(({ field, resourceType }) => (
+    deleteCloudinaryAsset(sermon[field], resourceType)
+  )));
 };
 
 const getSermons = async (req, res) => {
@@ -103,9 +125,12 @@ const createSermon = async (req, res) => {
 
 const updateSermon = async (req, res) => {
   try {
+    const existingSermon = await Sermon.findById(req.params.id);
+    if (!existingSermon) return res.status(404).json({ success: false, message: 'Sermon not found' });
+
     const updateData = withUploadedSermonFiles(req.body, req.files);
     const sermon = await Sermon.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true });
-    if (!sermon) return res.status(404).json({ success: false, message: 'Sermon not found' });
+    await cleanupReplacedSermonMedia(existingSermon, updateData);
     await recordAuditLog(req, {
       action: 'sermon.update',
       resource: 'Sermon',
@@ -122,6 +147,7 @@ const deleteSermon = async (req, res) => {
   try {
     const sermon = await Sermon.findByIdAndDelete(req.params.id);
     if (!sermon) return res.status(404).json({ success: false, message: 'Sermon not found' });
+    await cleanupSermonMedia(sermon);
     await recordAuditLog(req, {
       action: 'sermon.delete',
       resource: 'Sermon',

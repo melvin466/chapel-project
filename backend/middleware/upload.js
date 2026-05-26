@@ -2,23 +2,19 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const { v2: cloudinary } = require('cloudinary');
+const {
+  cloudinary,
+  configureCloudinary,
+  getCloudinaryRootFolder,
+  hasCloudinaryConfig,
+} = require('../utils/cloudinaryMedia');
 
 const uploadRoot = path.join(__dirname, '..', 'uploads');
 const maxUploadSizeMb = Number(process.env.UPLOAD_MAX_FILE_SIZE_MB || 25);
 const maxUploadSizeBytes = maxUploadSizeMb * 1024 * 1024;
-const useCloudinary = Boolean(
-  process.env.CLOUDINARY_URL ||
-  (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET)
-);
+const useCloudinary = hasCloudinaryConfig();
 
-if (useCloudinary && !process.env.CLOUDINARY_URL) {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-  });
-}
+configureCloudinary();
 
 // Ensure upload directories exist
 const ensureDir = (dir) => {
@@ -40,13 +36,20 @@ const getUploadFolder = (req, file) => {
   return 'general';
 };
 
+const getCloudinaryResourceType = (file) => {
+  if (file.fieldname === 'sermonAudio') return 'video';
+  if (file.fieldname === 'eventVideo' || file.fieldname === 'announcementVideo' || file.fieldname === 'sermonVideo') return 'video';
+  return 'image';
+};
+
 const cloudinaryStorage = {
   _handleFile: (req, file, cb) => {
-    const folder = `chapel-system/${getUploadFolder(req, file)}`;
+    const folder = `${getCloudinaryRootFolder()}/${getUploadFolder(req, file)}`;
+    const resourceType = getCloudinaryResourceType(file);
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder,
-        resource_type: 'auto',
+        resource_type: resourceType,
         public_id: `${file.fieldname}-${Date.now()}-${crypto.randomBytes(8).toString('hex')}`,
       },
       (error, result) => {
@@ -55,7 +58,10 @@ const cloudinaryStorage = {
           path: result.secure_url,
           filename: result.public_id,
           size: result.bytes,
-          mimetype: result.resource_type,
+          mimetype: file.mimetype,
+          resourceType: result.resource_type,
+          cloudinaryPublicId: result.public_id,
+          cloudinaryResourceType: result.resource_type,
         });
       }
     );
@@ -64,7 +70,7 @@ const cloudinaryStorage = {
   },
   _removeFile: (req, file, cb) => {
     if (!file.filename) return cb(null);
-    cloudinary.uploader.destroy(file.filename, { resource_type: 'auto' }, cb);
+    cloudinary.uploader.destroy(file.filename, { resource_type: file.resourceType || 'image' }, cb);
   },
 };
 

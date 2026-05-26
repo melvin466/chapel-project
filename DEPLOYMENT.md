@@ -15,8 +15,9 @@ FRONTEND_URL=https://your-frontend-domain.com
 CORS_ORIGINS=https://your-frontend-domain.com
 BASE_URL=https://your-backend-domain.com
 TRUST_PROXY=1
-UPLOAD_MAX_FILE_SIZE_MB=25
+UPLOAD_MAX_FILE_SIZE_MB=100
 CLOUDINARY_URL=
+CLOUDINARY_FOLDER=chapel-system
 ```
 
 Do not set `MONGODB_TLS_ALLOW_INVALID_CERTS=true` in production. The backend will fail startup if that unsafe diagnostic flag is enabled with `NODE_ENV=production`.
@@ -34,9 +35,23 @@ MTN_API_URL=
 MTN_API_KEY=
 AIRTEL_API_URL=
 AIRTEL_API_KEY=
+PESAPAL_ENVIRONMENT=sandbox
+PESAPAL_CONSUMER_KEY=
+PESAPAL_CONSUMER_SECRET=
+PESAPAL_IPN_ID=
+PESAPAL_CALLBACK_URL=https://your-backend-domain.com/api/donations/callback
+PESAPAL_CANCELLATION_URL=https://your-frontend-domain.com/donations
 ```
 
-For production uploads, set either `CLOUDINARY_URL` or the three-part Cloudinary config (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`). If none are set, uploads fall back to local `backend/uploads`, which is only safe with persistent storage.
+Pesapal API 3.0 requires a registered IPN URL before checkout links can be created. Register your public callback URL in Pesapal, then set the returned `PESAPAL_IPN_ID`. The backend verifies the final payment status by querying Pesapal with the returned order tracking ID.
+
+You can register the IPN URL from the backend folder after setting `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`, and `PESAPAL_CALLBACK_URL`:
+
+```bash
+npm run pesapal:register-ipn
+```
+
+For production uploads and sermon media, set either `CLOUDINARY_URL` or the three-part Cloudinary config (`CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`). Production startup fails if Cloudinary is missing, so uploaded media cannot silently fall back to ephemeral `backend/uploads`. Sermon audio and video are stored as Cloudinary media/video resources.
 
 ## Frontend environment
 

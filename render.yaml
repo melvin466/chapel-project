@@ -1,0 +1,81 @@
+services:
+  - type: web
+    name: chapel-system-api
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/ready
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: REQUIRE_EMAIL_VERIFICATION
+        value: true
+      - key: MONGODB_URI
+        sync: false
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: chapel-system-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: CORS_ORIGINS
+        fromService:
+          type: web
+          name: chapel-system-web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: BASE_URL
+        fromService:
+          type: web
+          name: chapel-system-api
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: BREVO_API_KEY
+        sync: false
+      - key: BREVO_SENDER_EMAIL
+        sync: false
+      - key: BREVO_SENDER_NAME
+        value: Chapel Management
+      - key: PESAPAL_ENVIRONMENT
+        value: production
+      - key: PESAPAL_CONSUMER_KEY
+        sync: false
+      - key: PESAPAL_CONSUMER_SECRET
+        sync: false
+      - key: PESAPAL_IPN_ID
+        sync: false
+      - key: TRUST_PROXY
+        value: 1
+      - key: JSON_BODY_LIMIT
+        value: 1mb
+      - key: UPLOAD_MAX_FILE_SIZE_MB
+        value: 100
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: CLOUDINARY_FOLDER
+        value: chapel-system
+
+  - type: web
+    name: chapel-system-web
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    autoDeployTrigger: commit
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: chapel-system-api
+          envVarKey: RENDER_EXTERNAL_URL
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

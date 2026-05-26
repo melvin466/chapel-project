@@ -10,6 +10,7 @@ const path = require('path');
 const compression = require('compression');
 const sanitizeRequest = require('./middleware/sanitize');
 const { getErrorMessage } = require('./utils/errorResponse');
+const { hasCloudinaryConfig } = require('./utils/cloudinaryMedia');
 
 // Load environment variables
 dotenv.config();
@@ -80,6 +81,10 @@ if (isProduction && !(process.env.MONGODB_URI || process.env.DB_URI)) {
 
 if (isProduction && process.env.MONGODB_TLS_ALLOW_INVALID_CERTS === 'true') {
   throw new Error('MONGODB_TLS_ALLOW_INVALID_CERTS must not be enabled in production');
+}
+
+if (isProduction && !hasCloudinaryConfig()) {
+  throw new Error('Cloudinary configuration is required in production so uploaded media is not stored on ephemeral disk');
 }
 
 if (isProduction) {

@@ -12,6 +12,8 @@ const donationSchema = new mongoose.Schema({
   provider: { type: String, enum: ['MTN', 'Airtel'] },
   paymentMethod: { type: String, enum: ['mobile_money', 'credit_card', 'bank_transfer', 'cash'], required: true },
   transactionId: String,
+  pesapalOrderTrackingId: String,
+  paymentUrl: String,
   status: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: 'pending' },
   message: String,
   receiptNumber: String,
@@ -23,6 +25,7 @@ const donationSchema = new mongoose.Schema({
 donationSchema.index({ donor: 1, createdAt: -1 });
 donationSchema.index({ status: 1, donationType: 1, createdAt: -1 });
 donationSchema.index({ transactionId: 1 }, { sparse: true });
+donationSchema.index({ pesapalOrderTrackingId: 1 }, { sparse: true });
 donationSchema.index({ receiptNumber: 1 }, { sparse: true });
 
 module.exports = mongoose.model('Donation', donationSchema);

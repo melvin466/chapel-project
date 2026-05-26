@@ -17,10 +17,18 @@ const createTokenPair = () => {
   return { token, hashedToken: hashToken(token) };
 };
 
-const getFrontendUrl = (path) => `${process.env.FRONTEND_URL || 'http://localhost:5173'}${path}`;
+const getFrontendBaseUrl = () => (
+  process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5173'
+).replace(/\/+$/, '');
+
+const getFrontendUrl = (path) => `${getFrontendBaseUrl()}${path}`;
 
 const getDevTokenPayload = (key, token) => (
   process.env.NODE_ENV === 'production' ? {} : { data: { [key]: token } }
+);
+
+const isEmailVerificationRequired = () => (
+  process.env.NODE_ENV !== 'test' && process.env.REQUIRE_EMAIL_VERIFICATION === 'true'
 );
 
 const toSafeUser = (user) => ({
@@ -91,7 +99,7 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
 
-    if (process.env.REQUIRE_EMAIL_VERIFICATION === 'true' && !user.isEmailVerified) {
+    if (isEmailVerificationRequired() && !user.isEmailVerified) {
       return res.status(403).json({ success: false, message: 'Please verify your email before logging in' });
     }
 

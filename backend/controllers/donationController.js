@@ -1,5 +1,11 @@
 const Donation = require('../models/Donation');
 const { recordAuditLog } = require('../utils/auditLogger');
+const { getErrorMessage } = require('../utils/errorResponse');
+const {
+  getPesapalTransactionStatus,
+  isPesapalConfigured,
+  submitPesapalOrder,
+} = require('../utils/pesapalService');
 
 const donationOptions = [
   { id: 'tithe', name: 'Tithe' },
@@ -25,10 +31,13 @@ const getDonations = async (req, res) => {
 
     res.json({
       success: true,
-      data: { donations, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
+      data: {
+        donations,
+        pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) },
+      },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
   }
 };
 
@@ -54,16 +63,36 @@ const getManageDonations = async (req, res) => {
 
     res.json({
       success: true,
-      data: { donations, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
+      data: {
+        donations,
+        pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) },
+      },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
   }
+};
+
+const normalizeProvider = (provider) => {
+  return String(provider).toLowerCase() === 'airtel' ? 'Airtel' : 'MTN';
+};
+
+const getDonationCallbackUrl = () => {
+  const backendBaseUrl = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
+  return process.env.PESAPAL_CALLBACK_URL || `${backendBaseUrl.replace(/\/+$/, '')}/api/donations/callback`;
+};
+
+const getDonationCancellationUrl = () => {
+  const frontendBaseUrl = process.env.PESAPAL_CANCELLATION_URL
+    || (process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/+$/, '')}/donations` : undefined);
+
+  return frontendBaseUrl;
 };
 
 const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
   const apiUrl = provider === 'MTN' ? process.env.MTN_API_URL : process.env.AIRTEL_API_URL;
   const apiKey = provider === 'MTN' ? process.env.MTN_API_KEY : process.env.AIRTEL_API_KEY;
+  const callbackUrl = getDonationCallbackUrl();
 
   if (!apiUrl || !apiKey) {
     return {
@@ -73,80 +102,99 @@ const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
     };
   }
 
-  const payload = {
-    amount,
-    phoneNumber,
-    currency: 'UGX',
-    provider,
-    callbackUrl: `${process.env.BASE_URL}/api/donations/callback`,
-  };
+  const response = await fetch(`${apiUrl}/payments`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      amount,
+      phoneNumber,
+      currency: 'UGX',
+      provider,
+      callbackUrl,
+    }),
+  });
 
-  const headers = {
-    Authorization: `Bearer ${apiKey}`,
-    'Content-Type': 'application/json',
-  };
-
-  try {
-    const response = await fetch(`${apiUrl}/payments`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new Error(data.message || `Payment provider returned ${response.status}`);
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Mobile Money Payment Error:', error.message);
-    throw new Error('Failed to initiate mobile money payment');
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.message || `Payment provider returned ${response.status}`);
   }
+
+  return data;
 };
 
 const createDonation = async (req, res) => {
   try {
     const { amount, phoneNumber, paymentMethod, provider = 'MTN' } = req.body;
-    const normalizedProvider = provider === 'Airtel' ? 'Airtel' : 'MTN';
+    const normalizedProvider = normalizeProvider(provider);
+    const numericAmount = Number(amount);
 
-    if (!amount || Number(amount) < 100) {
+    if (!numericAmount || numericAmount < 100) {
       return res.status(400).json({ success: false, message: 'Donation amount must be at least UGX 100' });
     }
 
-    if (paymentMethod === 'mobile_money') {
-      if (!phoneNumber) {
-        return res.status(400).json({ success: false, message: 'Phone number is required for mobile money' });
-      }
+    if (paymentMethod !== 'mobile_money') {
+      return res.status(400).json({ success: false, message: 'Only mobile money donations are accepted.' });
+    }
 
-      const paymentResponse = await initiateMobileMoneyPayment(amount, phoneNumber, normalizedProvider);
+    if (!phoneNumber) {
+      return res.status(400).json({ success: false, message: 'Phone number is required for mobile money' });
+    }
+
+    const transactionId = `donation-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    const donationPayload = {
+      ...req.body,
+      amount: numericAmount,
+      donor: req.user.id,
+      provider: normalizedProvider,
+      status: 'pending',
+      transactionId,
+      currency: 'UGX',
+    };
+
+    if (isPesapalConfigured()) {
+      const userEmail = req.user?.email || `donor+${transactionId}@chapel.local`;
+      const pesapalOrder = await submitPesapalOrder({
+        amount: numericAmount,
+        description: `Donation - ${req.body.donationType || 'General'}`,
+        reference: transactionId,
+        email: userEmail,
+        phoneNumber,
+        callbackUrl: getDonationCallbackUrl(),
+        cancellationUrl: getDonationCancellationUrl(),
+        user: req.user,
+      });
 
       const donation = await Donation.create({
-        ...req.body,
-        donor: req.user.id,
-        provider: normalizedProvider,
-        status: 'pending',
-        transactionId: paymentResponse.transactionId,
+        ...donationPayload,
+        transactionId: pesapalOrder.merchant_reference || transactionId,
+        pesapalOrderTrackingId: pesapalOrder.order_tracking_id,
+        paymentUrl: pesapalOrder.redirect_url,
       });
 
       return res.status(201).json({
         success: true,
-        message: 'Payment initiated. Awaiting confirmation.',
-        data: { donation },
+        message: 'Pesapal payment created. Redirecting to checkout.',
+        data: { donation, paymentUrl: donation.paymentUrl },
       });
     }
 
-    // Handle other payment methods
+    const paymentResponse = await initiateMobileMoneyPayment(numericAmount, phoneNumber, normalizedProvider);
     const donation = await Donation.create({
-      ...req.body,
-      donor: req.user.id,
-      status: 'completed',
-      completedAt: new Date(),
+      ...donationPayload,
+      transactionId: paymentResponse.transactionId || transactionId,
+      paymentUrl: paymentResponse.checkoutUrl,
     });
 
-    res.status(201).json({ success: true, data: { donation } });
+    return res.status(201).json({
+      success: true,
+      message: 'Payment recorded. Configure Pesapal credentials and PESAPAL_IPN_ID to enable checkout.',
+      data: { donation, paymentUrl: donation.paymentUrl },
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
   }
 };
 
@@ -154,46 +202,130 @@ const getDonationStats = async (req, res) => {
   try {
     const total = await Donation.aggregate([
       { $match: { status: 'completed' } },
-      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } }
+      { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } },
     ]);
-    
+
     const byType = await Donation.aggregate([
       { $match: { status: 'completed' } },
-      { $group: { _id: '$donationType', total: { $sum: '$amount' }, count: { $sum: 1 } } }
+      { $group: { _id: '$donationType', total: { $sum: '$amount' }, count: { $sum: 1 } } },
     ]);
 
     res.json({
       success: true,
-      data: { totalAmount: total[0]?.total || 0, totalCount: total[0]?.count || 0, byType }
+      data: { totalAmount: total[0]?.total || 0, totalCount: total[0]?.count || 0, byType },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
   }
+};
+
+const getCallbackField = (req, names) => {
+  const sources = [req.body || {}, req.query || {}];
+  for (const source of sources) {
+    for (const name of names) {
+      if (source[name] !== undefined) return source[name];
+    }
+  }
+  return undefined;
+};
+
+const mapPesapalStatus = (statusResponse) => {
+  const statusCode = Number(statusResponse.status_code);
+  const description = String(statusResponse.payment_status_description || '').toLowerCase();
+
+  if (statusCode === 1 || description === 'completed') return 'completed';
+  if (statusCode === 3 || description === 'reversed') return 'refunded';
+  if (statusCode === 0 || description === 'invalid' || statusCode === 2 || description === 'failed') return 'failed';
+  return 'pending';
+};
+
+const sendPesapalIpnResponse = (req, res, status = 200) => {
+  const orderTrackingId = getCallbackField(req, ['OrderTrackingId', 'orderTrackingId', 'order_tracking_id']);
+  const orderMerchantReference = getCallbackField(req, [
+    'OrderMerchantReference',
+    'orderMerchantReference',
+    'order_merchant_reference',
+  ]);
+  const orderNotificationType = getCallbackField(req, [
+    'OrderNotificationType',
+    'orderNotificationType',
+    'order_notification_type',
+  ]) || 'IPNCHANGE';
+
+  return res.status(status === 200 ? 200 : 500).json({
+    orderNotificationType,
+    orderTrackingId,
+    orderMerchantReference,
+    status,
+  });
 };
 
 const handlePaymentCallback = async (req, res) => {
   try {
-    const { transactionId, status } = req.body;
-    const normalizedStatus = String(status || '').toUpperCase();
+    const orderTrackingId = getCallbackField(req, ['OrderTrackingId', 'orderTrackingId', 'order_tracking_id']);
+    const merchantReference = getCallbackField(req, [
+      'OrderMerchantReference',
+      'orderMerchantReference',
+      'order_merchant_reference',
+      'merchant_reference',
+    ]);
 
-    if (!transactionId || !['SUCCESS', 'FAILED'].includes(normalizedStatus)) {
-      return res.status(400).json({ success: false, message: 'Invalid payment callback payload' });
+    if (orderTrackingId) {
+      const statusResponse = await getPesapalTransactionStatus(orderTrackingId);
+      const reference = statusResponse.merchant_reference || merchantReference;
+
+      const donation = await Donation.findOne({
+        $or: [
+          { pesapalOrderTrackingId: orderTrackingId },
+          ...(reference ? [{ transactionId: reference }] : []),
+        ],
+      });
+
+      if (!donation) {
+        return sendPesapalIpnResponse(req, res, 500);
+      }
+
+      donation.pesapalOrderTrackingId = orderTrackingId;
+      donation.status = mapPesapalStatus(statusResponse);
+      donation.message = statusResponse.description || statusResponse.message || donation.message;
+      if (donation.status === 'completed') {
+        donation.completedAt = new Date();
+      }
+      if (donation.status !== 'completed') {
+        donation.completedAt = null;
+      }
+
+      await donation.save();
+      return sendPesapalIpnResponse(req, res, 200);
     }
 
-    const donation = await Donation.findOne({ transactionId });
-    if (!donation) {
-      return res.status(404).json({ success: false, message: 'Donation not found' });
+    if (process.env.NODE_ENV !== 'production') {
+      const transactionId = getCallbackField(req, ['transactionId']);
+      const status = String(getCallbackField(req, ['status']) || '').toUpperCase();
+
+      if (!transactionId || !['SUCCESS', 'FAILED'].includes(status)) {
+        return res.status(400).json({ success: false, message: 'Invalid payment callback payload' });
+      }
+
+      const donation = await Donation.findOne({ transactionId });
+      if (!donation) {
+        return res.status(404).json({ success: false, message: 'Donation not found' });
+      }
+
+      donation.status = status === 'SUCCESS' ? 'completed' : 'failed';
+      donation.completedAt = status === 'SUCCESS' ? new Date() : null;
+      await donation.save();
+
+      return res.json({ success: true, message: 'Payment status updated' });
     }
 
-    donation.status = normalizedStatus === 'SUCCESS' ? 'completed' : 'failed';
-    if (normalizedStatus === 'SUCCESS') {
-      donation.completedAt = new Date();
-    }
-    await donation.save();
-
-    res.json({ success: true, message: 'Payment status updated' });
+    return res.status(400).json({ success: false, message: 'Invalid Pesapal callback payload' });
   } catch (error) {
-    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+    if (getCallbackField(req, ['OrderTrackingId', 'orderTrackingId', 'order_tracking_id'])) {
+      return sendPesapalIpnResponse(req, res, 500);
+    }
+
+    return res.status(500).json({ success: false, message: getErrorMessage(error) });
   }
 };
 
@@ -244,7 +376,7 @@ const updateManagedDonation = async (req, res) => {
 
     res.json({ success: true, data: { donation } });
   } catch (error) {
-    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
   }
 };
 

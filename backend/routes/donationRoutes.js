@@ -10,7 +10,6 @@ const {
   handlePaymentCallback,
 } = require('../controllers/donationController');
 const { protect, admin } = require('../middleware/auth');
-const verifyPaymentCallback = require('../middleware/verifyPaymentCallback');
 
 router.get('/manage/all', protect, admin, getManageDonations);
 router.get('/', protect, getDonations);
@@ -18,6 +17,6 @@ router.get('/options', protect, getDonationOptions);
 router.get('/stats', protect, admin, getDonationStats);
 router.post('/', protect, createDonation);
 router.put('/:id/manage', protect, admin, updateManagedDonation);
-router.post('/callback', verifyPaymentCallback, handlePaymentCallback);
+router.all('/callback', handlePaymentCallback);
 
 module.exports = router;

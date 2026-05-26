@@ -10,6 +10,7 @@ const {
 } = require('../controllers/announcementController');
 const { protect, admin, chaplain } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const announcementUpload = upload.fields([
   { name: 'featuredImage', maxCount: 1 },
@@ -29,7 +30,11 @@ router.delete('/:id', protect, admin, deleteAnnouncement);
 // Admin upload route
 router.post('/upload', protect, admin, upload.single('featuredImage'), (req, res) => {
   try {
-    res.status(200).json({ success: true, message: 'File uploaded successfully', filePath: `/uploads/${req.file.filename}` });
+    res.status(200).json({
+      success: true,
+      message: 'File uploaded successfully',
+      filePath: getUploadedFilePath(req.file),
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }

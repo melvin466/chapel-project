@@ -40,7 +40,7 @@ const DonationsPage = () => {
     }
     setSubmitting(true);
     try {
-      await donationService.createDonation({
+      const response = await donationService.createDonation({
         amount: parseInt(amount, 10),
         donationType,
         paymentMethod,
@@ -48,11 +48,20 @@ const DonationsPage = () => {
         phoneNumber,
         isAnonymous
       });
+
+      const paymentUrl = response?.data?.paymentUrl;
+      if (paymentUrl) {
+        setMessage({
+          type: 'success',
+          text: 'Redirecting to Pesapal for MTN/Airtel mobile money payment...',
+        });
+        window.location.assign(paymentUrl);
+        return;
+      }
+
       setMessage({
         type: 'success',
-        text: paymentMethod === 'mobile_money'
-          ? 'Donation saved. Check your phone to complete the payment.'
-          : 'Thank you for your donation.',
+        text: 'Donation saved. Check your phone to complete the payment.',
       });
       setAmount('');
       setPhoneNumber('');
@@ -82,20 +91,21 @@ const DonationsPage = () => {
                 <option key={option.id} value={option.id}>{option.name}</option>
               ))}
             </select>
-            <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-              <option value="mobile_money">Mobile Money</option>
-              <option value="bank_transfer">Bank Transfer</option>
-              <option value="cash">Cash</option>
-            </select>
-            {paymentMethod === 'mobile_money' && (
-              <>
-                <select value={provider} onChange={(e) => setProvider(e.target.value)}>
-                  <option value="MTN">MTN Mobile Money</option>
-                  <option value="Airtel">Airtel Money</option>
-                </select>
-                <input type="tel" placeholder="Mobile money phone number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
-              </>
-            )}
+            <div>
+              <label htmlFor="paymentMethod">Payment method</label>
+              <input id="paymentMethod" type="text" value="Mobile Money" disabled className="readonly-input" />
+            </div>
+            <div>
+              <label htmlFor="provider">Operator</label>
+              <select id="provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
+                <option value="MTN">MTN Mobile Money</option>
+                <option value="Airtel">Airtel Money</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="phoneNumber">Mobile money phone number</label>
+              <input id="phoneNumber" type="tel" placeholder="256700000000" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
+            </div>
             <label className="checkbox-label"><input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} /> Donate Anonymously</label>
             <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Processing...' : 'Give Now'}</button>
           </form>
@@ -115,3 +125,4 @@ const DonationsPage = () => {
 };
 
 export default DonationsPage;
+
