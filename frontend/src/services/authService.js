@@ -1,5 +1,7 @@
 import api from './api';
 
+const authStorage = sessionStorage;
+
 export const authService = {
   register: async (userData) => {
     try {
@@ -8,11 +10,11 @@ export const authService = {
       const user = response.data.data?.user || response.data.user;
 
       if (token) {
-        localStorage.setItem('token', token);
+        authStorage.setItem('token', token);
       }
 
       if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
+        authStorage.setItem('user', JSON.stringify(user));
       }
 
       return response.data;
@@ -28,11 +30,11 @@ export const authService = {
       const user = response.data.data?.user;
 
       if (token) {
-        localStorage.setItem('token', token);
+        authStorage.setItem('token', token);
       }
 
       if (user) {
-        localStorage.setItem('user', JSON.stringify(user));
+        authStorage.setItem('user', JSON.stringify(user));
       }
 
       return response.data;
@@ -45,24 +47,26 @@ export const authService = {
   },
 
   logout: () => {
+    authStorage.removeItem('token');
+    authStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   },
 
   isAuthenticated: () => {
-    const token = localStorage.getItem('token');
+    const token = authStorage.getItem('token');
     return !!token;
   },
 
   getToken: () => {
-    return localStorage.getItem('token');
+    return authStorage.getItem('token');
   },
 
   getMe: async () => {
     const response = await api.get('/auth/me');
     const user = response.data.data?.user;
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
+      authStorage.setItem('user', JSON.stringify(user));
     }
     return response.data;
   },
@@ -74,7 +78,7 @@ export const authService = {
 
     const user = response.data.data?.user;
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
+      authStorage.setItem('user', JSON.stringify(user));
     }
 
     return response.data;
@@ -86,11 +90,11 @@ export const authService = {
     const user = response.data.data?.user;
 
     if (authToken) {
-      localStorage.setItem('token', authToken);
+      authStorage.setItem('token', authToken);
     }
 
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
+      authStorage.setItem('user', JSON.stringify(user));
     }
 
     return response.data;
@@ -112,12 +116,14 @@ export const authService = {
   },
 
   getCurrentUser: () => {
-    const token = localStorage.getItem('token');
+    const token = authStorage.getItem('token');
     if (!token) {
+      authStorage.removeItem('user');
+      localStorage.removeItem('token');
       localStorage.removeItem('user');
       return null;
     }
-    const user = localStorage.getItem('user');
+    const user = authStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },
 };

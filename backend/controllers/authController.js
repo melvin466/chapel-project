@@ -7,7 +7,7 @@ const { sendServerError } = require('../utils/errorResponse');
 const { getUploadedFilePath } = require('../utils/uploadedFile');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
+  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '1d' });
 };
 
 const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');

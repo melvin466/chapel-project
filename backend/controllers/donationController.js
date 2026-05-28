@@ -105,6 +105,11 @@ const getDonationCancellationUrl = () => {
 
 const getRelworxMsisdn = (phoneNumber) => `+${phoneNumber}`;
 
+const getDonationPaymentProvider = () => {
+  if (process.env.NODE_ENV === 'test') return 'legacy';
+  return String(process.env.DONATION_PAYMENT_PROVIDER || 'relworx').toLowerCase();
+};
+
 const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
   const apiUrl = provider === 'MTN' ? process.env.MTN_API_URL : process.env.AIRTEL_API_URL;
   const apiKey = provider === 'MTN' ? process.env.MTN_API_KEY : process.env.AIRTEL_API_KEY;
@@ -179,7 +184,16 @@ const createDonation = async (req, res) => {
       currency: 'UGX',
     };
 
-    if (isRelworxConfigured()) {
+    const donationPaymentProvider = getDonationPaymentProvider();
+
+    if (donationPaymentProvider === 'relworx') {
+      if (!isRelworxConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: 'Relworx mobile money is not configured on the server.',
+        });
+      }
+
       const relworxResponse = await requestRelworxPayment({
         amount: numericAmount,
         description: `Donation - ${req.body.donationType || 'General'}`,
@@ -200,7 +214,7 @@ const createDonation = async (req, res) => {
       });
     }
 
-    if (isPesapalConfigured()) {
+    if (donationPaymentProvider === 'pesapal' && isPesapalConfigured()) {
       const userEmail = req.user?.email || `donor+${transactionId}@chapel.local`;
       const pesapalOrder = await submitPesapalOrder({
         amount: numericAmount,
