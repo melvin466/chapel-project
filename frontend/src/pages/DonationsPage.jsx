@@ -61,7 +61,7 @@ const DonationsPage = () => {
 
       setMessage({
         type: 'success',
-        text: 'Donation saved. Check your phone to complete the payment.',
+        text: response?.message || 'Mobile money prompt sent. Check your phone to approve the payment.',
       });
       setAmount('');
       setPhoneNumber('');
@@ -85,7 +85,7 @@ const DonationsPage = () => {
             </div>
           )}
           <form onSubmit={handleSubmit}>
-            <input type="number" placeholder="Amount (UGX)" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+            <input type="number" min="500" placeholder="Amount (UGX, min 500)" value={amount} onChange={(e) => setAmount(e.target.value)} required />
             <select value={donationType} onChange={(e) => setDonationType(e.target.value)}>
               {donationOptions.map(option => (
                 <option key={option.id} value={option.id}>{option.name}</option>

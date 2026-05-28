@@ -45,6 +45,14 @@ services:
         value: https://chapel-system-api.onrender.com/api/donations/callback
       - key: PESAPAL_CANCELLATION_URL
         value: https://chapel-system-web.onrender.com/donations
+      - key: RELWORX_API_BASE_URL
+        value: https://payments.relworx.com/api
+      - key: RELWORX_API_KEY
+        sync: false
+      - key: RELWORX_ACCOUNT_NO
+        sync: false
+      - key: RELWORX_WEBHOOK_KEY
+        sync: false
       - key: TRUST_PROXY
         value: 1
       - key: JSON_BODY_LIMIT

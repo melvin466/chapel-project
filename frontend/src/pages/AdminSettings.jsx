@@ -8,7 +8,7 @@ const AdminSettings = () => {
     siteDescription: 'Welcome to St. Francis Chapel - A place of worship and fellowship',
     contactEmail: 'chapel@mak.ac.ug',
     contactPhone: '+256 700 000000',
-    address: 'Makerere University, Kampala, Uganda',
+    address: 'Kampala, Uganda',
     serviceTimes: {
       sunday: '9:00 AM',
       wednesday: '5:30 PM',

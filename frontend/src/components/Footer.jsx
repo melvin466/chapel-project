@@ -22,10 +22,10 @@ const Footer = () => {
         <div className="footer-content">
           <div className="footer-section footer-brand">
             <h3>Chapel System</h3>
-            <p>Serving the Makerere University chapel community through worship, fellowship, prayer, and care.</p>
+            <p>Serving the chapel community through worship, fellowship, prayer, and care.</p>
             <div className="footer-contact-list">
-              <span>Makerere University, Kampala</span>
-              <a href="mailto:chapel@mak.ac.ug">chapel@mak.ac.ug</a>
+              <span>Kampala, Uganda</span>
+              <a href="mailto:chapel@example.org">chapel@example.org</a>
               <a href="tel:+256789030837">+256 789 030 837</a>
             </div>
           </div>
@@ -35,6 +35,7 @@ const Footer = () => {
             <Link to="/events">Events</Link>
             <Link to="/announcements">Announcements</Link>
             <Link to="/sermons">Sermons</Link>
+            <Link to="/bible">Bible</Link>
             <Link to="/cells">Cell Groups</Link>
           </div>
 

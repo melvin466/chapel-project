@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { preloadRoute } from '../routePreload';
 
 const AdminLayout = ({ children }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, isAdmin, isChaplain } = useAuth();
   const navigate = useNavigate();
   const canManageContent = isAdmin || isChaplain;
@@ -14,35 +15,51 @@ const AdminLayout = ({ children }) => {
   });
 
   const handleLogout = () => {
+    setIsMobileMenuOpen(false);
     logout();
     navigate('/login');
   };
 
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <div className="admin-shell">
-      <aside className="admin-sidebar">
-        <Link to={isAdmin ? '/admin' : '/admin/announcements'} className="admin-brand">
-          <span>Chapel</span>
-          <strong>Admin Console</strong>
-        </Link>
+      <aside className={`admin-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
+        <div className="admin-sidebar-header">
+          <Link to={isAdmin ? '/admin' : '/admin/announcements'} className="admin-brand" onClick={closeMobileMenu}>
+            <span>Chapel</span>
+            <strong>Admin Console</strong>
+          </Link>
 
-        <nav className="admin-nav" aria-label="Admin navigation">
-          {isAdmin && <NavLink to="/admin" end {...preload('/admin')}>Overview</NavLink>}
-          {isAdmin && <NavLink to="/admin/events" {...preload('/admin/events')}>Events</NavLink>}
-          {canManageContent && <NavLink to="/admin/announcements" {...preload('/admin/announcements')}>Announcements</NavLink>}
-          {canManageContent && <NavLink to="/admin/bookings" {...preload('/admin/bookings')}>Bookings</NavLink>}
-          {canManageContent && <NavLink to="/admin/sermons" {...preload('/admin/sermons')}>Sermons</NavLink>}
-          {isAdmin && <NavLink to="/admin/cells" {...preload('/admin/cells')}>Cells</NavLink>}
-          {isAdmin && <NavLink to="/admin/prayers" {...preload('/admin/prayers')}>Prayers</NavLink>}
-          {isAdmin && <NavLink to="/admin/donations" {...preload('/admin/donations')}>Donations</NavLink>}
-          {isAdmin && <NavLink to="/admin/users" {...preload('/admin/users')}>Users</NavLink>}
-          {isAdmin && <NavLink to="/admin/reports" {...preload('/admin/reports')}>Reports</NavLink>}
-          {isAdmin && <NavLink to="/admin/audit-logs" {...preload('/admin/audit-logs')}>Audit Logs</NavLink>}
-          {isAdmin && <NavLink to="/admin/settings" {...preload('/admin/settings')}>Settings</NavLink>}
+          <button
+            type="button"
+            className="admin-mobile-toggle"
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+            aria-label="Toggle admin navigation"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="admin-navigation"
+          >
+            {isMobileMenuOpen ? 'Close' : 'Menu'}
+          </button>
+        </div>
+
+        <nav className="admin-nav" id="admin-navigation" aria-label="Admin navigation">
+          {isAdmin && <NavLink to="/admin" end onClick={closeMobileMenu} {...preload('/admin')}>Overview</NavLink>}
+          {isAdmin && <NavLink to="/admin/events" onClick={closeMobileMenu} {...preload('/admin/events')}>Events</NavLink>}
+          {canManageContent && <NavLink to="/admin/announcements" onClick={closeMobileMenu} {...preload('/admin/announcements')}>Announcements</NavLink>}
+          {canManageContent && <NavLink to="/admin/bookings" onClick={closeMobileMenu} {...preload('/admin/bookings')}>Bookings</NavLink>}
+          {canManageContent && <NavLink to="/admin/sermons" onClick={closeMobileMenu} {...preload('/admin/sermons')}>Sermons</NavLink>}
+          {isAdmin && <NavLink to="/admin/cells" onClick={closeMobileMenu} {...preload('/admin/cells')}>Cells</NavLink>}
+          {isAdmin && <NavLink to="/admin/prayers" onClick={closeMobileMenu} {...preload('/admin/prayers')}>Prayers</NavLink>}
+          {isAdmin && <NavLink to="/admin/donations" onClick={closeMobileMenu} {...preload('/admin/donations')}>Donations</NavLink>}
+          {isAdmin && <NavLink to="/admin/users" onClick={closeMobileMenu} {...preload('/admin/users')}>Users</NavLink>}
+          {isAdmin && <NavLink to="/admin/reports" onClick={closeMobileMenu} {...preload('/admin/reports')}>Reports</NavLink>}
+          {isAdmin && <NavLink to="/admin/audit-logs" onClick={closeMobileMenu} {...preload('/admin/audit-logs')}>Audit Logs</NavLink>}
+          {isAdmin && <NavLink to="/admin/settings" onClick={closeMobileMenu} {...preload('/admin/settings')}>Settings</NavLink>}
         </nav>
 
         <div className="admin-sidebar-footer">
-          <Link to="/">View site</Link>
+          <Link to="/" onClick={closeMobileMenu}>View site</Link>
           <button type="button" onClick={handleLogout}>Logout</button>
         </div>
       </aside>
@@ -92,6 +109,9 @@ const AdminLayout = ({ children }) => {
           border-right: 1px solid #243244;
           overflow: hidden;
         }
+        .admin-sidebar-header {
+          display: block;
+        }
         .admin-brand {
           display: grid;
           gap: 0.15rem;
@@ -108,6 +128,18 @@ const AdminLayout = ({ children }) => {
         }
         .admin-brand strong {
           font-size: 1.2rem;
+        }
+        .admin-mobile-toggle {
+          display: none;
+          min-height: 40px;
+          padding: 0.55rem 0.8rem;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.08);
+          color: white;
+          font: inherit;
+          font-weight: 700;
+          cursor: pointer;
         }
         .admin-nav {
           flex: 1 1 auto;
@@ -278,17 +310,69 @@ const AdminLayout = ({ children }) => {
             grid-template-columns: 1fr;
           }
           .admin-sidebar {
-            position: static;
+            position: sticky;
+            top: 0;
+            z-index: 320;
             height: auto;
+            max-height: 100dvh;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-right: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
             overflow: visible;
+            box-shadow: 0 14px 32px rgba(0,0,0,0.28);
+          }
+          .admin-sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+          }
+          .admin-brand {
+            min-width: 0;
+            padding: 0;
+            border-bottom: 0;
+          }
+          .admin-brand strong {
+            font-size: 1rem;
+            line-height: 1.15;
+          }
+          .admin-brand span {
+            font-size: 0.72rem;
+          }
+          .admin-mobile-toggle {
+            display: inline-flex;
+            flex: 0 0 auto;
+            align-items: center;
+            justify-content: center;
           }
           .admin-nav {
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            overflow: visible;
+            display: none;
+            grid-template-columns: 1fr;
+            max-height: calc(100dvh - 148px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
             padding-right: 0;
+            padding-top: 0.25rem;
+          }
+          .admin-sidebar.open .admin-nav {
+            display: grid;
           }
           .admin-sidebar-footer {
+            display: none;
             grid-template-columns: 1fr 1fr;
+            padding-top: 0.75rem;
+          }
+          .admin-sidebar.open .admin-sidebar-footer {
+            display: grid;
+          }
+          .admin-topbar {
+            padding: 0.8rem 1rem;
+            align-items: flex-start;
+            flex-direction: column;
+          }
+          .admin-page-frame {
+            padding: 1rem;
           }
         }
       `}</style>

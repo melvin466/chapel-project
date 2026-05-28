@@ -95,6 +95,7 @@ main {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 }
 
 .logo {
@@ -167,7 +168,8 @@ main {
 }
 
 .nav-dropdown:hover .dropdown-content,
-.nav-dropdown:focus-within .dropdown-content {
+.nav-dropdown:focus-within .dropdown-content,
+.nav-dropdown.open .dropdown-content {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
@@ -2475,7 +2477,7 @@ select optgroup {
   .nav-links {
     display: none;
     position: absolute;
-    top: 100%;
+    top: calc(100% + 0.75rem);
     left: 0;
     right: 0;
     background: rgba(18, 22, 28, 0.98);
@@ -2483,14 +2485,24 @@ select optgroup {
     padding: 1rem;
     align-items: stretch;
     gap: 0.35rem;
+    max-height: calc(100dvh - 72px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 0;
+    box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
+    z-index: 250;
   }
   
   .nav-links.active {
     display: flex;
   }
 
-  .nav-dropdown:hover .dropdown-content {
-    display: none;
+  .nav-links a,
+  .dropdown-btn,
+  .logout-btn {
+    width: 100%;
+    text-align: left;
   }
 
   .nav-dropdown .dropdown-content {
@@ -2500,9 +2512,24 @@ select optgroup {
     background: rgba(255, 255, 255, 0.06);
     box-shadow: none;
     margin-top: 0.35rem;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: none;
+    transition: max-height 0.18s ease, opacity 0.16s ease;
+  }
+
+  .nav-dropdown:hover .dropdown-content,
+  .nav-dropdown:focus-within .dropdown-content {
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .nav-dropdown.open .dropdown-content {
+    max-height: 70vh;
     opacity: 1;
     pointer-events: auto;
-    transform: none;
   }
 
   .dropdown-content a {

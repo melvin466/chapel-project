@@ -35,6 +35,10 @@ MTN_API_URL=
 MTN_API_KEY=
 AIRTEL_API_URL=
 AIRTEL_API_KEY=
+RELWORX_API_BASE_URL=https://payments.relworx.com/api
+RELWORX_API_KEY=
+RELWORX_ACCOUNT_NO=
+RELWORX_WEBHOOK_KEY=
 PESAPAL_ENVIRONMENT=sandbox
 PESAPAL_CONSUMER_KEY=
 PESAPAL_CONSUMER_SECRET=
@@ -44,6 +48,8 @@ PESAPAL_CANCELLATION_URL=https://your-frontend-domain.com/donations
 ```
 
 Pesapal API 3.0 requires a registered IPN URL before checkout links can be created. Register your public callback URL in Pesapal, then set the returned `PESAPAL_IPN_ID`. The backend verifies the final payment status by querying Pesapal with the returned order tracking ID.
+
+When `RELWORX_API_KEY` and `RELWORX_ACCOUNT_NO` are set, donations use Relworx direct mobile money prompts before falling back to Pesapal. In the Relworx dashboard, set the business account webhook URL to `https://your-backend-domain.com/api/donations/callback` so completed or failed prompt statuses update the donation record.
 
 You can register the IPN URL from the backend folder after setting `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`, and `PESAPAL_CALLBACK_URL`:
 

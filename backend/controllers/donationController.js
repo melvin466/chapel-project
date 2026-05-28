@@ -6,6 +6,10 @@ const {
   isPesapalConfigured,
   submitPesapalOrder,
 } = require('../utils/pesapalService');
+const {
+  isRelworxConfigured,
+  requestRelworxPayment,
+} = require('../utils/relworxService');
 
 const donationOptions = [
   { id: 'tithe', name: 'Tithe' },
@@ -77,6 +81,16 @@ const normalizeProvider = (provider) => {
   return String(provider).toLowerCase() === 'airtel' ? 'Airtel' : 'MTN';
 };
 
+const normalizeUgandaMobileNumber = (phoneNumber) => {
+  const digits = String(phoneNumber || '').replace(/\D/g, '');
+
+  if (digits.startsWith('256') && digits.length === 12) return digits;
+  if (digits.startsWith('0') && digits.length === 10) return `256${digits.slice(1)}`;
+  if (digits.startsWith('7') && digits.length === 9) return `256${digits}`;
+
+  return null;
+};
+
 const getDonationCallbackUrl = () => {
   const backendBaseUrl = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
   return process.env.PESAPAL_CALLBACK_URL || `${backendBaseUrl.replace(/\/+$/, '')}/api/donations/callback`;
@@ -88,6 +102,8 @@ const getDonationCancellationUrl = () => {
 
   return frontendBaseUrl;
 };
+
+const getRelworxMsisdn = (phoneNumber) => `+${phoneNumber}`;
 
 const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
   const apiUrl = provider === 'MTN' ? process.env.MTN_API_URL : process.env.AIRTEL_API_URL;
@@ -131,8 +147,8 @@ const createDonation = async (req, res) => {
     const normalizedProvider = normalizeProvider(provider);
     const numericAmount = Number(amount);
 
-    if (!numericAmount || numericAmount < 100) {
-      return res.status(400).json({ success: false, message: 'Donation amount must be at least UGX 100' });
+    if (!numericAmount || numericAmount < 500) {
+      return res.status(400).json({ success: false, message: 'Donation amount must be at least UGX 500' });
     }
 
     if (paymentMethod !== 'mobile_money') {
@@ -143,16 +159,46 @@ const createDonation = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Phone number is required for mobile money' });
     }
 
+    const normalizedPhoneNumber = normalizeUgandaMobileNumber(phoneNumber);
+    if (!normalizedPhoneNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Enter a valid Uganda mobile money number, for example 256700000000.',
+      });
+    }
+
     const transactionId = `donation-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
     const donationPayload = {
       ...req.body,
       amount: numericAmount,
       donor: req.user.id,
       provider: normalizedProvider,
+      phoneNumber: normalizedPhoneNumber,
       status: 'pending',
       transactionId,
       currency: 'UGX',
     };
+
+    if (isRelworxConfigured()) {
+      const relworxResponse = await requestRelworxPayment({
+        amount: numericAmount,
+        description: `Donation - ${req.body.donationType || 'General'}`,
+        reference: transactionId,
+        phoneNumber: getRelworxMsisdn(normalizedPhoneNumber),
+      });
+
+      const donation = await Donation.create({
+        ...donationPayload,
+        relworxInternalReference: relworxResponse.internal_reference,
+        message: relworxResponse.message || 'Mobile money prompt sent.',
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Mobile money prompt sent. Check your phone to approve the payment.',
+        data: { donation },
+      });
+    }
 
     if (isPesapalConfigured()) {
       const userEmail = req.user?.email || `donor+${transactionId}@chapel.local`;
@@ -161,7 +207,7 @@ const createDonation = async (req, res) => {
         description: `Donation - ${req.body.donationType || 'General'}`,
         reference: transactionId,
         email: userEmail,
-        phoneNumber,
+        phoneNumber: normalizedPhoneNumber,
         callbackUrl: getDonationCallbackUrl(),
         cancellationUrl: getDonationCancellationUrl(),
         user: req.user,
@@ -181,7 +227,7 @@ const createDonation = async (req, res) => {
       });
     }
 
-    const paymentResponse = await initiateMobileMoneyPayment(numericAmount, phoneNumber, normalizedProvider);
+    const paymentResponse = await initiateMobileMoneyPayment(numericAmount, normalizedPhoneNumber, normalizedProvider);
     const donation = await Donation.create({
       ...donationPayload,
       transactionId: paymentResponse.transactionId || transactionId,
@@ -239,6 +285,14 @@ const mapPesapalStatus = (statusResponse) => {
   return 'pending';
 };
 
+const mapRelworxStatus = (status) => {
+  const normalizedStatus = String(status || '').toLowerCase();
+
+  if (['success', 'successful', 'completed'].includes(normalizedStatus)) return 'completed';
+  if (['failed', 'failure', 'cancelled', 'canceled', 'reversed'].includes(normalizedStatus)) return 'failed';
+  return 'pending';
+};
+
 const sendPesapalIpnResponse = (req, res, status = 200) => {
   const orderTrackingId = getCallbackField(req, ['OrderTrackingId', 'orderTrackingId', 'order_tracking_id']);
   const orderMerchantReference = getCallbackField(req, [
@@ -262,6 +316,40 @@ const sendPesapalIpnResponse = (req, res, status = 200) => {
 
 const handlePaymentCallback = async (req, res) => {
   try {
+    const relworxReference = getCallbackField(req, ['customer_reference', 'customerReference']);
+    const relworxInternalReference = getCallbackField(req, ['internal_reference', 'internalReference']);
+    const relworxStatus = getCallbackField(req, ['status', 'request_status', 'requestStatus']);
+
+    if (relworxReference || relworxInternalReference) {
+      const donation = await Donation.findOne({
+        $or: [
+          ...(relworxReference ? [{ transactionId: relworxReference }] : []),
+          ...(relworxInternalReference ? [{ relworxInternalReference }] : []),
+        ],
+      });
+
+      if (!donation) {
+        return res.status(404).json({ success: false, message: 'Donation not found' });
+      }
+
+      donation.relworxInternalReference = relworxInternalReference || donation.relworxInternalReference;
+      donation.status = mapRelworxStatus(relworxStatus);
+      donation.message = getCallbackField(req, ['message']) || donation.message;
+      donation.providerTransactionId = getCallbackField(req, ['provider_transaction_id', 'providerTransactionId'])
+        || donation.providerTransactionId;
+      if (donation.status === 'completed') {
+        donation.completedAt = getCallbackField(req, ['completed_at', 'completedAt'])
+          ? new Date(getCallbackField(req, ['completed_at', 'completedAt']))
+          : new Date();
+      }
+      if (donation.status !== 'completed') {
+        donation.completedAt = null;
+      }
+
+      await donation.save();
+      return res.json({ success: true });
+    }
+
     const orderTrackingId = getCallbackField(req, ['OrderTrackingId', 'orderTrackingId', 'order_tracking_id']);
     const merchantReference = getCallbackField(req, [
       'OrderMerchantReference',

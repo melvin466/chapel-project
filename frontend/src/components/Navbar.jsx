@@ -5,11 +5,24 @@ import { preloadRoute } from '../routePreload';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
   const { user, isAuthenticated, logout, isAdmin, isChaplain } = useAuth();
   const navigate = useNavigate();
   const canManageContent = isAdmin || isChaplain;
 
-  const closeMenu = () => setIsOpen(false);
+  const closeMenu = () => {
+    setIsOpen(false);
+    setOpenDropdown(null);
+  };
+
+  const toggleMenu = () => {
+    setIsOpen((current) => !current);
+    setOpenDropdown(null);
+  };
+
+  const toggleDropdown = (dropdown) => {
+    setOpenDropdown((current) => (current === dropdown ? null : dropdown));
+  };
 
   const preload = (path) => ({
     onMouseEnter: () => preloadRoute(path),
@@ -31,8 +44,9 @@ const Navbar = () => {
 
         <button
           className="mobile-toggle"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleMenu}
           aria-label="Toggle navigation"
+          aria-expanded={isOpen}
         >
           {isOpen ? 'Close' : 'Menu'}
         </button>
@@ -43,9 +57,17 @@ const Navbar = () => {
           <NavLink to="/announcements" onClick={closeMenu} {...preload('/announcements')}>Announcements</NavLink>
           <NavLink to="/sermons" onClick={closeMenu} {...preload('/sermons')}>Sermons</NavLink>
 
-          <div className="nav-dropdown">
-            <button className="dropdown-btn">More</button>
-            <div className="dropdown-content">
+          <div className={`nav-dropdown ${openDropdown === 'more' ? 'open' : ''}`}>
+            <button
+              type="button"
+              className="dropdown-btn"
+              onClick={() => toggleDropdown('more')}
+              aria-expanded={openDropdown === 'more'}
+              aria-controls="more-menu"
+            >
+              More
+            </button>
+            <div className="dropdown-content" id="more-menu">
               <NavLink to="/cells" onClick={closeMenu} {...preload('/cells')}>Cells</NavLink>
               <NavLink to="/prayer" onClick={closeMenu} {...preload('/prayer')}>Prayer</NavLink>
               <NavLink to="/give" onClick={closeMenu} {...preload('/give')}>Give</NavLink>
@@ -56,9 +78,17 @@ const Navbar = () => {
           {isAuthenticated ? (
             <>
               {canManageContent && (
-                <div className="nav-dropdown">
-                  <button className="dropdown-btn">{isAdmin ? 'Admin' : 'Manage'}</button>
-                  <div className="dropdown-content">
+                <div className={`nav-dropdown ${openDropdown === 'admin' ? 'open' : ''}`}>
+                  <button
+                    type="button"
+                    className="dropdown-btn"
+                    onClick={() => toggleDropdown('admin')}
+                    aria-expanded={openDropdown === 'admin'}
+                    aria-controls="admin-menu"
+                  >
+                    {isAdmin ? 'Admin' : 'Manage'}
+                  </button>
+                  <div className="dropdown-content" id="admin-menu">
                     {isAdmin && <NavLink to="/admin" onClick={closeMenu} {...preload('/admin')}>Overview</NavLink>}
                     <NavLink to="/admin/events" onClick={closeMenu} {...preload('/admin/events')}>Events</NavLink>
                     <NavLink to="/admin/announcements" onClick={closeMenu} {...preload('/admin/announcements')}>Announcements</NavLink>

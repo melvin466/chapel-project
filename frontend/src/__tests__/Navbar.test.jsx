@@ -49,4 +49,23 @@ describe('Navbar', () => {
     fireEvent.click(toggleButton);
     expect(screen.getByText('Menu')).toBeInTheDocument();
   });
+
+  it('toggles dropdown menus from the button state', () => {
+    render(
+      <MemoryRouter>
+        <Navbar />
+      </MemoryRouter>
+    );
+
+    const moreButton = screen.getByRole('button', { name: 'More' });
+    const adminButton = screen.getByRole('button', { name: 'Admin' });
+
+    expect(moreButton).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(moreButton);
+    expect(moreButton).toHaveAttribute('aria-expanded', 'true');
+
+    fireEvent.click(adminButton);
+    expect(moreButton).toHaveAttribute('aria-expanded', 'false');
+    expect(adminButton).toHaveAttribute('aria-expanded', 'true');
+  });
 });

@@ -580,6 +580,37 @@ describe('Auth Controller', () => {
     expect(donation.completedAt).toBeTruthy();
   });
 
+  it('should update a donation from a Relworx webhook', async () => {
+    const donation = await Donation.create({
+      amount: 5000,
+      donationType: 'offering',
+      paymentMethod: 'mobile_money',
+      phoneNumber: '256700000000',
+      provider: 'MTN',
+      transactionId: 'donation-relworx-test',
+      relworxInternalReference: 'relworx-internal-test',
+      status: 'pending',
+    });
+
+    const callbackRes = await request(app)
+      .post('/api/donations/callback')
+      .send({
+        status: 'success',
+        message: 'Request payment completed successfully.',
+        customer_reference: 'donation-relworx-test',
+        internal_reference: 'relworx-internal-test',
+        provider_transaction_id: 'provider-test-123',
+        completed_at: '2026-05-28T18:00:00.000+03:00',
+      });
+
+    expect(callbackRes.statusCode).toBe(200);
+
+    const updatedDonation = await Donation.findById(donation._id);
+    expect(updatedDonation.status).toBe('completed');
+    expect(updatedDonation.providerTransactionId).toBe('provider-test-123');
+    expect(updatedDonation.completedAt).toBeTruthy();
+  });
+
   it('should block regular users from donation management endpoints', async () => {
     await request(app)
       .post('/api/auth/register')
