@@ -11,9 +11,18 @@ const isRelworxConfigured = () => {
   return Boolean(process.env.RELWORX_API_KEY && process.env.RELWORX_ACCOUNT_NO);
 };
 
+class RelworxRequestError extends Error {
+  constructor(message, { statusCode, responseBody } = {}) {
+    super(message);
+    this.name = 'RelworxRequestError';
+    this.statusCode = statusCode;
+    this.responseBody = responseBody;
+  }
+}
+
 const requestRelworxPayment = async ({ amount, reference, phoneNumber, description, currency = 'UGX' }) => {
   if (!isRelworxConfigured()) {
-    throw new Error('Relworx API key or account number is not configured');
+    throw new RelworxRequestError('Relworx API key or account number is not configured', { statusCode: 503 });
   }
 
   const response = await fetch(`${getRelworxBaseUrl()}/mobile-money/request-payment`, {
@@ -35,7 +44,10 @@ const requestRelworxPayment = async ({ amount, reference, phoneNumber, descripti
 
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.success === false) {
-    throw new Error(data.message || `Relworx request failed with status ${response.status}`);
+    throw new RelworxRequestError(data.message || `Relworx request failed with status ${response.status}`, {
+      statusCode: response.status || 502,
+      responseBody: data,
+    });
   }
 
   return data;
@@ -43,5 +55,6 @@ const requestRelworxPayment = async ({ amount, reference, phoneNumber, descripti
 
 module.exports = {
   isRelworxConfigured,
+  RelworxRequestError,
   requestRelworxPayment,
 };

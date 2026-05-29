@@ -8,6 +8,7 @@ const {
 } = require('../utils/pesapalService');
 const {
   isRelworxConfigured,
+  RelworxRequestError,
   requestRelworxPayment,
 } = require('../utils/relworxService');
 
@@ -110,6 +111,11 @@ const getDonationPaymentProvider = () => {
   return String(process.env.DONATION_PAYMENT_PROVIDER || 'relworx').toLowerCase();
 };
 
+const getPaymentProviderErrorMessage = (error, fallback) => {
+  if (error instanceof RelworxRequestError && error.message) return error.message;
+  return fallback;
+};
+
 const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
   const apiUrl = provider === 'MTN' ? process.env.MTN_API_URL : process.env.AIRTEL_API_URL;
   const apiKey = provider === 'MTN' ? process.env.MTN_API_KEY : process.env.AIRTEL_API_KEY;
@@ -194,12 +200,30 @@ const createDonation = async (req, res) => {
         });
       }
 
-      const relworxResponse = await requestRelworxPayment({
-        amount: numericAmount,
-        description: `Donation - ${req.body.donationType || 'General'}`,
-        reference: transactionId,
-        phoneNumber: getRelworxMsisdn(normalizedPhoneNumber),
-      });
+      let relworxResponse;
+      try {
+        relworxResponse = await requestRelworxPayment({
+          amount: numericAmount,
+          description: `Donation - ${req.body.donationType || 'General'}`,
+          reference: transactionId,
+          phoneNumber: getRelworxMsisdn(normalizedPhoneNumber),
+        });
+      } catch (error) {
+        console.error('Relworx donation request failed:', {
+          message: error.message,
+          statusCode: error.statusCode,
+          responseBody: error.responseBody,
+        });
+
+        const statusCode = error.statusCode >= 400 && error.statusCode < 500 ? 400 : 502;
+        return res.status(statusCode).json({
+          success: false,
+          message: getPaymentProviderErrorMessage(
+            error,
+            'Relworx could not start the mobile money prompt. Please try again shortly.'
+          ),
+        });
+      }
 
       const donation = await Donation.create({
         ...donationPayload,
