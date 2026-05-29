@@ -310,8 +310,10 @@ const AdminLayout = ({ children }) => {
             grid-template-columns: 1fr;
           }
           .admin-sidebar {
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            right: 0;
             z-index: 320;
             height: auto;
             max-height: 100dvh;
@@ -321,6 +323,9 @@ const AdminLayout = ({ children }) => {
             border-bottom: 1px solid rgba(255,255,255,0.14);
             overflow: visible;
             box-shadow: 0 14px 32px rgba(0,0,0,0.28);
+          }
+          .admin-workspace {
+            padding-top: 72px;
           }
           .admin-sidebar-header {
             display: flex;
@@ -349,7 +354,7 @@ const AdminLayout = ({ children }) => {
           .admin-nav {
             display: none;
             grid-template-columns: 1fr;
-            max-height: calc(100dvh - 148px);
+            max-height: calc(100dvh - 152px);
             overflow-y: auto;
             overscroll-behavior: contain;
             padding-right: 0;
