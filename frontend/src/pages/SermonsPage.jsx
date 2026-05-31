@@ -247,9 +247,9 @@ const SermonsPage = () => {
         }
         .sermons-feature-copy h1 {
           max-width: 760px;
-          font-size: clamp(2.35rem, 5vw, 4.7rem);
-          line-height: 0.98;
-          margin-bottom: 0.9rem;
+          font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+          line-height: 1.15;
+          margin-bottom: 0.7rem;
         }
         .sermons-feature-copy p {
           max-width: 680px;
