@@ -3,11 +3,17 @@ import { Link } from 'react-router-dom';
 import eventService from '../services/eventService';
 import announcementService from '../services/announcementService';
 import VerseOfDay from '../components/VerseOfDay';
+import { getMediaUrl } from '../utils/media';
 import '/HomePage.css';
+
+const eventFallbackImage = 'https://images.pexels.com/photos/267559/pexels-photo-267559.jpeg?auto=compress&cs=tinysrgb&w=1200';
+const announcementFallbackImage = 'https://images.pexels.com/photos/208315/pexels-photo-208315.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
+  const [totalEvents, setTotalEvents] = useState(0);
+  const [totalAnnouncements, setTotalAnnouncements] = useState(0);
   const [loading, setLoading] = useState({ events: true, announcements: true });
   const [error, setError] = useState({ events: null, announcements: null });
 
@@ -15,6 +21,7 @@ const HomePage = () => {
     eventService.getEvents({ limit: 3 })
       .then((response) => {
         setEvents(response.data?.events || []);
+        setTotalEvents(response.data?.pagination?.total || 0);
         setLoading((current) => ({ ...current, events: false }));
       })
       .catch(() => {
@@ -25,6 +32,7 @@ const HomePage = () => {
     announcementService.getAnnouncements({ limit: 3 })
       .then((response) => {
         setAnnouncements(response.data?.announcements || []);
+        setTotalAnnouncements(response.data?.pagination?.total || 0);
         setLoading((current) => ({ ...current, announcements: false }));
       })
       .catch(() => {
@@ -85,11 +93,11 @@ const HomePage = () => {
             </div>
             <div className="panel-stats">
               <div>
-                <strong>{events.length}</strong>
+                <strong>{totalEvents}</strong>
                 <span>Upcoming</span>
               </div>
               <div>
-                <strong>{announcements.length}</strong>
+                <strong>{totalAnnouncements}</strong>
                 <span>Updates</span>
               </div>
             </div>
@@ -149,11 +157,14 @@ const HomePage = () => {
             <div className="home-events-grid">
               {events.map((event) => (
                 <Link key={event._id} className="home-event-card" to={`/events/${event._id}`}>
-                  <div className="home-event-date">
-                    <span>{getMonth(event.startDate)}</span>
-                    <strong>{getDay(event.startDate)}</strong>
+                  <div className="home-event-image-container">
+                    <img src={event.featuredImage ? getMediaUrl(event.featuredImage) : eventFallbackImage} alt="" loading="lazy" />
+                    <div className="home-event-date-overlay">
+                      <span>{getMonth(event.startDate)}</span>
+                      <strong>{getDay(event.startDate)}</strong>
+                    </div>
                   </div>
-                  <div>
+                  <div className="home-event-content">
                     <h3>{event.title}</h3>
                     <p className="home-muted">{formatDate(event.startDate, { withYear: true })}</p>
                     <p>{excerpt(event.description)}</p>
@@ -198,14 +209,19 @@ const HomePage = () => {
             <div className="home-announcement-list">
               {announcements.map((announcement) => (
                 <Link key={announcement._id} to={`/announcements/${announcement._id}`} className="home-announcement-card">
-                  <div>
-                    <span className={`home-priority priority-${announcement.priority || 'medium'}`}>
-                      {announcement.priority || 'medium'}
-                    </span>
-                    <h3>{announcement.title}</h3>
-                    <p>{excerpt(announcement.summary || announcement.content, 150)}</p>
+                  <div className="home-announcement-image">
+                    <img src={announcement.featuredImage ? getMediaUrl(announcement.featuredImage) : announcementFallbackImage} alt="" loading="lazy" />
                   </div>
-                  <span className="home-date">{formatDate(announcement.publishDate || announcement.createdAt, { withYear: true })}</span>
+                  <div className="home-announcement-content">
+                    <div>
+                      <span className={`home-priority priority-${announcement.priority || 'medium'}`}>
+                        {announcement.priority || 'medium'}
+                      </span>
+                      <h3>{announcement.title}</h3>
+                      <p>{excerpt(announcement.summary || announcement.content, 150)}</p>
+                    </div>
+                    <span className="home-date">{formatDate(announcement.publishDate || announcement.createdAt, { withYear: true })}</span>
+                  </div>
                 </Link>
               ))}
             </div>

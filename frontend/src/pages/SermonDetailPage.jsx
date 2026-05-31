@@ -78,7 +78,9 @@ const SermonDetailPage = () => {
       </button>
 
       <article className="sermon-detail">
-        <section className="sermon-detail-hero">
+        <section className="sermon-detail-hero" style={{
+          backgroundImage: `linear-gradient(90deg, rgba(10,16,21,0.92), rgba(10,16,21,0.52), rgba(10,16,21,0.86)), url(${sermon.thumbnail ? getMediaUrl(sermon.thumbnail) : 'https://images.pexels.com/photos/8468474/pexels-photo-8468474.jpeg?auto=compress&cs=tinysrgb&w=1600'})`
+        }}>
           <div>
             <span>{sermon.series || sermon.serviceType || 'Chapel message'}</span>
             <h1>{sermon.title}</h1>
@@ -168,9 +170,6 @@ const SermonDetailPage = () => {
           padding: 1.3rem;
           border-radius: 8px;
           color: white;
-          background:
-            linear-gradient(90deg, rgba(10,16,21,0.92), rgba(10,16,21,0.52), rgba(10,16,21,0.86)),
-            url('https://images.pexels.com/photos/8468474/pexels-photo-8468474.jpeg?auto=compress&cs=tinysrgb&w=1600');
           background-size: cover;
           background-position: center;
           overflow: hidden;

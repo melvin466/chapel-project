@@ -19,7 +19,14 @@ const withUploadedAnnouncementFiles = (body, files = {}) => {
 const getAnnouncements = async (req, res) => {
   try {
     const { page = 1, limit = 10, type } = req.query;
-    const filter = { status: 'published' };
+    const filter = { 
+      status: 'published',
+      $or: [
+        { expiryDate: { $gt: new Date() } },
+        { expiryDate: null },
+        { expiryDate: { $exists: false } }
+      ]
+    };
     if (type) filter.type = type;
 
     const announcements = await Announcement.find(filter)

@@ -56,7 +56,8 @@ export const AuthProvider = ({ children }) => {
       }
       return { success: false, message: response.message };
     } catch (error) {
-      return { success: false, message: error.message };
+      const message = error.message || (typeof error === 'object' && error !== null && error.message) || 'Login failed: Server unreachable or network offline.';
+      return { success: false, message };
     }
   };
 
