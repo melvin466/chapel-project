@@ -1,6 +1,6 @@
 const Booking = require('../models/Booking');
 const { recordAuditLog } = require('../utils/auditLogger');
-const { notifyUser } = require('../utils/notificationDispatcher');
+const { notifyUser, notifyAudience } = require('../utils/notificationDispatcher');
 
 const getBookings = async (req, res) => {
   try {
@@ -66,6 +66,14 @@ const createBooking = async (req, res) => {
       user: req.user.id,
       status: 'pending',
     });
+
+    await notifyAudience('leaders', {
+      type: 'booking',
+      title: 'New Venue/Service Booking Request',
+      message: `${req.user.firstName || 'A member'} has requested a booking for: "${booking.purpose || booking.bookingType}"`,
+      data: { bookingId: booking._id }
+    });
+
     res.status(201).json({ success: true, data: { booking } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

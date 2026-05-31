@@ -34,13 +34,13 @@ describe('DonationsPage', () => {
   it('submits an authenticated mobile money donation', async () => {
     render(<DonationsPage />);
 
-    expect(screen.getByRole('heading', { name: /Give Online/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Give with clarity/i })).toBeInTheDocument();
     expect(await screen.findByRole('option', { name: 'Missions' })).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText(/Amount/i), {
       target: { value: '25000' },
     });
-    fireEvent.change(screen.getByPlaceholderText(/Mobile money phone number/i), {
+    fireEvent.change(screen.getByLabelText(/Mobile money phone number/i), {
       target: { value: '256700000000' },
     });
     fireEvent.click(screen.getByLabelText(/Donate Anonymously/i));
@@ -56,6 +56,6 @@ describe('DonationsPage', () => {
         isAnonymous: true,
       });
     });
-    expect(await screen.findByRole('status')).toHaveTextContent('Donation saved. Check your phone to complete the payment.');
+    expect(await screen.findByRole('status')).toHaveTextContent('Mobile money prompt sent. Check your phone to approve the payment.');
   });
 });

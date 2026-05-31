@@ -11,6 +11,7 @@ const RegisterPage = () => {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [verificationPending, setVerificationPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { register } = useAuth();
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -44,7 +45,24 @@ const RegisterPage = () => {
               <input type="text" name="firstName" placeholder="First Name" onChange={handleChange} required />
               <input type="text" name="lastName" placeholder="Last Name" onChange={handleChange} required />
               <input type="email" name="email" placeholder="Email" onChange={handleChange} required />
-              <input type="password" name="password" placeholder="Password" onChange={handleChange} required />
+              <div className="password-field">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
               <input type="tel" name="phoneNumber" placeholder="Phone Number" onChange={handleChange} required />
 
               <label><input type="checkbox" name="isStudent" checked={formData.isStudent} onChange={(e) => setFormData({ ...formData, isStudent: e.target.checked })} /> I am a student</label>

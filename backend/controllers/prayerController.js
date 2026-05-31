@@ -1,5 +1,6 @@
 const PrayerRequest = require('../models/PrayerRequest');
 const { recordAuditLog } = require('../utils/auditLogger');
+const { notifyAudience } = require('../utils/notificationDispatcher');
 
 const careRoles = ['admin', 'chaplain'];
 
@@ -85,6 +86,14 @@ const createPrayerRequest = async (req, res) => {
       requestedBy: req.user.id,
     };
     const prayerRequest = await PrayerRequest.create(payload);
+
+    await notifyAudience('leaders', {
+      type: 'prayer',
+      title: 'New Prayer Request',
+      message: `A new prayer request has been submitted: "${prayerRequest.title}"`,
+      data: { prayerRequestId: prayerRequest._id }
+    });
+
     res.status(201).json({ success: true, data: { prayerRequest: serializePrayer(prayerRequest, req.user) } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

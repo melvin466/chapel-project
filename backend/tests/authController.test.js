@@ -421,7 +421,7 @@ describe('Auth Controller', () => {
 
     expect(requesterBookings.body.data.bookings[0].reviewReason).toBe('Approved for counselling room 2.');
 
-    const notification = await Notification.findOne({ type: 'booking' });
+    const notification = await Notification.findOne({ type: 'booking', title: 'Booking approved' });
     expect(notification).not.toBeNull();
     expect(notification.title).toBe('Booking approved');
     expect(notification.message).toBe('Approved for counselling room 2.');

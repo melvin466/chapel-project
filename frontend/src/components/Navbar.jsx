@@ -10,6 +10,29 @@ const Navbar = () => {
   const navigate = useNavigate();
   const canManageContent = isAdmin || isChaplain;
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    const preventDefault = (e) => {
+      // Allow scrolling inside .nav-links
+      if (e.target.closest('.nav-links')) {
+        return;
+      }
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    // Prevent body touch scroll leakage on mobile
+    document.addEventListener('touchmove', preventDefault, { passive: false });
+    document.body.classList.add('menu-open');
+
+    return () => {
+      document.removeEventListener('touchmove', preventDefault);
+      document.body.classList.remove('menu-open');
+    };
+  }, [isOpen]);
+
   const closeMenu = () => {
     setIsOpen(false);
     setOpenDropdown(null);

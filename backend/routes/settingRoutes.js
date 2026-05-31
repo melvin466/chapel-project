@@ -7,7 +7,11 @@ const { recordAuditLog } = require('../utils/auditLogger');
 router.get('/public', async (req, res) => {
   try {
     const settings = await Setting.find({ isPublic: true });
-    res.json({ success: true, data: { settings } });
+    const settingsObj = {};
+    settings.forEach(s => {
+      settingsObj[s.key] = s.value;
+    });
+    res.json({ success: true, data: { settings: settingsObj } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
@@ -16,7 +20,37 @@ router.get('/public', async (req, res) => {
 router.get('/', protect, admin, async (req, res) => {
   try {
     const settings = await Setting.find();
-    res.json({ success: true, data: { settings } });
+    const settingsObj = {};
+    settings.forEach(s => {
+      settingsObj[s.key] = s.value;
+    });
+    res.json({ success: true, data: { settings: settingsObj } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+});
+
+router.put('/', protect, admin, async (req, res) => {
+  try {
+    const settingsObj = req.body || {};
+    const updatedSettings = {};
+
+    for (const [key, value] of Object.entries(settingsObj)) {
+      const setting = await Setting.findOneAndUpdate(
+        { key },
+        { value, updatedBy: req.user.id, updatedAt: new Date() },
+        { upsert: true, new: true }
+      );
+      updatedSettings[key] = setting.value;
+    }
+
+    await recordAuditLog(req, {
+      action: 'setting.bulk_update',
+      resource: 'Setting',
+      metadata: { keys: Object.keys(settingsObj) },
+    });
+
+    res.json({ success: true, data: { settings: updatedSettings } });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }

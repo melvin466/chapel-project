@@ -6,6 +6,8 @@ const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,8 +48,42 @@ const ResetPasswordPage = () => {
         {message && <div className="success-message">{message}</div>}
         {error && <div className="error">{error}</div>}
         <form onSubmit={handleSubmit}>
-          <input type="password" placeholder="New password" value={password} onChange={(event) => setPassword(event.target.value)} minLength="6" required />
-          <input type="password" placeholder="Confirm new password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength="6" required />
+          <div className="password-field" style={{ marginBottom: '1rem' }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="New password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              minLength="6"
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          <div className="password-field" style={{ marginBottom: '1rem' }}>
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Confirm new password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              minLength="6"
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowConfirmPassword((current) => !current)}
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+            >
+              {showConfirmPassword ? 'Hide' : 'Show'}
+            </button>
+          </div>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>

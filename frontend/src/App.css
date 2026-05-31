@@ -35,7 +35,7 @@ body {
     url('https://images.pexels.com/photos/2570062/pexels-photo-2570062.jpeg?auto=compress&cs=tinysrgb&w=1600');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
+  background-attachment: scroll;
   background-repeat: no-repeat;
   min-height: 100vh;
 }
@@ -3199,4 +3199,42 @@ select optgroup {
   .booking-service-showcase {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================
+   MOBILE SAFARI / iOS OPTIMIZATIONS
+   ============================================ */
+
+/* Restores fixed background effect only on larger desktop screens for high performance */
+@media (min-width: 1025px) {
+  body {
+    background-attachment: fixed;
+  }
+}
+
+/* Enforces minimum 16px font-size on all mobile inputs to prevent auto-zooming on focus in iOS Safari */
+@media (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select,
+  .form-card input,
+  .form-card textarea,
+  .form-card select,
+  .profile-form-grid input,
+  .profile-form input,
+  .admin-form input,
+  .admin-form-card input,
+  .settings-panel input,
+  .announcement-form input,
+  .feedback-form input,
+  .filters-bar input {
+    font-size: 16px !important;
+  }
+}
+
+/* Lock scrolling on the body and html wrapper when mobile menu is active */
+body.menu-open {
+  overflow: hidden !important;
+  height: 100vh !important;
+  position: relative !important;
 }

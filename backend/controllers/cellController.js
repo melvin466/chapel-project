@@ -2,7 +2,7 @@ const Cell = require('../models/Cell');
 const CellJoinRequest = require('../models/CellJoinRequest');
 const User = require('../models/User');
 const { recordAuditLog } = require('../utils/auditLogger');
-const { notifyUser } = require('../utils/notificationDispatcher');
+const { notifyUser, notifyAudience } = require('../utils/notificationDispatcher');
 
 const getCells = async (req, res) => {
   try {
@@ -191,10 +191,17 @@ const requestJoinCell = async (req, res) => {
       });
     }
 
-    await CellJoinRequest.create({
+    const joinRequest = await CellJoinRequest.create({
       cell: cell._id,
       user: user._id,
       reason: req.body.reason,
+    });
+    
+    await notifyAudience('leaders', {
+      type: 'system',
+      title: 'New Cell Join Request',
+      message: `${user.firstName} ${user.lastName} requested to join cell group: "${cell.name}"`,
+      data: { cellId: cell._id, requestId: joinRequest._id }
     });
     
     res.status(201).json({ success: true, message: `Request sent to join ${cell.name}` });
