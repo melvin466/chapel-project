@@ -112,7 +112,7 @@ const AnnouncementDetailPage = () => {
           backdrop-filter: blur(22px) saturate(130%);
         }
         .announcement-detail-hero {
-          min-height: 390px;
+          min-height: 240px;
           position: relative;
           border-radius: 8px;
           overflow: hidden;
@@ -121,7 +121,7 @@ const AnnouncementDetailPage = () => {
         .announcement-detail-hero img {
           width: 100%;
           height: 100%;
-          min-height: 390px;
+          min-height: 240px;
           display: block;
           object-fit: cover;
         }
@@ -235,7 +235,7 @@ const AnnouncementDetailPage = () => {
         @media (max-width: 560px) {
           .announcement-detail-hero,
           .announcement-detail-hero img {
-            min-height: 340px;
+            min-height: 180px;
           }
         }
       `}</style>
