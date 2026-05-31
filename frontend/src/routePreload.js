@@ -45,37 +45,90 @@ const routePreloads = {
   '/sermons': routeLoaders.SermonsPage,
   '/cells': routeLoaders.CellsPage,
   '/prayer': routeLoaders.PrayerPage,
+  '/donations': routeLoaders.DonationsPage,
+  '/feedback': routeLoaders.FeedbackPage,
   '/give': routeLoaders.GivePage,
   '/bookings': routeLoaders.BookingsPage,
   '/login': routeLoaders.LoginPage,
   '/register': routeLoaders.RegisterPage,
+  '/forgot-password': routeLoaders.ForgotPasswordPage,
+  '/reset-password': routeLoaders.ResetPasswordPage,
+  '/verify-email': routeLoaders.VerifyEmailPage,
   '/dashboard': routeLoaders.DashboardPage,
   '/profile': routeLoaders.ProfilePage,
   '/notifications': routeLoaders.NotificationsPage,
   '/admin': routeLoaders.AdminDashboardPage,
   '/admin/events': routeLoaders.AdminEvents,
+  '/admin/events/create': routeLoaders.AdminEventForm,
   '/admin/announcements': routeLoaders.AdminAnnouncements,
+  '/admin/announcements/create': routeLoaders.AdminAnnouncementForm,
   '/admin/bookings': routeLoaders.AdminBookings,
   '/admin/sermons': routeLoaders.AdminSermons,
   '/admin/cells': routeLoaders.AdminCells,
   '/admin/prayers': routeLoaders.AdminPrayerRequests,
   '/admin/donations': routeLoaders.AdminDonations,
   '/admin/users': routeLoaders.AdminUsers,
+  '/admin/users/create': routeLoaders.AdminUserForm,
   '/admin/reports': routeLoaders.AdminReports,
   '/admin/audit-logs': routeLoaders.AdminAuditLogs,
+  '/admin/export': routeLoaders.AdminExport,
   '/admin/settings': routeLoaders.AdminSettings,
 };
 
 const preloadCache = new Map();
 
-export const preloadRoute = (path) => {
-  const loader = routePreloads[path];
+const dynamicRoutePreloads = [
+  [/^\/events\/[^/]+$/, routeLoaders.EventDetailPage, '/events/:id'],
+  [/^\/announcements\/[^/]+$/, routeLoaders.AnnouncementDetailPage, '/announcements/:id'],
+  [/^\/sermons\/[^/]+$/, routeLoaders.SermonDetailPage, '/sermons/:id'],
+  [/^\/admin\/events\/edit\/[^/]+$/, routeLoaders.AdminEventForm, '/admin/events/edit/:id'],
+  [/^\/admin\/announcements\/edit\/[^/]+$/, routeLoaders.AdminAnnouncementForm, '/admin/announcements/edit/:id'],
+  [/^\/admin\/users\/edit\/[^/]+$/, routeLoaders.AdminUserForm, '/admin/users/edit/:id'],
+];
 
-  if (!loader || preloadCache.has(path)) {
+export const routePreloadPaths = Object.keys(routePreloads);
+
+const normalizePath = (path) => {
+  if (!path) return '/';
+  const pathname = path.split('?')[0].split('#')[0];
+  return pathname !== '/' ? pathname.replace(/\/$/, '') : pathname;
+};
+
+const getRoutePreload = (path) => {
+  const normalizedPath = normalizePath(path);
+
+  if (routePreloads[normalizedPath]) {
+    return { cacheKey: normalizedPath, loader: routePreloads[normalizedPath] };
+  }
+
+  const dynamicMatch = dynamicRoutePreloads.find(([pattern]) => pattern.test(normalizedPath));
+  if (!dynamicMatch) {
+    return null;
+  }
+
+  return { cacheKey: dynamicMatch[2], loader: dynamicMatch[1] };
+};
+
+export const preloadRoute = (path) => {
+  const routePreload = getRoutePreload(path);
+
+  if (!routePreload || preloadCache.has(routePreload.cacheKey)) {
     return;
   }
 
-  preloadCache.set(path, loader().catch(() => {
-    preloadCache.delete(path);
+  preloadCache.set(routePreload.cacheKey, routePreload.loader().catch(() => {
+    preloadCache.delete(routePreload.cacheKey);
   }));
 };
+
+export const preloadRoutes = (paths = routePreloadPaths) => {
+  paths.forEach(preloadRoute);
+};
+
+export const preloadProps = (path) => ({
+  onMouseEnter: () => preloadRoute(path),
+  onPointerEnter: () => preloadRoute(path),
+  onPointerDown: () => preloadRoute(path),
+  onTouchStart: () => preloadRoute(path),
+  onFocus: () => preloadRoute(path),
+});

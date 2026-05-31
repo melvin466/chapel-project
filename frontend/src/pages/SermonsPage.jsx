@@ -1,11 +1,46 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import sermonService from '../services/sermonService';
+import { getMediaUrl } from '../utils/media';
+
+const fallbackSermonImage = 'https://images.pexels.com/photos/8468474/pexels-photo-8468474.jpeg?auto=compress&cs=tinysrgb&w=1200';
+
+const getPosterName = (sermon) => (
+  sermon.createdBy
+    ? `${sermon.createdBy.firstName || ''} ${sermon.createdBy.lastName || ''}`.trim()
+    : sermon.speaker
+);
+
+const getSermonImage = (sermon) => (
+  sermon.thumbnail ? getMediaUrl(sermon.thumbnail) : fallbackSermonImage
+);
+
+const getMediaLabel = (sermon) => {
+  if (sermon.videoUrl && sermon.audioUrl) return 'Watch or listen';
+  if (sermon.videoUrl) return 'Watch';
+  if (sermon.audioUrl) return 'Listen';
+  return 'Read notes';
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'Date to be announced';
+  return new Date(dateString).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
+
+const excerpt = (value = '', length = 150) => {
+  if (value.length <= length) return value;
+  return `${value.slice(0, length).trim()}...`;
+};
 
 const SermonsPage = () => {
   const [sermons, setSermons] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('latest');
 
   useEffect(() => {
     loadSermons();
@@ -13,7 +48,7 @@ const SermonsPage = () => {
 
   const loadSermons = async () => {
     try {
-      const response = await sermonService.getSermons();
+      const response = await sermonService.getSermons({ limit: 100 });
       setSermons(response.data?.sermons || []);
     } catch (error) {
       console.error('Error loading sermons:', error);
@@ -22,187 +57,410 @@ const SermonsPage = () => {
     }
   };
 
-  const getPosterName = (sermon) => (
-    sermon.createdBy
-      ? `${sermon.createdBy.firstName || ''} ${sermon.createdBy.lastName || ''}`.trim()
-      : sermon.speaker
-  );
+  const latestSermon = sermons[0];
+
+  const filterOptions = useMemo(() => {
+    const serviceTypes = [...new Set(sermons.map((sermon) => sermon.serviceType).filter(Boolean))];
+    const series = [...new Set(sermons.map((sermon) => sermon.series).filter(Boolean))];
+    return [
+      { id: 'latest', label: 'Latest' },
+      { id: 'video', label: 'Video' },
+      { id: 'audio', label: 'Audio' },
+      ...serviceTypes.slice(0, 3).map((item) => ({ id: `service:${item}`, label: item })),
+      ...series.slice(0, 3).map((item) => ({ id: `series:${item}`, label: item })),
+    ];
+  }, [sermons]);
+
+  const visibleSermons = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return sermons.filter((sermon) => {
+      const searchText = [
+        sermon.title,
+        sermon.speaker,
+        sermon.description,
+        sermon.series,
+        sermon.serviceType,
+        ...(sermon.tags || []),
+        ...(sermon.bibleVerses || []),
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      const matchesQuery = !normalizedQuery || searchText.includes(normalizedQuery);
+      const matchesFilter = activeFilter === 'latest'
+        || (activeFilter === 'video' && Boolean(sermon.videoUrl))
+        || (activeFilter === 'audio' && Boolean(sermon.audioUrl))
+        || (activeFilter.startsWith('service:') && sermon.serviceType === activeFilter.replace('service:', ''))
+        || (activeFilter.startsWith('series:') && sermon.series === activeFilter.replace('series:', ''));
+
+      return matchesQuery && matchesFilter;
+    });
+  }, [activeFilter, query, sermons]);
 
   if (loading) return <div className="loading">Loading sermons...</div>;
 
   return (
-    <div className="container">
-      <section className="sermons-hero">
-        <div>
-          <span>Listen again</span>
-          <h1>Sermons</h1>
+    <div className="sermons-page">
+      <section className="sermons-feature">
+        <div className="sermons-feature-copy">
+          <span>Latest message</span>
+          <h1>{latestSermon ? latestSermon.title : 'Sermons that travel with you.'}</h1>
           <p>
-            Revisit Sunday teaching, chapel reflections, and messages that help faith become steady,
-            thoughtful, and lived out during the week. Each message is kept here as a growing library
-            for personal devotion, study groups, and anyone who wants to return to the Word after a service.
+            {latestSermon
+              ? excerpt(latestSermon.description, 190)
+              : 'Watch, listen, search, and revisit chapel teaching throughout the week.'}
           </p>
-        </div>
-        <aside>
-          <strong>For your quiet time</strong>
-          <p>Open a sermon to listen, watch, reflect with scripture, and carry the teaching into prayer or cell discussion.</p>
-        </aside>
-      </section>
-
-      <section className="sermons-intro">
-        <div>
-          <span>Grow in the Word</span>
-          <h2>Teaching for the week, not only for the service.</h2>
-          <p>
-            Use this space to revisit chapel messages at your own pace. Sermons may include audio,
-            video, Bible references, and study notes so you can listen again, share with a friend,
-            or prepare for deeper conversations in fellowship.
-          </p>
-        </div>
-        <div className="sermons-intro-points">
-          <div><strong>Listen</strong><span>Catch up on messages you missed or replay what spoke to you.</span></div>
-          <div><strong>Reflect</strong><span>Return to the scriptures and themes connected to each message.</span></div>
-          <div><strong>Share</strong><span>Use sermons as a starting point for cell group discussion and prayer.</span></div>
-        </div>
-      </section>
-
-      {sermons.length === 0 ? (
-        <div className="no-data rich-empty">
-          <strong>No sermons have been posted yet.</strong>
-          <span>Audio and video messages will appear here once the chapel team uploads them.</span>
-        </div>
-      ) : (
-        <div className="sermons-grid">
-          {sermons.map((sermon) => (
-            <div key={sermon._id} className="sermon-card" onClick={() => navigate(`/sermons/${sermon._id}`)}>
-              <div className="sermon-icon">Audio</div>
-              <div className="sermon-content">
-                <h3>{sermon.title}</h3>
-                <p className="sermon-speaker">
-                  {getPosterName(sermon)}
-                  {sermon.createdBy?.role && <span>{sermon.createdBy.role}</span>}
-                </p>
-                <p className="sermon-date">{new Date(sermon.date).toLocaleDateString()}</p>
-                <p className="sermon-description">{sermon.description?.substring(0, 100)}...</p>
-                <div className="sermon-stats">
-                  <span>{sermon.views || 0} views</span>
-                  <span>{sermon.likes?.length || 0} likes</span>
-                </div>
-                <button className="btn-secondary">Listen Now</button>
-              </div>
+          {latestSermon && (
+            <div className="sermons-feature-actions">
+              <Link to={`/sermons/${latestSermon._id}`} className="btn-primary">{getMediaLabel(latestSermon)}</Link>
+              <span>{getPosterName(latestSermon)} · {formatDate(latestSermon.date)}</span>
             </div>
+          )}
+        </div>
+        <div className="sermons-feature-media">
+          <img src={latestSermon ? getSermonImage(latestSermon) : fallbackSermonImage} alt="" />
+          <div className="sermons-play-badge" aria-hidden="true">
+            <span />
+          </div>
+        </div>
+      </section>
+
+      <section className="sermons-library-shell">
+        <div className="sermons-library-heading">
+          <div>
+            <span>Media library</span>
+            <h2>Find a message for your current season.</h2>
+          </div>
+          <label className="sermons-search">
+            <span className="sr-only">Search sermons</span>
+            <input
+              type="search"
+              placeholder="Search by title, speaker, scripture, topic..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+        </div>
+
+        <div className="sermons-filter-row" aria-label="Sermon filters">
+          {filterOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={activeFilter === option.id ? 'active' : ''}
+              onClick={() => setActiveFilter(option.id)}
+            >
+              {option.label}
+            </button>
           ))}
         </div>
-      )}
+
+        {visibleSermons.length === 0 ? (
+          <div className="no-data rich-empty">
+            <strong>No sermons match that search.</strong>
+            <span>Try a speaker, scripture, series, or a simpler keyword.</span>
+          </div>
+        ) : (
+          <div className="sermons-media-grid">
+            {visibleSermons.map((sermon) => (
+              <Link key={sermon._id} className="sermon-media-card" to={`/sermons/${sermon._id}`}>
+                <div className="sermon-media-image">
+                  <img src={getSermonImage(sermon)} alt="" loading="lazy" />
+                  <span>{getMediaLabel(sermon)}</span>
+                </div>
+                <div className="sermon-media-content">
+                  <div className="sermon-media-meta">
+                    <span>{sermon.series || sermon.serviceType || 'Message'}</span>
+                    <span>{formatDate(sermon.date)}</span>
+                  </div>
+                  <h3>{sermon.title}</h3>
+                  <p className="sermon-speaker">{getPosterName(sermon) || 'Chapel Team'}</p>
+                  <p>{excerpt(sermon.description, 120)}</p>
+                  <div className="sermon-media-stats">
+                    <span>{sermon.views || 0} views</span>
+                    <span>{sermon.likes?.length || 0} likes</span>
+                    {sermon.duration && <span>{sermon.duration} min</span>}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="sermons-practice-band">
+        <div>
+          <span>Practice it</span>
+          <h2>Do not let Sunday stay on Sunday.</h2>
+          <p>Use a sermon for personal reflection, prayer, or discussion with your cell group during the week.</p>
+        </div>
+        <div className="sermons-practice-grid">
+          <div><strong>Listen</strong><span>Replay messages while commuting or studying.</span></div>
+          <div><strong>Reflect</strong><span>Return to the Bible verses and key themes.</span></div>
+          <div><strong>Discuss</strong><span>Bring a message into cell group conversation.</span></div>
+        </div>
+      </section>
 
       <style>{`
-        .sermons-hero {
-          min-height: 330px;
+        .sermons-page {
+          width: min(1200px, calc(100% - 48px));
+          margin: 0 auto;
+          padding-bottom: 3rem;
+          color: white;
+        }
+        .sermons-feature {
+          min-height: 430px;
           display: grid;
-          grid-template-columns: minmax(0, 1fr) 300px;
-          gap: 1.2rem;
-          align-items: end;
-          margin: 1rem 0 1.4rem;
+          grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
+          gap: 1.1rem;
+          align-items: stretch;
+          margin: 1rem 0 1.2rem;
+        }
+        .sermons-feature-copy,
+        .sermons-feature-media,
+        .sermons-library-shell,
+        .sermons-practice-band {
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: var(--glass-panel);
+          box-shadow: var(--shadow-deep);
+          backdrop-filter: blur(22px) saturate(130%);
+          overflow: hidden;
+        }
+        .sermons-feature-copy {
           padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          background:
+            linear-gradient(135deg, rgba(47,125,70,0.22), rgba(255,255,255,0.08)),
+            var(--glass-panel);
+        }
+        .sermons-feature-copy > span,
+        .sermons-library-heading span,
+        .sermons-practice-band > div > span {
+          color: var(--brand-soft);
+          font-size: 0.76rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          margin-bottom: 0.55rem;
+          display: inline-block;
+        }
+        .sermons-feature-copy h1 {
+          max-width: 760px;
+          font-size: clamp(2.35rem, 5vw, 4.7rem);
+          line-height: 0.98;
+          margin-bottom: 0.9rem;
+        }
+        .sermons-feature-copy p {
+          max-width: 680px;
+          color: rgba(255,255,255,0.76);
+          font-size: 1.05rem;
+        }
+        .sermons-feature-actions {
+          display: flex;
+          gap: 0.9rem;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-top: 1.5rem;
+        }
+        .sermons-feature-actions span {
+          color: rgba(255,255,255,0.7);
+          font-weight: 700;
+        }
+        .sermons-feature-media {
+          position: relative;
+          min-height: 330px;
+        }
+        .sermons-feature-media img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+        .sermons-feature-media::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 44%, rgba(10,16,21,0.74));
+        }
+        .sermons-play-badge {
+          position: absolute;
+          left: 1rem;
+          bottom: 1rem;
+          z-index: 1;
+          width: 68px;
+          height: 68px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.92);
+          box-shadow: 0 18px 38px rgba(0,0,0,0.26);
+        }
+        .sermons-play-badge span {
+          width: 0;
+          height: 0;
+          border-top: 13px solid transparent;
+          border-bottom: 13px solid transparent;
+          border-left: 20px solid #2f7d46;
+          transform: translateX(3px);
+        }
+        .sermons-library-shell {
+          padding: 1.2rem;
+        }
+        .sermons-library-heading {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+          gap: 1rem;
+          align-items: end;
+          margin-bottom: 1rem;
+        }
+        .sermons-library-heading h2,
+        .sermons-practice-band h2 {
+          font-size: clamp(1.6rem, 3vw, 2.45rem);
+          line-height: 1.05;
+        }
+        .sermons-search input {
+          min-height: 48px;
+          margin: 0;
+        }
+        .sermons-filter-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.55rem;
+          margin-bottom: 1rem;
+        }
+        .sermons-filter-row button {
+          min-height: 38px;
+          border-radius: 999px;
+          padding: 0.45rem 0.8rem;
+          border: 1px solid rgba(255,255,255,0.18);
+          color: rgba(255,255,255,0.8);
+          background: rgba(255,255,255,0.08);
+          cursor: pointer;
+          text-transform: capitalize;
+          font-weight: 800;
+        }
+        .sermons-filter-row button.active,
+        .sermons-filter-row button:hover {
+          color: white;
+          border-color: rgba(155,216,170,0.42);
+          background: rgba(47,125,70,0.28);
+        }
+        .sermons-media-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+          gap: 1rem;
+        }
+        .sermon-media-card {
+          min-height: 420px;
+          display: flex;
+          flex-direction: column;
+          color: white;
+          text-decoration: none;
           border-radius: 8px;
           overflow: hidden;
-          color: white;
-          background:
-            linear-gradient(90deg, rgba(10,16,21,0.92), rgba(10,16,21,0.55), rgba(10,16,21,0.86)),
-            url('https://images.pexels.com/photos/8468474/pexels-photo-8468474.jpeg?auto=compress&cs=tinysrgb&w=1600');
-          background-size: cover;
-          background-position: center;
-          border: 1px solid rgba(255,255,255,0.18);
-          box-shadow: 0 18px 45px rgba(0,0,0,0.24);
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.14);
+          transition: transform 0.2s ease, background 0.2s ease;
         }
-        .sermons-hero span {
-          display: inline-block;
-          color: #9bd8aa;
+        .sermon-media-card:hover {
+          transform: translateY(-4px);
+          background: rgba(255,255,255,0.12);
+        }
+        .sermon-media-image {
+          position: relative;
+          height: 180px;
+          overflow: hidden;
+        }
+        .sermon-media-image img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+        .sermon-media-image::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 42%, rgba(10,16,21,0.76));
+        }
+        .sermon-media-image span {
+          position: absolute;
+          left: 0.8rem;
+          bottom: 0.8rem;
+          z-index: 1;
+          padding: 0.32rem 0.62rem;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.92);
+          color: #1f2933;
+          font-size: 0.75rem;
+          font-weight: 900;
+        }
+        .sermon-media-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .sermon-media-meta,
+        .sermon-media-stats {
+          display: flex;
+          justify-content: space-between;
+          gap: 0.7rem;
+          flex-wrap: wrap;
+          color: rgba(255,255,255,0.62);
           font-size: 0.78rem;
           font-weight: 800;
-          text-transform: uppercase;
-          margin-bottom: 0.5rem;
+          text-transform: capitalize;
         }
-        .sermons-hero h1 {
-          font-size: clamp(2.1rem, 5vw, 4rem);
-          line-height: 1;
-          margin-bottom: 0.8rem;
-        }
-        .sermons-hero p {
-          max-width: 720px;
-          color: rgba(255,255,255,0.78);
-        }
-        .sermons-hero aside {
-          padding: 1rem;
-          border-radius: 8px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.2);
-          backdrop-filter: blur(18px);
-        }
-        .sermons-hero aside strong {
-          display: block;
+        .sermon-media-content h3 {
+          margin: 0.65rem 0 0.35rem;
           color: white;
-          margin-bottom: 0.35rem;
+          line-height: 1.12;
+          font-size: 1.18rem;
         }
-        .sermons-intro {
-          max-width: 1040px;
-          margin: 0 auto 1.5rem;
+        .sermon-media-content p {
+          color: rgba(255,255,255,0.72);
+          line-height: 1.55;
+        }
+        .sermon-media-content .sermon-speaker {
+          color: var(--brand-soft);
+          font-weight: 900;
+          margin-bottom: 0.55rem;
+        }
+        .sermon-media-stats {
+          margin-top: auto;
+          padding-top: 1rem;
+        }
+        .sermons-practice-band {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
+          grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
           gap: 1rem;
-          align-items: stretch;
+          margin-top: 1.2rem;
+          padding: 1.25rem;
         }
-        .sermons-intro > div {
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.18);
-          border-radius: 8px;
-          padding: 1.2rem;
-          color: white;
-          backdrop-filter: blur(18px);
+        .sermons-practice-band p,
+        .sermons-practice-grid span {
+          color: rgba(255,255,255,0.72);
         }
-        .sermons-intro span {
-          display: inline-block;
-          color: #9bd8aa;
-          font-size: 0.76rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          margin-bottom: 0.5rem;
-        }
-        .sermons-intro h2 {
-          font-size: 1.65rem;
-          line-height: 1.15;
-          margin-bottom: 0.7rem;
-          color: white;
-        }
-        .sermons-intro p,
-        .sermons-intro-points div span {
-          color: rgba(255,255,255,0.76);
-          line-height: 1.6;
-        }
-        .sermons-intro-points {
+        .sermons-practice-grid {
           display: grid;
-          gap: 0.65rem;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.75rem;
         }
-        .sermons-intro-points div {
-          display: grid;
-          gap: 0.25rem;
-          padding: 0.75rem;
+        .sermons-practice-grid div {
+          padding: 0.9rem;
           border-radius: 8px;
           background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.13);
         }
-        .sermons-intro-points strong {
-          color: white;
+        .sermons-practice-grid strong,
+        .sermons-practice-grid span {
+          display: block;
         }
-        .sermons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 320px)); justify-content: center; gap: 1rem; margin: 2rem auto 0; max-width: 1040px; }
-        .sermon-card { background: rgba(255,255,255,0.95); border-radius: 8px; padding: 1rem; transition: transform 0.3s; cursor: pointer; display: grid; grid-template-columns: 54px 1fr; gap: 0.85rem; align-items: start; min-height: 220px; }
-        .sermon-card:hover { transform: translateY(-5px); }
-        .sermon-icon { min-height: 44px; display: grid; place-items: center; border-radius: 8px; background: rgba(47,125,70,0.22); color: #9bd8aa; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; line-height: 1; }
-        .sermon-content { flex: 1; }
-        .sermon-content h3 { color: #333; margin-bottom: 0.5rem; font-size: 1.05rem; line-height: 1.25; }
-        .sermon-speaker, .sermon-date { color: #666; font-size: 0.85rem; margin-bottom: 0.25rem; }
-        .sermon-speaker span { display: inline-block; margin-left: 0.45rem; padding: 0.12rem 0.42rem; border-radius: 999px; background: rgba(47,125,70,0.12); color: #2f7d46; text-transform: capitalize; font-size: 0.72rem; font-weight: 700; }
-        .sermon-description { color: #888; margin: 0.5rem 0; font-size: 0.85rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .sermon-stats { display: flex; gap: 1rem; margin: 0.5rem 0; color: #999; font-size: 0.8rem; }
-        .sermon-card .btn-secondary { margin-top: auto; }
+        .sermons-practice-grid strong {
+          margin-bottom: 0.25rem;
+        }
         .rich-empty {
           display: grid;
           gap: 0.35rem;
@@ -214,8 +472,25 @@ const SermonsPage = () => {
         .rich-empty span {
           color: rgba(255,255,255,0.72);
         }
-        @media (max-width: 760px) { .sermons-hero, .sermons-intro { grid-template-columns: 1fr; min-height: auto; } }
-        @media (max-width: 560px) { .sermon-card { grid-template-columns: 1fr; text-align: left; } }
+        @media (max-width: 860px) {
+          .sermons-feature,
+          .sermons-library-heading,
+          .sermons-practice-band,
+          .sermons-practice-grid {
+            grid-template-columns: 1fr;
+          }
+          .sermons-feature {
+            min-height: auto;
+          }
+        }
+        @media (max-width: 620px) {
+          .sermons-page {
+            width: min(100% - 32px, 1200px);
+          }
+          .sermons-feature-copy h1 {
+            font-size: 2.2rem;
+          }
+        }
       `}</style>
     </div>
   );

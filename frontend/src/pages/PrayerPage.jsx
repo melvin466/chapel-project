@@ -12,6 +12,7 @@ const PrayerPage = () => {
     description: '',
     category: 'personal',
     urgency: 'normal',
+    visibility: 'community',
     isAnonymous: false
   });
 
@@ -58,7 +59,7 @@ const PrayerPage = () => {
     try {
       await prayerService.createPrayerRequest(formData);
       setMessage('Prayer request submitted.');
-      setFormData({ title: '', description: '', category: 'personal', urgency: 'normal', isAnonymous: false });
+      setFormData({ title: '', description: '', category: 'personal', urgency: 'normal', visibility: 'community', isAnonymous: false });
       await loadPrayerRequests();
     } catch (error) {
       setError(error.response?.data?.message || 'Failed to submit prayer request.');
@@ -124,6 +125,10 @@ const PrayerPage = () => {
               <option value="urgent">Urgent</option>
               <option value="critical">Critical</option>
             </select>
+            <select name="visibility" value={formData.visibility} onChange={handleChange}>
+              <option value="community">Whole chapel community</option>
+              <option value="chaplain">Chaplain only</option>
+            </select>
             <label className="checkbox-label">
               <input type="checkbox" name="isAnonymous" checked={formData.isAnonymous} onChange={handleChange} />
               Post anonymously
@@ -145,20 +150,31 @@ const PrayerPage = () => {
               <div key={request._id} className="prayer-item">
                 <div className="prayer-item-header">
                   <h2>{request.title}</h2>
-                  <span className={`prayer-urgency urgency-${request.urgency}`}>{request.urgency}</span>
+                  <div className="prayer-badges">
+                    <span className={`prayer-urgency urgency-${request.urgency}`}>{request.urgency}</span>
+                    <span className="prayer-visibility">{request.visibility === 'chaplain' ? 'Chaplain only' : 'Community'}</span>
+                  </div>
                 </div>
                 <p>{request.description}</p>
                 <p className="prayer-meta-line">
                   <strong>Category:</strong> {request.category}
                 </p>
+                {request.canViewPrayerCount && (
+                  <p className="prayer-count-private">
+                    {request.prayerCount || 0} {(request.prayerCount || 0) === 1 ? 'person has' : 'people have'} prayed for you
+                  </p>
+                )}
                 {request.status === 'answered' && request.adminResponse && (
                   <div className="prayer-answer">
                     <strong>Admin response</strong>
                     <p>{request.adminResponse}</p>
                   </div>
                 )}
-                <button onClick={() => handlePray(request._id)}>
-                  Pray ({request.prayerCount || 0})
+                <button
+                  onClick={() => handlePray(request._id)}
+                  disabled={!request.viewerCanPray || request.viewerHasPrayed}
+                >
+                  {request.viewerHasPrayed ? 'Prayed' : 'Pray for this'}
                 </button>
               </div>
             ))
@@ -262,6 +278,12 @@ const PrayerPage = () => {
           gap: 0.8rem;
           margin-bottom: 0.5rem;
         }
+        .prayer-badges {
+          display: flex;
+          justify-content: flex-end;
+          gap: 0.4rem;
+          flex-wrap: wrap;
+        }
         .prayer-urgency {
           flex: 0 0 auto;
           padding: 0.22rem 0.6rem;
@@ -270,6 +292,20 @@ const PrayerPage = () => {
           font-size: 0.72rem;
           font-weight: 800;
           text-transform: capitalize;
+        }
+        .prayer-visibility,
+        .prayer-count-private {
+          border-radius: 999px;
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.16);
+          color: rgba(255,255,255,0.78);
+          font-size: 0.78rem;
+          font-weight: 800;
+          padding: 0.22rem 0.6rem;
+        }
+        .prayer-count-private {
+          display: inline-flex;
+          margin: 0.2rem 0 0.85rem;
         }
         .prayer-meta-line {
           color: rgba(255,255,255,0.68) !important;

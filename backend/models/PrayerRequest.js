@@ -5,6 +5,7 @@ const prayerRequestSchema = new mongoose.Schema({
   description: { type: String, required: true },
   category: { type: String, enum: ['personal', 'family', 'health', 'academic', 'financial', 'spiritual', 'other'], default: 'personal' },
   urgency: { type: String, enum: ['normal', 'urgent', 'critical'], default: 'normal' },
+  visibility: { type: String, enum: ['community', 'chaplain'], default: 'community' },
   isAnonymous: { type: Boolean, default: false },
   status: { type: String, enum: ['active', 'answered', 'closed'], default: 'active' },
   adminResponse: { type: String, default: '' },
@@ -17,6 +18,7 @@ const prayerRequestSchema = new mongoose.Schema({
 });
 
 prayerRequestSchema.index({ status: 1, createdAt: -1 });
+prayerRequestSchema.index({ visibility: 1, status: 1, createdAt: -1 });
 prayerRequestSchema.index({ requestedBy: 1, createdAt: -1 });
 prayerRequestSchema.index({ answeredBy: 1, answeredAt: -1 });
 

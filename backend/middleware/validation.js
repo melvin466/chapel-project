@@ -88,6 +88,7 @@ const validatePrayerRequest = [
   body('description').notEmpty().withMessage('Description required'),
   body('category').optional().isIn(['personal', 'family', 'health', 'academic', 'financial', 'spiritual', 'other']).withMessage('Valid category required'),
   body('urgency').optional().isIn(['normal', 'urgent', 'critical']).withMessage('Valid urgency level required'),
+  body('visibility').optional().isIn(['community', 'chaplain']).withMessage('Valid prayer audience required'),
   body('isAnonymous').optional().isBoolean().withMessage('isAnonymous must be a boolean'),
   validate
 ];

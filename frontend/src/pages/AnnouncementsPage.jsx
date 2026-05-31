@@ -1,22 +1,35 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import announcementService from '../services/announcementService';
-import api from '../services/api';
+import { getMediaUrl } from '../utils/media';
 
-const announcementFallbackImage = 'https://images.pexels.com/photos/208315/pexels-photo-208315.jpeg?auto=compress&cs=tinysrgb&w=900';
+const announcementFallbackImage = 'https://images.pexels.com/photos/208315/pexels-photo-208315.jpeg?auto=compress&cs=tinysrgb&w=1200';
 
-const getMediaUrl = (path) => {
-  if (!path) return '';
-  if (path.startsWith('http')) return path;
-  const normalizedPath = path.replace(/\\/g, '/');
-  const uploadPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`;
-  return `${api.defaults.baseURL.replace(/\/api\/?$/, '')}${encodeURI(uploadPath)}`;
+const formatDate = (dateString) => {
+  if (!dateString) return 'Date to be announced';
+  return new Date(dateString).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
 };
+
+const excerpt = (text = '', length = 150) => {
+  if (text.length <= length) return text;
+  return `${text.slice(0, length).trim()}...`;
+};
+
+const getPosterName = (announcement) => (
+  announcement.createdBy
+    ? `${announcement.createdBy.firstName || ''} ${announcement.createdBy.lastName || ''}`.trim()
+    : 'Chapel Team'
+);
 
 const AnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+  const [activeType, setActiveType] = useState('all');
 
   useEffect(() => {
     loadAnnouncements();
@@ -24,7 +37,7 @@ const AnnouncementsPage = () => {
 
   const loadAnnouncements = async () => {
     try {
-      const response = await announcementService.getAnnouncements({ limit: 50 });
+      const response = await announcementService.getAnnouncements({ limit: 100 });
       setAnnouncements(response.data?.announcements || []);
     } catch (error) {
       console.error('Error loading announcements:', error);
@@ -33,292 +46,371 @@ const AnnouncementsPage = () => {
     }
   };
 
-  const getPriorityClass = (priority) => {
-    switch (priority) {
-      case 'critical': return 'priority-critical';
-      case 'high': return 'priority-high';
-      case 'medium': return 'priority-medium';
-      default: return 'priority-low';
-    }
-  };
+  const featuredAnnouncement = announcements.find((item) => ['critical', 'high'].includes(item.priority)) || announcements[0];
+  const typeOptions = useMemo(() => ['all', ...new Set(announcements.map((item) => item.type).filter(Boolean))], [announcements]);
 
-  const getPosterName = (announcement) => (
-    announcement.createdBy
-      ? `${announcement.createdBy.firstName || ''} ${announcement.createdBy.lastName || ''}`.trim()
-      : 'Chapel Team'
-  );
+  const visibleAnnouncements = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    return announcements.filter((announcement) => {
+      const searchable = [
+        announcement.title,
+        announcement.content,
+        announcement.summary,
+        announcement.type,
+        announcement.priority,
+      ].filter(Boolean).join(' ').toLowerCase();
+      const matchesQuery = !normalizedQuery || searchable.includes(normalizedQuery);
+      const matchesType = activeType === 'all' || announcement.type === activeType;
+      return matchesQuery && matchesType;
+    });
+  }, [activeType, announcements, query]);
 
   if (loading) return <div className="loading">Loading announcements...</div>;
 
   return (
-    <div className="container">
-      <section className="listing-hero announcements-hero">
-        <div>
-          <span>Chapel notices</span>
-          <h1>Announcements</h1>
+    <div className="announcements-page">
+      <section className="announcements-feature">
+        <div className="announcements-feature-copy">
+          <span>Latest chapel update</span>
+          <h1>{featuredAnnouncement ? featuredAnnouncement.title : 'Stay close to chapel life.'}</h1>
           <p>
-            Stay close to the life of the chapel: service updates, ministry news, prayer notes,
-            and the small details that help our community move together.
+            {featuredAnnouncement
+              ? excerpt(featuredAnnouncement.summary || featuredAnnouncement.content, 190)
+              : 'Service changes, ministry updates, pastoral notes, and community notices appear here.'}
           </p>
+          {featuredAnnouncement && (
+            <div className="announcements-feature-actions">
+              <Link to={`/announcements/${featuredAnnouncement._id}`} className="btn-primary">Read update</Link>
+              <span>{formatDate(featuredAnnouncement.publishDate || featuredAnnouncement.createdAt)} · {featuredAnnouncement.type || 'General'}</span>
+            </div>
+          )}
         </div>
-        <aside>
-          <strong>Keep in step</strong>
-          <p>Check here before services, fellowships, and special gatherings so you do not miss important updates.</p>
-        </aside>
+        <div className="announcements-feature-media">
+          <img
+            src={featuredAnnouncement?.featuredImage ? getMediaUrl(featuredAnnouncement.featuredImage) : announcementFallbackImage}
+            alt=""
+          />
+          <span>{featuredAnnouncement?.priority || 'Update'}</span>
+        </div>
       </section>
 
-      <section className="announcements-intro">
-        <div>
-          <span>What you will find here</span>
-          <h2>Official updates from the people serving the chapel community.</h2>
-          <p>
-            Announcements are posted by authorized chapel staff and leaders, with each notice tied
-            to the person and role that published it. Use this page for service changes, ministry
-            notices, urgent updates, prayer information, and administrative reminders.
-          </p>
+      <section className="announcements-library">
+        <div className="announcements-library-heading">
+          <div>
+            <span>Notice board</span>
+            <h2>Everything the chapel team needs you to know.</h2>
+          </div>
+          <label className="announcements-search">
+            <span className="sr-only">Search announcements</span>
+            <input
+              type="search"
+              placeholder="Search notices, ministry updates, or keywords..."
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
         </div>
-        <div className="announcement-guide">
+
+        <div className="announcements-filter-row" aria-label="Announcement filters">
+          {typeOptions.map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={activeType === type ? 'active' : ''}
+              onClick={() => setActiveType(type)}
+            >
+              {type === 'all' ? 'All' : type}
+            </button>
+          ))}
+        </div>
+
+        {visibleAnnouncements.length === 0 ? (
+          <div className="no-data rich-empty">
+            <strong>No announcements match that search.</strong>
+            <span>Try a simpler keyword, ministry name, or notice type.</span>
+          </div>
+        ) : (
+          <div className="announcement-media-grid">
+            {visibleAnnouncements.map((announcement) => (
+              <Link key={announcement._id} to={`/announcements/${announcement._id}`} className="announcement-media-card">
+                <div className="announcement-media-image">
+                  <img
+                    src={announcement.featuredImage ? getMediaUrl(announcement.featuredImage) : announcementFallbackImage}
+                    alt=""
+                    loading="lazy"
+                  />
+                  <span>{announcement.priority || 'normal'}</span>
+                </div>
+                <div className="announcement-media-content">
+                  <div className="announcement-media-meta">
+                    <span>{announcement.type || 'General'}</span>
+                    <span>{formatDate(announcement.publishDate || announcement.createdAt)}</span>
+                  </div>
+                  <h3>{announcement.title}</h3>
+                  <p className="announcement-poster">Posted by {getPosterName(announcement)}</p>
+                  <p>{excerpt(announcement.summary || announcement.content)}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="announcements-guide-band">
+        <div>
+          <span>How to use this page</span>
+          <h2>Read the details before services, groups, and special gatherings.</h2>
+        </div>
+        <div className="announcements-guide-grid">
           <div><strong>Urgent</strong><span>Time-sensitive changes and critical notices.</span></div>
-          <div><strong>Ministry</strong><span>Updates from fellowships, groups, and service teams.</span></div>
+          <div><strong>Ministry</strong><span>Updates from teams, fellowships, and service groups.</span></div>
           <div><strong>Pastoral</strong><span>Guidance, prayer notes, and care-related messages.</span></div>
         </div>
       </section>
 
-      {announcements.length === 0 ? (
-        <div className="no-data rich-empty">
-          <strong>No announcements right now.</strong>
-          <span>When the chapel team posts new updates, they will appear here.</span>
-        </div>
-      ) : (
-        <div className="announcements-list">
-          {announcements.map((announcement) => (
-            <div
-              key={announcement._id}
-              className={`announcement-card ${getPriorityClass(announcement.priority)}`}
-              onClick={() => navigate(`/announcements/${announcement._id}`)}
-            >
-              <img
-                src={announcement.featuredImage ? getMediaUrl(announcement.featuredImage) : announcementFallbackImage}
-                alt=""
-                className="announcement-image"
-                loading="lazy"
-              />
-              <div className="announcement-header">
-                <span className="announcement-type">{announcement.type || 'General'}</span>
-                <span className="announcement-date">
-                  {new Date(announcement.publishDate || announcement.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-              <h2>{announcement.title}</h2>
-              <p className="announcement-poster">
-                Posted by {getPosterName(announcement)}
-                {announcement.createdBy?.role && <span>{announcement.createdBy.role}</span>}
-              </p>
-              <p>{announcement.content?.substring(0, 200)}...</p>
-              <button className="read-more">Read More</button>
-            </div>
-          ))}
-        </div>
-      )}
-
       <style>{`
-        .listing-hero {
-          min-height: 300px;
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) 300px;
-          gap: 1.2rem;
-          align-items: end;
-          margin: 1rem 0 1.4rem;
-          padding: 1.5rem;
-          border-radius: 8px;
-          overflow: hidden;
-          color: white;
-          background:
-            linear-gradient(90deg, rgba(10,16,21,0.92), rgba(10,16,21,0.58), rgba(10,16,21,0.86)),
-            url('https://images.pexels.com/photos/208315/pexels-photo-208315.jpeg?auto=compress&cs=tinysrgb&w=1600');
-          background-size: cover;
-          background-position: center;
-          border: 1px solid rgba(255,255,255,0.18);
-          box-shadow: 0 18px 45px rgba(0,0,0,0.24);
-        }
-        .listing-hero span {
-          display: inline-block;
-          color: #9bd8aa;
-          font-size: 0.78rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          margin-bottom: 0.5rem;
-        }
-        .listing-hero h1 {
-          font-size: clamp(2.1rem, 5vw, 4rem);
-          line-height: 1;
-          margin-bottom: 0.8rem;
-        }
-        .listing-hero p {
-          max-width: 720px;
-          color: rgba(255,255,255,0.78);
-        }
-        .listing-hero aside {
-          padding: 1rem;
-          border-radius: 8px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.2);
-          backdrop-filter: blur(18px);
-        }
-        .listing-hero aside strong {
-          display: block;
-          color: white;
-          margin-bottom: 0.35rem;
-        }
-        .announcements-intro {
-          width: min(100%, 980px);
-          margin: 0 auto 1.4rem;
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(280px, 0.8fr);
-          gap: 1rem;
-        }
-        .announcements-intro > div {
-          padding: 1.2rem;
-          border-radius: 8px;
-          background: rgba(255,255,255,0.12);
-          border: 1px solid rgba(255,255,255,0.18);
-          color: white;
-          backdrop-filter: blur(18px);
-        }
-        .announcements-intro span {
-          display: inline-block;
-          color: #9bd8aa;
-          font-size: 0.76rem;
-          font-weight: 800;
-          text-transform: uppercase;
-          margin-bottom: 0.5rem;
-        }
-        .announcements-intro h2 {
-          color: white;
-          font-size: 1.6rem;
-          line-height: 1.15;
-          margin-bottom: 0.7rem;
-        }
-        .announcements-intro p,
-        .announcement-guide div span {
-          color: rgba(255,255,255,0.76);
-          line-height: 1.6;
-        }
-        .announcement-guide {
-          display: grid;
-          gap: 0.65rem;
-        }
-        .announcement-guide div {
-          display: grid;
-          gap: 0.25rem;
-          padding: 0.75rem;
-          border-radius: 8px;
-          background: rgba(255,255,255,0.08);
-        }
-        .announcement-guide strong {
-          color: white;
-        }
-        .announcements-list {
-          width: min(100%, 980px);
+        .announcements-page {
+          width: min(1200px, calc(100% - 48px));
           margin: 0 auto;
           padding-bottom: 3rem;
+          color: white;
+        }
+        .announcements-feature {
+          min-height: 430px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
+          gap: 1.1rem;
+          align-items: stretch;
+          margin: 1rem 0 1.2rem;
+        }
+        .announcements-feature-copy,
+        .announcements-feature-media,
+        .announcements-library,
+        .announcements-guide-band {
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: var(--glass-panel);
+          box-shadow: var(--shadow-deep);
+          backdrop-filter: blur(22px) saturate(130%);
+          overflow: hidden;
+        }
+        .announcements-feature-copy {
+          padding: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          background:
+            linear-gradient(135deg, rgba(49,95,114,0.24), rgba(47,125,70,0.14)),
+            var(--glass-panel);
+        }
+        .announcements-feature-copy > span,
+        .announcements-library-heading span,
+        .announcements-guide-band > div > span {
+          color: var(--brand-soft);
+          display: inline-block;
+          font-size: 0.76rem;
+          font-weight: 900;
+          text-transform: uppercase;
+          margin-bottom: 0.55rem;
+        }
+        .announcements-feature-copy h1 {
+          max-width: 760px;
+          font-size: clamp(2.35rem, 5vw, 4.6rem);
+          line-height: 0.98;
+          margin-bottom: 0.9rem;
+        }
+        .announcements-feature-copy p {
+          max-width: 680px;
+          color: rgba(255,255,255,0.76);
+          font-size: 1.05rem;
+        }
+        .announcements-feature-actions {
+          display: flex;
+          gap: 0.9rem;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-top: 1.5rem;
+        }
+        .announcements-feature-actions span {
+          color: rgba(255,255,255,0.7);
+          font-weight: 700;
+        }
+        .announcements-feature-media {
+          position: relative;
+          min-height: 330px;
+        }
+        .announcements-feature-media img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+        }
+        .announcements-feature-media::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 42%, rgba(10,16,21,0.76));
+        }
+        .announcements-feature-media span {
+          position: absolute;
+          left: 1rem;
+          bottom: 1rem;
+          z-index: 1;
+          padding: 0.4rem 0.75rem;
+          border-radius: 999px;
+          color: #1f2933;
+          background: rgba(255,255,255,0.92);
+          text-transform: capitalize;
+          font-weight: 900;
+        }
+        .announcements-library {
+          padding: 1.2rem;
+        }
+        .announcements-library-heading {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+          gap: 1rem;
+          align-items: end;
+          margin-bottom: 1rem;
+        }
+        .announcements-library-heading h2,
+        .announcements-guide-band h2 {
+          font-size: clamp(1.6rem, 3vw, 2.45rem);
+          line-height: 1.05;
+        }
+        .announcements-search input {
+          min-height: 48px;
+          margin: 0;
+        }
+        .announcements-filter-row {
+          display: flex;
+          gap: 0.55rem;
+          flex-wrap: wrap;
+          margin-bottom: 1rem;
+        }
+        .announcements-filter-row button {
+          min-height: 38px;
+          border-radius: 999px;
+          padding: 0.45rem 0.8rem;
+          border: 1px solid rgba(255,255,255,0.18);
+          color: rgba(255,255,255,0.8);
+          background: rgba(255,255,255,0.08);
+          cursor: pointer;
+          text-transform: capitalize;
+          font-weight: 800;
+        }
+        .announcements-filter-row button.active,
+        .announcements-filter-row button:hover {
+          color: white;
+          border-color: rgba(155,216,170,0.42);
+          background: rgba(47,125,70,0.28);
+        }
+        .announcement-media-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
           gap: 1rem;
         }
-        .announcement-card {
-          max-width: 100%;
-          overflow: hidden;
-          border-radius: 8px;
-          padding: 1rem;
-          transition: transform 0.3s;
-          cursor: pointer;
-          border-left: 4px solid #4CAF50;
-          min-height: 250px;
+        .announcement-media-card {
+          min-height: 410px;
           display: flex;
           flex-direction: column;
-        }
-        .announcement-card:hover {
-          transform: translateY(-4px);
-        }
-        .announcement-image {
-          width: 100%;
-          height: 150px;
-          object-fit: cover;
-          border-radius: 8px;
-          margin-bottom: 1rem;
-        }
-        .priority-critical { border-left-color: #f44336; }
-        .priority-high { border-left-color: #ff9800; }
-        .priority-medium { border-left-color: #2196F3; }
-        .priority-low { border-left-color: #4CAF50; }
-        .announcement-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 0.5rem;
-          flex-wrap: wrap;
-          gap: 0.5rem;
-        }
-        .announcement-type {
-          background: rgba(155,216,170,0.16);
-          color: #9bd8aa;
-          border: 1px solid rgba(155,216,170,0.22);
-          padding: 0.2rem 0.6rem;
-          border-radius: 20px;
-          font-size: 0.7rem;
-          text-transform: uppercase;
-        }
-        .announcement-date {
-          color: rgba(255,255,255,0.64);
-          font-size: 0.8rem;
-        }
-        .announcement-card h2 {
-          margin-bottom: 0.5rem;
           color: white;
-          font-size: 1.05rem;
-          line-height: 1.25;
-          overflow-wrap: anywhere;
-          word-break: break-word;
+          text-decoration: none;
+          border-radius: 8px;
+          overflow: hidden;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.14);
+          transition: transform 0.2s ease, background 0.2s ease;
         }
-        .announcement-card p {
-          color: rgba(255, 255, 255, 0.74);
-          margin-bottom: 1rem;
-          line-height: 1.5;
-          font-size: 0.92rem;
-          overflow-wrap: anywhere;
-          word-break: break-word;
-          display: -webkit-box;
-          -webkit-line-clamp: 4;
-          -webkit-box-orient: vertical;
+        .announcement-media-card:hover {
+          transform: translateY(-4px);
+          background: rgba(255,255,255,0.12);
+        }
+        .announcement-media-image {
+          position: relative;
+          height: 180px;
           overflow: hidden;
         }
-        .announcement-card .announcement-poster {
-          color: rgba(255,255,255,0.68);
-          font-size: 0.82rem;
-          margin-bottom: 0.7rem;
-          -webkit-line-clamp: 2;
+        .announcement-media-image img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
         }
-        .announcement-poster span {
-          display: inline-block;
-          margin-left: 0.45rem;
-          padding: 0.12rem 0.42rem;
+        .announcement-media-image::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, transparent 42%, rgba(10,16,21,0.76));
+        }
+        .announcement-media-image span {
+          position: absolute;
+          left: 0.8rem;
+          bottom: 0.8rem;
+          z-index: 1;
+          padding: 0.32rem 0.62rem;
           border-radius: 999px;
-          background: rgba(155,216,170,0.16);
-          color: #9bd8aa;
+          background: rgba(255,255,255,0.92);
+          color: #1f2933;
+          font-size: 0.75rem;
+          font-weight: 900;
           text-transform: capitalize;
-          font-size: 0.72rem;
-          font-weight: 700;
         }
-        .read-more {
-          background: none;
-          border: none;
-          color: #9bd8aa;
-          cursor: pointer;
-          font-weight: 700;
-          transition: color 0.3s;
-          margin-top: auto;
-          align-self: flex-start;
+        .announcement-media-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          padding: 1rem;
+        }
+        .announcement-media-meta {
+          display: flex;
+          justify-content: space-between;
+          gap: 0.7rem;
+          flex-wrap: wrap;
+          color: rgba(255,255,255,0.62);
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-transform: capitalize;
+        }
+        .announcement-media-content h3 {
+          color: white;
+          font-size: 1.18rem;
+          line-height: 1.12;
+          margin: 0.65rem 0 0.35rem;
+        }
+        .announcement-media-content p {
+          color: rgba(255,255,255,0.72);
+          line-height: 1.55;
+        }
+        .announcement-media-content .announcement-poster {
+          color: var(--brand-soft);
+          font-weight: 900;
+          margin-bottom: 0.55rem;
+        }
+        .announcements-guide-band {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+          gap: 1rem;
+          margin-top: 1.2rem;
+          padding: 1.25rem;
+        }
+        .announcements-guide-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 0.75rem;
+        }
+        .announcements-guide-grid div {
+          padding: 0.9rem;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(255,255,255,0.13);
+        }
+        .announcements-guide-grid strong,
+        .announcements-guide-grid span {
+          display: block;
+        }
+        .announcements-guide-grid span {
+          color: rgba(255,255,255,0.72);
         }
         .rich-empty {
           display: grid;
@@ -331,11 +423,20 @@ const AnnouncementsPage = () => {
         .rich-empty span {
           color: rgba(255,255,255,0.72);
         }
-        @media (max-width: 760px) {
-          .listing-hero,
-          .announcements-intro {
+        @media (max-width: 860px) {
+          .announcements-feature,
+          .announcements-library-heading,
+          .announcements-guide-band,
+          .announcements-guide-grid {
             grid-template-columns: 1fr;
-            min-height: auto;
+          }
+        }
+        @media (max-width: 620px) {
+          .announcements-page {
+            width: min(100% - 32px, 1200px);
+          }
+          .announcements-feature-copy h1 {
+            font-size: 2.2rem;
           }
         }
       `}</style>

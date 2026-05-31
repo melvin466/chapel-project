@@ -1,6 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import  donationService  from '../services/donationService';
-import { useAuth } from '../context/AuthContext';
+
+const scriptureNotes = [
+  {
+    reference: '2 Corinthians 9:7',
+    quote: 'God loves a cheerful giver.',
+    note: 'Giving is worship before it is a transaction.',
+  },
+  {
+    reference: 'Matthew 6:21',
+    quote: 'Where your treasure is, there will your heart be also.',
+    note: 'Generosity forms our attention, trust, and love.',
+  },
+  {
+    reference: 'James 1:17',
+    quote: 'Every good gift and every perfect gift is from above.',
+    note: 'We give from gratitude for what God has first given.',
+  },
+];
+
+const givingImpact = [
+  {
+    id: 'ministry',
+    percent: '38%',
+    title: 'Ministry and pastoral care',
+    description: 'Supports counselling, prayer care, student ministry, chapel leaders, and weekly ministry needs.',
+  },
+  {
+    id: 'worship',
+    percent: '24%',
+    title: 'Worship and gatherings',
+    description: 'Helps sustain services, music, fellowship events, discipleship spaces, and chapel hospitality.',
+  },
+  {
+    id: 'outreach',
+    percent: '18%',
+    title: 'Outreach and missions',
+    description: 'Funds mission activity, benevolence, community support, and practical help for people in need.',
+  },
+  {
+    id: 'operations',
+    percent: '20%',
+    title: 'Facilities and operations',
+    description: 'Keeps chapel spaces, systems, payments, communications, and administration running responsibly.',
+  },
+];
 
 const DonationsPage = () => {
   const [amount, setAmount] = useState('');
@@ -11,7 +55,7 @@ const DonationsPage = () => {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
-  const { isAuthenticated } = useAuth();
+  const [selectedImpactId, setSelectedImpactId] = useState(givingImpact[0].id);
   const [donationOptions, setDonationOptions] = useState([
     { id: 'tithe', name: 'Tithe' },
     { id: 'offering', name: 'Offering' },
@@ -34,10 +78,6 @@ const DonationsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage(null);
-    if (!isAuthenticated) {
-      setMessage({ type: 'error', text: 'Please log in to make a donation.' });
-      return;
-    }
     setSubmitting(true);
     try {
       const response = await donationService.createDonation({
@@ -72,13 +112,61 @@ const DonationsPage = () => {
     }
   };
 
+  const selectedImpact = givingImpact.find((item) => item.id === selectedImpactId) || givingImpact[0];
+
   return (
-    <div className="container">
-      <h1 className="page-title">Give Online</h1>
+    <div className="container giving-page">
+      <section className="giving-hero">
+        <div>
+          <span>Secure chapel giving</span>
+          <h1>Give with clarity, purpose, and care.</h1>
+          <p>
+            Support worship, student ministry, outreach, chapel spaces, and pastoral care through a simple mobile money flow.
+          </p>
+        </div>
+        <aside>
+          <strong>Mobile money ready</strong>
+          <p>Enter your amount and phone number, then approve the prompt from MTN or Airtel on your phone.</p>
+        </aside>
+      </section>
+
+      <section className="giving-purpose-grid" aria-label="Giving purposes">
+        {donationOptions.slice(0, 6).map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className={`giving-purpose-card ${donationType === option.id ? 'active' : ''}`}
+            onClick={() => setDonationType(option.id)}
+          >
+            <span>{option.name}</span>
+          </button>
+        ))}
+      </section>
+
+      <section className="giving-scripture-section" aria-label="Scripture about giving">
+        <div className="giving-section-heading">
+          <span>Why we give</span>
+          <h2>Generosity begins with worship.</h2>
+          <p>These reminders shape the spirit of giving in the chapel community.</p>
+        </div>
+        <div className="giving-scripture-grid">
+          {scriptureNotes.map((item) => (
+            <article key={item.reference} className="giving-scripture-card">
+              <span>{item.reference}</span>
+              <blockquote>{item.quote}</blockquote>
+              <p>{item.note}</p>
+            </article>
+          ))}
+        </div>
+      </section>
       
       <div className="two-columns">
         <div className="form-card">
-          <h2>Make a Donation</h2>
+          <div className="giving-form-heading">
+            <span>Selected purpose</span>
+            <h2>{donationOptions.find((option) => option.id === donationType)?.name || 'Make a Donation'}</h2>
+            <p>All payments are recorded securely and can be reviewed by the chapel finance team.</p>
+          </div>
           {message && (
             <div className={`form-message ${message.type}`} role={message.type === 'error' ? 'alert' : 'status'}>
               {message.text}
@@ -112,14 +200,76 @@ const DonationsPage = () => {
         </div>
         
         <div className="info-card">
-          <h3>Why Give?</h3>
-          <p>Your giving supports our ministry and helps us serve the community.</p>
+          <span className="info-kicker">Giving guide</span>
+          <h3>Where your support goes</h3>
+          <div className="giving-info-list">
+            <div>
+              <strong>Ministry care</strong>
+              <p>Counselling, prayer support, outreach, and student care.</p>
+            </div>
+            <div>
+              <strong>Worship life</strong>
+              <p>Services, music, gatherings, and chapel operations.</p>
+            </div>
+            <div>
+              <strong>Community needs</strong>
+              <p>Benevolence, missions, and practical help where needed.</p>
+            </div>
+          </div>
           <h4>Bank Details</h4>
           <p>Bank: Stanbic Bank<br />Account: 1234567890<br />Name: St. Francis Chapel</p>
           <h4>Mobile Money</h4>
           <p>MTN: +256 700 000000<br />Airtel: +256 701 000000</p>
         </div>
       </div>
+
+      <section className="giving-impact-section" aria-label="Where giving goes">
+        <div className="giving-section-heading">
+          <span>Where it goes</span>
+          <h2>Transparent support for chapel life.</h2>
+          <p>Tap a category to see how gifts help the ministry serve people.</p>
+        </div>
+        <div className="giving-impact-layout">
+          <div className="giving-impact-ring" aria-hidden="true">
+            <strong>{selectedImpact.percent}</strong>
+            <span>{selectedImpact.title}</span>
+          </div>
+          <div className="giving-impact-list">
+            {givingImpact.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`giving-impact-item ${selectedImpactId === item.id ? 'active' : ''}`}
+                onClick={() => setSelectedImpactId(item.id)}
+              >
+                <strong>{item.percent}</strong>
+                <span>{item.title}</span>
+              </button>
+            ))}
+          </div>
+          <article className="giving-impact-detail">
+            <span>{selectedImpact.percent}</span>
+            <h3>{selectedImpact.title}</h3>
+            <p>{selectedImpact.description}</p>
+          </article>
+        </div>
+      </section>
+
+      <section className="giving-belief-band">
+        <div>
+          <span>What we believe</span>
+          <h2>Giving is trust practiced in public and private.</h2>
+          <p>
+            Tithes, offerings, and mission gifts help the chapel care for people, gather for worship,
+            and respond generously when needs arise.
+          </p>
+        </div>
+        <div className="giving-question-card">
+          <strong>Still have questions?</strong>
+          <p>Giving can be personal. Contact the chapel office for guidance, records, or payment support.</p>
+          <a href="mailto:chapel@example.org">chapel@example.org</a>
+        </div>
+      </section>
     </div>
   );
 };

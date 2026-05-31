@@ -16,10 +16,38 @@ const getCells = async (req, res) => {
       .limit(parseInt(limit));
 
     const total = await Cell.countDocuments(filter);
+    let viewer = null;
+    let pendingRequest = null;
+
+    if (req.user?._id) {
+      pendingRequest = await CellJoinRequest.findOne({ user: req.user._id, status: 'pending' })
+        .select('cell status')
+        .lean();
+
+      viewer = {
+        cellId: req.user.cellId || null,
+        pendingCellId: pendingRequest?.cell || null,
+      };
+    }
+
+    const cellsWithViewerStatus = cells.map((cell) => {
+      const cellObject = cell.toObject();
+      const isCurrentCell = viewer?.cellId?.toString() === cell._id.toString();
+      const isPending = viewer?.pendingCellId?.toString() === cell._id.toString();
+
+      return {
+        ...cellObject,
+        viewerStatus: isCurrentCell ? 'member' : isPending ? 'pending' : 'none',
+      };
+    });
 
     res.json({
       success: true,
-      data: { cells, pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) } }
+      data: {
+        cells: cellsWithViewerStatus,
+        viewer,
+        pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / limit) },
+      }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

@@ -499,6 +499,14 @@ describe('Auth Controller', () => {
 
     expect(requestRes.statusCode).toBe(201);
 
+    const pendingCellsRes = await request(app)
+      .get('/api/cells')
+      .set('Authorization', `Bearer ${memberLogin.body.data.token}`);
+
+    expect(pendingCellsRes.statusCode).toBe(200);
+    expect(pendingCellsRes.body.data.viewer.pendingCellId).toBe(cell._id.toString());
+    expect(pendingCellsRes.body.data.cells.find((item) => item._id === cell._id.toString()).viewerStatus).toBe('pending');
+
     const manageRes = await request(app)
       .get('/api/cells/manage/all')
       .set('Authorization', `Bearer ${adminLogin.body.data.token}`);
@@ -514,6 +522,14 @@ describe('Auth Controller', () => {
 
     const member = await User.findOne({ email: 'cellmember@example.com' });
     expect(member.cellId.toString()).toBe(cell._id.toString());
+
+    const joinedCellsRes = await request(app)
+      .get('/api/cells')
+      .set('Authorization', `Bearer ${memberLogin.body.data.token}`);
+
+    expect(joinedCellsRes.statusCode).toBe(200);
+    expect(joinedCellsRes.body.data.viewer.cellId).toBe(cell._id.toString());
+    expect(joinedCellsRes.body.data.cells.find((item) => item._id === cell._id.toString()).viewerStatus).toBe('member');
   });
 
   it('should allow an admin to review and update donations', async () => {
@@ -578,6 +594,32 @@ describe('Auth Controller', () => {
     const donation = await Donation.findById(donationRes.body.data.donation._id);
     expect(donation.receiptSent).toBe(true);
     expect(donation.completedAt).toBeTruthy();
+  });
+
+  it('should allow a guest to create a donation without an account', async () => {
+    const optionsRes = await request(app)
+      .get('/api/donations/options');
+
+    expect(optionsRes.statusCode).toBe(200);
+    expect(optionsRes.body.data.options.length).toBeGreaterThan(0);
+
+    const donationRes = await request(app)
+      .post('/api/donations')
+      .send({
+        amount: 5000,
+        donationType: 'offering',
+        paymentMethod: 'mobile_money',
+        provider: 'MTN',
+        phoneNumber: '256700000000',
+        isAnonymous: true
+      });
+
+    expect(donationRes.statusCode).toBe(201);
+    expect(donationRes.body.data.donation.amount).toBe(5000);
+
+    const donation = await Donation.findById(donationRes.body.data.donation._id);
+    expect(donation).toBeTruthy();
+    expect(donation.donor).toBeUndefined();
   });
 
   it('should update a donation from a Relworx webhook', async () => {

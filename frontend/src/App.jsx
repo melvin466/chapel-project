@@ -5,7 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminLayout from './components/AdminLayout';
 import PageSkeleton from './components/PageSkeleton';
-import { routeLoaders, preloadRoute } from './routePreload';
+import { routeLoaders, preloadRoutes } from './routePreload';
 import './App.css';
 
 const HomePage = lazy(routeLoaders.HomePage);
@@ -110,7 +110,7 @@ function AppRoutes() {
 
   React.useEffect(() => {
     const warmRoutes = () => {
-      ['/', '/events', '/announcements', '/sermons', '/dashboard'].forEach(preloadRoute);
+      preloadRoutes();
     };
 
     if ('requestIdleCallback' in window) {
@@ -126,8 +126,8 @@ function AppRoutes() {
     <div className={`App ${isAdminPath ? 'admin-app' : ''}`}>
       {!isAdminPath && <Navbar />}
       <main className={isAdminPath ? 'admin-main' : undefined}>
-            <Suspense fallback={<PageSkeleton variant={isAdminPath ? 'admin' : 'public'} />}>
-            <Routes>
+            <Suspense key={`${location.pathname}${location.search}`} fallback={<PageSkeleton variant={isAdminPath ? 'admin' : 'public'} />}>
+            <Routes location={location}>
               {/* ===== PUBLIC ROUTES (No login required) ===== */}
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={
@@ -152,51 +152,37 @@ function AppRoutes() {
               } />
               <Route path="/verify-email" element={<VerifyEmailPage />} />
               
-              {/* ===== PROTECTED ROUTES (Login required) ===== */}
+              {/* ===== PUBLIC DISCOVERY ROUTES ===== */}
               <Route path="/events" element={
-                <ProtectedRoute>
-                  <EventsPage />
-                </ProtectedRoute>
+                <EventsPage />
               } />
               <Route path="/events/:id" element={
-                <ProtectedRoute>
-                  <EventDetailPage />
-                </ProtectedRoute>
+                <EventDetailPage />
               } />
               <Route path="/announcements" element={
-                <ProtectedRoute>
-                  <AnnouncementsPage />
-                </ProtectedRoute>
+                <AnnouncementsPage />
               } />
               <Route path="/announcements/:id" element={
-                <ProtectedRoute>
-                  <AnnouncementDetailPage />
-                </ProtectedRoute>
+                <AnnouncementDetailPage />
               } />
               <Route path="/sermons" element={
-                <ProtectedRoute>
-                  <SermonsPage />
-                </ProtectedRoute>
+                <SermonsPage />
               } />
               <Route path="/sermons/:id" element={
-                <ProtectedRoute>
-                  <SermonDetailPage />
-                </ProtectedRoute>
+                <SermonDetailPage />
               } />
               <Route path="/cells" element={
-                <ProtectedRoute>
-                  <CellsPage />
-                </ProtectedRoute>
+                <CellsPage />
               } />
+
+              {/* ===== PROTECTED ROUTES (Login required) ===== */}
               <Route path="/prayer" element={
                 <ProtectedRoute>
                   <PrayerPage />
                 </ProtectedRoute>
               } />
               <Route path="/donations" element={
-                <ProtectedRoute>
-                  <DonationsPage />
-                </ProtectedRoute>
+                <DonationsPage />
               } />
               <Route path="/feedback" element={
                 <ProtectedRoute>
@@ -209,9 +195,7 @@ function AppRoutes() {
                 </ProtectedRoute>
               } />
               <Route path="/give" element={
-                <ProtectedRoute>
-                  <GivePage />
-                </ProtectedRoute>
+                <GivePage />
               } />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
@@ -266,9 +250,9 @@ function AppRoutes() {
                 </AdminRoute>
               } />
               <Route path="/admin/prayers" element={
-                <AdminRoute>
+                <ContentManagerRoute>
                   <AdminPrayerRequests />
-                </AdminRoute>
+                </ContentManagerRoute>
               } />
               <Route path="/admin/users" element={
                 <AdminRoute>

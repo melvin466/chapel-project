@@ -12,10 +12,10 @@ const {
   assignMemberToCell,
   removeMemberFromCell,
 } = require('../controllers/cellController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, optionalProtect, admin } = require('../middleware/auth');
 const { validateCell } = require('../middleware/validation');
 
-router.get('/', getCells);
+router.get('/', optionalProtect, getCells);
 router.get('/manage/all', protect, admin, getManageCells);
 router.get('/:id', getCellById);
 router.post('/', protect, admin, validateCell, createCell);

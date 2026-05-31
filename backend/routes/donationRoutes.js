@@ -9,13 +9,13 @@ const {
   updateManagedDonation,
   handlePaymentCallback,
 } = require('../controllers/donationController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, optionalProtect, admin } = require('../middleware/auth');
 
 router.get('/manage/all', protect, admin, getManageDonations);
 router.get('/', protect, getDonations);
-router.get('/options', protect, getDonationOptions);
+router.get('/options', getDonationOptions);
 router.get('/stats', protect, admin, getDonationStats);
-router.post('/', protect, createDonation);
+router.post('/', optionalProtect, createDonation);
 router.put('/:id/manage', protect, admin, updateManagedDonation);
 router.all('/callback', handlePaymentCallback);
 

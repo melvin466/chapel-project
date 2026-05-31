@@ -62,7 +62,7 @@ const HomePage = () => {
       <section className="home-hero">
         <div className="home-hero-inner">
           <div className="home-hero-copy">
-            <span className="home-eyebrow">University Chapel</span>
+            <span className="home-eyebrow">Chapel Community</span>
             <h1>Worship, community, and care in one living system.</h1>
             <p>
               Follow chapel events, read announcements, send prayer requests, book support, and give securely from one place.

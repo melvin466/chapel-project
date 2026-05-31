@@ -12,7 +12,7 @@ describe('Footer', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText('Chapel Management System')).toBeInTheDocument();
+    expect(screen.getByText('Chapel Community')).toBeInTheDocument();
     expect(screen.getByText('Stay connected with chapel life.')).toBeInTheDocument();
     expect(screen.getByText('Latest Updates')).toBeInTheDocument();
     expect(screen.getByText('Give Online')).toBeInTheDocument();

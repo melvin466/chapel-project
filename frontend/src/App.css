@@ -1,8 +1,8 @@
 :root {
   --surface: rgba(255, 255, 255, 0.14);
   --surface-strong: rgba(255, 255, 255, 0.2);
-  --glass-panel: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
-  --glass-panel-hover: linear-gradient(145deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.11));
+  --glass-panel: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.075));
+  --glass-panel-hover: linear-gradient(145deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.11));
   --glass-field: rgba(255, 255, 255, 0.08);
   --glass-field-focus: rgba(255, 255, 255, 0.14);
   --ink: #1f2933;
@@ -10,9 +10,12 @@
   --line: rgba(31, 41, 51, 0.12);
   --brand: #2f7d46;
   --brand-strong: #25693a;
+  --brand-soft: #9bd8aa;
   --accent: #315f72;
+  --accent-warm: #d6a650;
   --danger: #c2413a;
-  --shadow: 0 18px 45px rgba(16, 24, 40, 0.16);
+  --shadow: 0 18px 45px rgba(16, 24, 40, 0.18);
+  --shadow-deep: 0 26px 70px rgba(3, 8, 13, 0.34);
 }
 
 * {
@@ -27,7 +30,8 @@ body {
   color: var(--ink);
   background-color: #10161c;
   background-image:
-    linear-gradient(180deg, rgba(16, 22, 28, 0.72), rgba(16, 22, 28, 0.88)),
+    linear-gradient(180deg, rgba(13, 19, 24, 0.74), rgba(13, 19, 24, 0.92)),
+    linear-gradient(120deg, rgba(47, 125, 70, 0.2), transparent 34%, rgba(214, 166, 80, 0.12)),
     url('https://images.pexels.com/photos/2570062/pexels-photo-2570062.jpeg?auto=compress&cs=tinysrgb&w=1600');
   background-size: cover;
   background-position: center;
@@ -78,9 +82,9 @@ main {
    NAVBAR
    ============================================ */
 .navbar {
-  background: rgba(13, 18, 23, 0.94);
-  backdrop-filter: blur(14px);
-  padding: 0.75rem 0;
+  background: rgba(10, 15, 20, 0.88);
+  backdrop-filter: blur(18px) saturate(125%);
+  padding: 0.7rem 0;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -102,8 +106,20 @@ main {
   color: white;
   font-size: 1.25rem;
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.logo::before {
+  content: '';
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 3px;
+  background: linear-gradient(135deg, var(--brand-soft), var(--accent-warm));
+  box-shadow: 0 0 0 6px rgba(155, 216, 170, 0.09);
 }
 
 .logo::after {
@@ -122,10 +138,11 @@ main {
 .dropdown-btn {
   color: rgba(255, 255, 255, 0.86);
   text-decoration: none;
-  transition: color 0.2s, background 0.2s;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
   font-size: 0.95rem;
   padding: 0.55rem 0.75rem;
   border-radius: 8px;
+  border: 1px solid transparent;
 }
 
 .nav-links a:hover,
@@ -133,6 +150,12 @@ main {
 .dropdown-btn:hover {
   color: white;
   background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-links a.active {
+  background: rgba(155, 216, 170, 0.13);
+  border-color: rgba(155, 216, 170, 0.23);
 }
 
 .nav-dropdown {
@@ -145,6 +168,24 @@ main {
   border: 0;
   cursor: pointer;
   font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.dropdown-btn::after {
+  content: "";
+  width: 0.42rem;
+  height: 0.42rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform 0.16s ease;
+}
+
+.nav-dropdown.open .dropdown-btn::after {
+  transform: rotate(225deg) translateY(-1px);
 }
 
 .dropdown-content {
@@ -167,12 +208,18 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-.nav-dropdown:hover .dropdown-content,
-.nav-dropdown:focus-within .dropdown-content,
 .nav-dropdown.open .dropdown-content {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-dropdown:hover .dropdown-content {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
 }
 
 .dropdown-content a {
@@ -246,20 +293,31 @@ main {
    BUTTONS
    ============================================ */
 .btn-primary {
-  background: var(--brand);
+  background: linear-gradient(135deg, var(--brand), var(--brand-strong));
   color: white;
   padding: 0.8rem 1.5rem;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
   cursor: pointer;
   font-size: 1rem;
-  transition: all 0.3s;
+  font-weight: 800;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  box-shadow: 0 12px 28px rgba(47, 125, 70, 0.22);
 }
 
 .btn-primary:hover {
-  background: var(--brand-strong);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  filter: brightness(1.05);
+  box-shadow: 0 16px 36px rgba(47, 125, 70, 0.32);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.prayer-item button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -730,10 +788,15 @@ input[type="checkbox"] {
   margin-bottom: 1.5rem;
 }
 
+.auth-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .auth-card input {
   width: 100%;
   padding: 0.8rem;
-  margin-bottom: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
   background: var(--glass-field);
@@ -743,10 +806,12 @@ input[type="checkbox"] {
 
 .password-field {
   position: relative;
+  width: 100%;
 }
 
 .password-field input {
-  padding-right: 4.5rem;
+  display: block;
+  padding-right: 5.25rem;
 }
 
 .password-toggle {
@@ -754,6 +819,10 @@ input[type="checkbox"] {
   top: 50%;
   right: 0.45rem;
   transform: translateY(-50%);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 3.4rem;
   min-height: 2rem;
   padding: 0 0.55rem;
@@ -765,6 +834,7 @@ input[type="checkbox"] {
   font: inherit;
   font-size: 0.82rem;
   font-weight: 700;
+  line-height: 1;
 }
 
 .password-toggle:hover,
@@ -849,25 +919,42 @@ input[type="checkbox"] {
 .member-dashboard-hero,
 .member-stat-card,
 .member-panel {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+  background: var(--glass-panel);
   backdrop-filter: blur(22px) saturate(130%);
   border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 8px;
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
+  box-shadow: var(--shadow-deep);
 }
 
 .member-dashboard-hero {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.72fr) auto;
   align-items: center;
-  gap: 1rem;
-  padding: 1.5rem;
+  gap: 1.1rem;
+  padding: 1.4rem;
   margin: 1rem 0 1.2rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.member-dashboard-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(47, 125, 70, 0.18), transparent 46%),
+    linear-gradient(270deg, rgba(214, 166, 80, 0.1), transparent 38%);
+  pointer-events: none;
+}
+
+.member-dashboard-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
 .member-dashboard-hero h1 {
   color: white;
-  font-size: 2rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
   line-height: 1.1;
   margin: 0.25rem 0;
 }
@@ -880,6 +967,44 @@ input[type="checkbox"] {
   flex: 0 0 auto;
 }
 
+.member-hero-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.member-hero-summary div {
+  min-height: 86px;
+  padding: 0.8rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.member-hero-summary span,
+.member-stat-kicker,
+.member-actions a span,
+.giving-hero span,
+.giving-form-heading span,
+.info-kicker {
+  display: block;
+  color: var(--brand-soft);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.member-hero-summary strong {
+  display: -webkit-box;
+  color: white;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 .member-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -890,8 +1015,9 @@ input[type="checkbox"] {
 .member-stat-card {
   color: white;
   text-decoration: none;
-  padding: 1.25rem;
+  padding: 1.2rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: 188px;
 }
 
 .member-stat-card:hover {
@@ -901,7 +1027,7 @@ input[type="checkbox"] {
 
 .member-stat-card strong {
   display: block;
-  color: #9bd8aa;
+  color: white;
   font-size: 2.2rem;
   line-height: 1;
   margin-bottom: 0.4rem;
@@ -909,6 +1035,13 @@ input[type="checkbox"] {
 
 .member-stat-card span {
   color: rgba(255, 255, 255, 0.74);
+}
+
+.member-stat-card p {
+  color: rgba(255, 255, 255, 0.66);
+  margin-top: 0.7rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .member-actions {
@@ -919,24 +1052,37 @@ input[type="checkbox"] {
 }
 
 .member-actions a {
-  min-height: 46px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 134px;
+  display: block;
   border-radius: 8px;
   color: white;
   text-decoration: none;
-  background: rgba(47, 125, 70, 0.72);
+  background: linear-gradient(145deg, rgba(49, 95, 114, 0.62), rgba(255, 255, 255, 0.08));
   border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 1rem;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .member-actions a:hover {
-  background: var(--brand);
+  background: linear-gradient(145deg, rgba(47, 125, 70, 0.72), rgba(255, 255, 255, 0.1));
+  transform: translateY(-3px);
+}
+
+.member-actions a strong {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.member-actions a p {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.88rem;
+  line-height: 1.42;
 }
 
 .member-dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
@@ -974,6 +1120,15 @@ input[type="checkbox"] {
   border-radius: 8px;
   margin-bottom: 0.75rem;
   overflow-wrap: anywhere;
+}
+
+.member-list-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.member-list-item-unread {
+  border-color: rgba(155, 216, 170, 0.34);
+  background: rgba(47, 125, 70, 0.15);
 }
 
 .member-list-item span,
@@ -1431,6 +1586,360 @@ input[type="checkbox"] {
   border: 1px solid rgba(194, 65, 58, 0.25);
 }
 
+.giving-page {
+  padding-bottom: 3rem;
+}
+
+.giving-hero {
+  min-height: 330px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 1.2rem;
+  align-items: end;
+  margin: 1rem 0 1.2rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  color: white;
+  background:
+    linear-gradient(90deg, rgba(10, 16, 21, 0.92), rgba(10, 16, 21, 0.5), rgba(10, 16, 21, 0.84)),
+    url('https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=1600');
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: var(--shadow-deep);
+}
+
+.giving-hero h1 {
+  font-size: clamp(2.1rem, 5vw, 4rem);
+  line-height: 1;
+  max-width: 760px;
+  margin-bottom: 0.85rem;
+}
+
+.giving-hero p,
+.giving-form-heading p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.giving-hero aside {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+.giving-hero aside strong {
+  display: block;
+  color: white;
+  margin-bottom: 0.35rem;
+}
+
+.giving-purpose-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+}
+
+.giving-purpose-card {
+  min-height: 76px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  color: white;
+  background: var(--glass-panel);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.giving-purpose-card:hover,
+.giving-purpose-card.active {
+  transform: translateY(-3px);
+  border-color: rgba(214, 166, 80, 0.52);
+  background: linear-gradient(145deg, rgba(214, 166, 80, 0.18), rgba(255, 255, 255, 0.09));
+}
+
+.giving-purpose-card span {
+  color: white;
+  font-weight: 900;
+}
+
+.giving-scripture-section,
+.giving-impact-section,
+.giving-belief-band {
+  margin: 1.2rem 0;
+}
+
+.giving-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.giving-section-heading span,
+.giving-belief-band span {
+  display: block;
+  color: var(--brand-soft);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.giving-section-heading h2,
+.giving-belief-band h2 {
+  color: white;
+  font-size: clamp(1.65rem, 3vw, 2.6rem);
+  line-height: 1.05;
+}
+
+.giving-section-heading p,
+.giving-belief-band p {
+  max-width: 440px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.giving-scripture-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.giving-scripture-card {
+  min-height: 230px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.2rem;
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(214, 166, 80, 0.18), rgba(255, 255, 255, 0.08)),
+    rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(214, 166, 80, 0.26);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px) saturate(130%);
+}
+
+.giving-scripture-card span {
+  color: var(--brand-soft);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.giving-scripture-card blockquote {
+  color: white;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  font-weight: 900;
+  line-height: 1.05;
+  margin: 1.2rem 0;
+}
+
+.giving-scripture-card p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.giving-form-heading {
+  margin-bottom: 1rem;
+}
+
+.giving-form-heading h2 {
+  color: white;
+  line-height: 1.2;
+}
+
+.giving-info-list {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.giving-info-list div {
+  padding: 0.9rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.giving-info-list strong {
+  display: block;
+  color: white;
+  margin-bottom: 0.2rem;
+}
+
+.giving-impact-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(220px, 0.8fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.giving-impact-ring,
+.giving-impact-list,
+.giving-impact-detail,
+.giving-belief-band {
+  background: var(--glass-panel);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px) saturate(130%);
+}
+
+.giving-impact-ring {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 1.4rem;
+  position: relative;
+}
+
+.giving-impact-ring::before {
+  content: '';
+  width: 168px;
+  height: 168px;
+  border-radius: 50%;
+  position: absolute;
+  border: 20px solid rgba(155, 216, 170, 0.16);
+  border-top-color: var(--brand-soft);
+  border-right-color: var(--accent-warm);
+  transform: rotate(22deg);
+}
+
+.giving-impact-ring strong {
+  position: relative;
+  z-index: 1;
+  display: block;
+  color: white;
+  font-size: 3.3rem;
+  line-height: 1;
+}
+
+.giving-impact-ring span {
+  position: relative;
+  z-index: 1;
+  display: block;
+  max-width: 170px;
+  color: rgba(255, 255, 255, 0.74);
+  font-weight: 800;
+}
+
+.giving-impact-list {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.8rem;
+}
+
+.giving-impact-item {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 62px;
+  padding: 0.75rem;
+  text-align: left;
+  border-radius: 8px;
+  color: white;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.giving-impact-item:hover,
+.giving-impact-item.active {
+  transform: translateX(3px);
+  background: rgba(47, 125, 70, 0.2);
+  border-color: rgba(155, 216, 170, 0.35);
+}
+
+.giving-impact-item strong {
+  color: var(--accent-warm);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.giving-impact-item span {
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.giving-impact-detail {
+  padding: 1.3rem;
+}
+
+.giving-impact-detail span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  min-height: 42px;
+  margin-bottom: 1rem;
+  border-radius: 999px;
+  color: #162016;
+  background: var(--accent-warm);
+  font-weight: 900;
+}
+
+.giving-impact-detail h3 {
+  color: white;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  margin-bottom: 0.65rem;
+}
+
+.giving-impact-detail p {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.giving-belief-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: 1.2rem;
+  align-items: center;
+  padding: 1.5rem;
+  margin-bottom: 0;
+  background:
+    linear-gradient(135deg, rgba(47, 125, 70, 0.22), rgba(255, 255, 255, 0.08)),
+    var(--glass-panel);
+}
+
+.giving-belief-band p {
+  max-width: 720px;
+  margin-top: 0.75rem;
+}
+
+.giving-question-card {
+  padding: 1rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.giving-question-card strong {
+  display: block;
+  color: white;
+  margin-bottom: 0.35rem;
+}
+
+.giving-question-card p {
+  margin: 0 0 0.75rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.giving-question-card a {
+  color: var(--brand-soft);
+  font-weight: 900;
+  text-decoration: none;
+}
+
 .events-page,
 .prayer-page,
 .bookings-page {
@@ -1492,12 +2001,24 @@ input[type="checkbox"] {
 }
 
 .prayer-item button {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #244b59);
   color: white;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
-  padding: 0.55rem 0.85rem;
+  padding: 0.65rem 0.95rem;
   cursor: pointer;
+  font-weight: 800;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.prayer-item button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.prayer-item button:disabled {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.74);
 }
 
 .prayer-answer {
@@ -2646,16 +3167,25 @@ select optgroup {
   .member-dashboard-hero,
   .member-panel-header {
     align-items: flex-start;
-    flex-direction: column;
   }
 
   .member-stat-grid,
+  .member-hero-summary,
   .member-actions,
   .member-dashboard-grid,
+  .giving-hero,
+  .giving-scripture-grid,
+  .giving-impact-layout,
+  .giving-belief-band,
   .booking-hero,
   .booking-layout,
   .booking-form-row {
     grid-template-columns: 1fr;
+  }
+
+  .giving-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .booking-form-card {

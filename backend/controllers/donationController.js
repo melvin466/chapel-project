@@ -99,7 +99,7 @@ const getDonationCallbackUrl = () => {
 
 const getDonationCancellationUrl = () => {
   const frontendBaseUrl = process.env.PESAPAL_CANCELLATION_URL
-    || (process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/+$/, '')}/donations` : undefined);
+    || (process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/+$/, '')}/give` : undefined);
 
   return frontendBaseUrl;
 };
@@ -182,7 +182,7 @@ const createDonation = async (req, res) => {
     const donationPayload = {
       ...req.body,
       amount: numericAmount,
-      donor: req.user.id,
+      ...(req.user ? { donor: req.user.id } : {}),
       provider: normalizedProvider,
       phoneNumber: normalizedPhoneNumber,
       status: 'pending',

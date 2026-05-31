@@ -41,6 +41,15 @@ const DashboardPage = () => {
     navigate('/login', { replace: true });
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Date to be announced';
+    return new Date(dateString).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -51,6 +60,7 @@ const DashboardPage = () => {
   }
 
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
+  const nextEvent = events[0];
 
   return (
     <div className="container member-dashboard">
@@ -60,29 +70,65 @@ const DashboardPage = () => {
           <h1>Welcome back, {user?.firstName || 'friend'}.</h1>
           <p>Your chapel activity, prayer life, and community links are gathered here.</p>
         </div>
+        <div className="member-hero-summary" aria-label="Dashboard highlights">
+          <div>
+            <span>Next event</span>
+            <strong>{nextEvent ? nextEvent.title : 'No event yet'}</strong>
+          </div>
+          <div>
+            <span>Notifications</span>
+            <strong>{unreadCount} unread</strong>
+          </div>
+          <div>
+            <span>Role</span>
+            <strong>{user?.role || 'member'}</strong>
+          </div>
+        </div>
         <button onClick={handleLogout} className="logout-btn member-logout">Logout</button>
       </section>
 
       <section className="member-stat-grid">
         <Link to="/events" className="member-stat-card">
+          <span className="member-stat-kicker">Calendar</span>
           <strong>{events.length}</strong>
           <span>Upcoming events</span>
+          <p>Services, fellowships, and chapel gatherings.</p>
         </Link>
         <Link to="/prayer" className="member-stat-card">
+          <span className="member-stat-kicker">Prayer</span>
           <strong>{prayers.length}</strong>
           <span>Prayer requests</span>
+          <p>Share requests or stand with someone today.</p>
         </Link>
         <Link to="/notifications" className="member-stat-card">
+          <span className="member-stat-kicker">Inbox</span>
           <strong>{unreadCount}</strong>
           <span>Unread notifications</span>
+          <p>Fresh updates from the chapel team.</p>
         </Link>
       </section>
 
       <section className="member-actions">
-        <Link to="/prayer">Submit Prayer</Link>
-        <Link to="/give">Give Online</Link>
-        <Link to="/bookings">Book Support</Link>
-        <Link to="/profile">Update Profile</Link>
+        <Link to="/prayer">
+          <span>Prayer</span>
+          <strong>Submit Prayer</strong>
+          <p>Ask the community or chaplain to pray with you.</p>
+        </Link>
+        <Link to="/give">
+          <span>Giving</span>
+          <strong>Give Online</strong>
+          <p>Use mobile money for tithe, offering, or mission gifts.</p>
+        </Link>
+        <Link to="/bookings">
+          <span>Care</span>
+          <strong>Book Support</strong>
+          <p>Request counselling, appointments, or chapel spaces.</p>
+        </Link>
+        <Link to="/profile">
+          <span>Account</span>
+          <strong>Update Profile</strong>
+          <p>Keep your contact and chapel details current.</p>
+        </Link>
       </section>
 
       <div className="member-dashboard-grid">
@@ -97,7 +143,7 @@ const DashboardPage = () => {
             events.map((event) => (
               <Link key={event._id} to={`/events/${event._id}`} className="member-list-item">
                 <strong>{event.title}</strong>
-                <span>{event.startDate ? new Date(event.startDate).toLocaleDateString() : 'Date to be announced'}</span>
+                <span>{formatDate(event.startDate)}</span>
               </Link>
             ))
           )}
@@ -117,6 +163,23 @@ const DashboardPage = () => {
                 <span>{prayer.status}</span>
                 {prayer.adminResponse && <p>{prayer.adminResponse}</p>}
               </div>
+            ))
+          )}
+        </section>
+
+        <section className="member-panel">
+          <div className="member-panel-header">
+            <h2>Recent Notifications</h2>
+            <Link to="/notifications">Open inbox</Link>
+          </div>
+          {notifications.length === 0 ? (
+            <p className="member-empty">No notifications yet.</p>
+          ) : (
+            notifications.slice(0, 3).map((notification) => (
+              <Link key={notification._id} to="/notifications" className={`member-list-item ${notification.isRead ? '' : 'member-list-item-unread'}`}>
+                <strong>{notification.title || 'Chapel update'}</strong>
+                <span>{notification.message || notification.content || 'Open notifications for details.'}</span>
+              </Link>
             ))
           )}
         </section>

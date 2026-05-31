@@ -15,6 +15,16 @@
   background-position: center;
 }
 
+.home-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, rgba(47, 125, 70, 0.18), transparent 36%),
+    linear-gradient(270deg, rgba(214, 166, 80, 0.12), transparent 34%);
+  pointer-events: none;
+}
+
 .home-hero::after {
   content: '';
   position: absolute;
@@ -83,8 +93,9 @@
 }
 
 .home-button.primary {
-  background: #2f7d46;
+  background: linear-gradient(135deg, #2f7d46, #25693a);
   border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 34px rgba(47, 125, 70, 0.28);
 }
 
 .home-button:hover {
@@ -98,6 +109,16 @@
   border-radius: 8px;
   padding: 1.3rem;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+  position: relative;
+  overflow: hidden;
+}
+
+.home-hero-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #9bd8aa, #d6a650, #315f72);
 }
 
 .panel-label {
@@ -174,6 +195,16 @@
   text-decoration: none;
   padding: 1.35rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-action-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #9bd8aa, #d6a650);
 }
 
 .home-action-card:hover,
@@ -185,7 +216,7 @@
 
 .home-action-card span {
   display: inline-block;
-  color: #2f7d46;
+  color: #9bd8aa;
   font-weight: 800;
   margin-bottom: 0.8rem;
   text-transform: uppercase;

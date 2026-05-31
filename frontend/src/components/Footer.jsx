@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="container">
         <div className="footer-cta">
           <div>
-            <span className="footer-kicker">Chapel Management System</span>
+            <span className="footer-kicker">Chapel Community</span>
             <h2>Stay connected with chapel life.</h2>
             <p>Follow events, announcements, prayer requests, giving, and community updates in one place.</p>
           </div>
@@ -21,7 +21,7 @@ const Footer = () => {
 
         <div className="footer-content">
           <div className="footer-section footer-brand">
-            <h3>Chapel System</h3>
+            <h3>Chapel</h3>
             <p>Serving the chapel community through worship, fellowship, prayer, and care.</p>
             <div className="footer-contact-list">
               <span>Kampala, Uganda</span>
@@ -58,7 +58,7 @@ const Footer = () => {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; {year} Chapel Management System. All rights reserved.</p>
+          <p>&copy; {year} Chapel. All rights reserved.</p>
           <div className="footer-bottom-links">
             <Link to="/login">Login</Link>
             <Link to="/dashboard">Dashboard</Link>

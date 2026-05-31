@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Chapel System icon</title>
+  <desc id="desc">A chapel window and cross mark in green and gold.</desc>
+  <defs>
+    <linearGradient id="bg" x1="10" y1="8" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2f7d46"/>
+      <stop offset="1" stop-color="#315f72"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="24" y1="16" x2="40" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f1d38a"/>
+      <stop offset="1" stop-color="#d6a650"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#10161c"/>
+  <rect x="5" y="5" width="54" height="54" rx="12" fill="url(#bg)"/>
+  <path d="M32 12 17 25v24h30V25L32 12Z" fill="rgba(255,255,255,0.16)" stroke="rgba(255,255,255,0.55)" stroke-width="2"/>
+  <path d="M32 22v23" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M24 31h16" stroke="url(#gold)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M24 49V37c0-4.42 3.58-8 8-8s8 3.58 8 8v12H24Z" fill="rgba(16,22,28,0.72)" stroke="rgba(255,255,255,0.42)" stroke-width="2"/>
+  <path d="M32 31v18" stroke="#9bd8aa" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

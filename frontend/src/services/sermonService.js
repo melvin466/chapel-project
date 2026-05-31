@@ -1,8 +1,8 @@
 import api from './api';
 
 const sermonService = {
-  getSermons: async () => {
-    const response = await api.get('/sermons');
+  getSermons: async (params = {}) => {
+    const response = await api.get('/sermons', { params });
     return response.data;
   },
 
