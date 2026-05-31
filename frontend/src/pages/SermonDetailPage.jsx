@@ -161,7 +161,7 @@ const SermonDetailPage = () => {
           backdrop-filter: blur(22px) saturate(130%);
         }
         .sermon-detail-hero {
-          min-height: 300px;
+          min-height: 200px;
           display: grid;
           grid-template-columns: minmax(0, 1fr) 280px;
           gap: 1rem;
@@ -230,7 +230,7 @@ const SermonDetailPage = () => {
         @media (max-width: 760px) {
           .sermon-detail-hero {
             grid-template-columns: 1fr;
-            min-height: auto;
+            min-height: 150px;
           }
         }
       `}</style>
