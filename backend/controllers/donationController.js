@@ -11,6 +11,7 @@ const {
   RelworxRequestError,
   requestRelworxPayment,
 } = require('../utils/relworxService');
+const { parseUgandaSms } = require('../utils/smsParser');
 
 const donationOptions = [
   { id: 'tithe', name: 'Tithe' },
@@ -191,6 +192,18 @@ const createDonation = async (req, res) => {
     };
 
     const donationPaymentProvider = getDonationPaymentProvider();
+
+    if (donationPaymentProvider === 'momo_sms') {
+      const donation = await Donation.create({
+        ...donationPayload,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: 'Donation recorded. Please dial *165*3# to complete the MoMo Pay payment.',
+        data: { donation },
+      });
+    }
 
     if (donationPaymentProvider === 'relworx') {
       if (!isRelworxConfigured()) {
@@ -506,6 +519,60 @@ const updateManagedDonation = async (req, res) => {
   }
 };
 
+const handleSmsCallback = async (req, res) => {
+  try {
+    const { message, secret } = req.body;
+    
+    // 1. Verify SMS Gateway Secret to prevent unauthorized spoofing
+    const configuredSecret = process.env.SMS_GATEWAY_SECRET || 'fallback_sms_secret_123';
+    if (secret !== configuredSecret) {
+      return res.status(401).json({ success: false, message: 'Invalid gateway secret' });
+    }
+
+    if (!message) {
+      return res.status(400).json({ success: false, message: 'SMS message body is required' });
+    }
+
+    // 2. Parse the Uganda SMS text
+    const parsedData = parseUgandaSms(message);
+    if (!parsedData || !parsedData.phoneNumber || !parsedData.amount) {
+      console.warn('SMS message could not be parsed as a valid MoMo payment:', message);
+      return res.status(422).json({ success: false, message: 'Unrecognized SMS message format' });
+    }
+
+    const { amount, phoneNumber, reference } = parsedData;
+
+    // 3. Search for a pending donation matching the parsed phoneNumber and amount
+    const donation = await Donation.findOne({
+      phoneNumber,
+      amount,
+      status: 'pending',
+    });
+
+    if (!donation) {
+      console.warn(`No matching pending donation found for Phone: ${phoneNumber}, Amount: ${amount}`);
+      return res.status(404).json({ 
+        success: false, 
+        message: `No matching pending donation found for Phone: ${phoneNumber}, Amount: ${amount}` 
+      });
+    }
+
+    // 4. Update the donation status to Completed and store the Transaction ID
+    donation.status = 'completed';
+    donation.completedAt = new Date();
+    donation.providerTransactionId = reference || donation.providerTransactionId;
+    donation.message = `SMS Auto-Verified (Ref: ${reference || 'N/A'})`;
+
+    await donation.save();
+
+    console.log(`Donation ${donation._id} automatically completed via MoMo Pay SMS (Ref: ${reference})`);
+    return res.json({ success: true, message: 'Donation successfully completed via SMS verification' });
+  } catch (error) {
+    console.error('Error handling SMS callback:', error);
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
 module.exports = {
   getDonations,
   getManageDonations,
@@ -514,4 +581,5 @@ module.exports = {
   getDonationStats,
   updateManagedDonation,
   handlePaymentCallback,
+  handleSmsCallback,
 };

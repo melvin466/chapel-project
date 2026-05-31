@@ -56,7 +56,7 @@ const HomePage = () => {
   };
 
   const getMonth = (dateString) => {
-    if (!dateString) return 'TBA';
+    if (!dateString) return 'To be announced';
     return new Date(dateString).toLocaleDateString(undefined, { month: 'short' });
   };
 

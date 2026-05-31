@@ -214,11 +214,11 @@ const EventDetailPage = () => {
             <div className="event-detail-card">
               <span>When</span>
               <strong>{formatDate(event.startDate)}</strong>
-              <p>{event.startTime || 'Time TBA'} - {event.endTime || 'End time TBA'}</p>
+              <p>{event.startTime || 'Time to be announced'} - {event.endTime || 'End time to be announced'}</p>
             </div>
             <div className="event-detail-card">
               <span>Where</span>
-              <strong>{event.location || 'Location TBA'}</strong>
+              <strong>{event.location || 'Location to be announced'}</strong>
               {event.venue?.address && <p>{event.venue.address}</p>}
             </div>
             {event.registrationRequired && event.status === 'published' && (

@@ -99,7 +99,7 @@ const CellsPage = () => {
               <button type="button" className="btn-primary" onClick={() => handleJoinCell(featuredCell._id)}>
                 Request to Join
               </button>
-              <span>{featuredCell.zone || 'Zone'} · {featuredCell.meetingDay || 'Day TBA'} · {featuredCell.location || 'Location TBA'}</span>
+              <span>{featuredCell.zone || 'Zone'} · {featuredCell.meetingDay || 'Day to be announced'} · {featuredCell.location || 'Location to be announced'}</span>
             </div>
           )}
         </div>
@@ -174,8 +174,8 @@ const CellsPage = () => {
                   <h3>{cell.name}</h3>
                   <p>{cell.description || `Gather at ${cell.meetingVenue || cell.location || 'a chapel location'} for fellowship, prayer, and growth.`}</p>
                   <div className="cell-card-details">
-                    <div><strong>When</strong><span>{cell.meetingDay || 'Day TBA'} · {cell.meetingTime || 'Time TBA'}</span></div>
-                    <div><strong>Where</strong><span>{cell.location || cell.meetingVenue || 'Location TBA'}</span></div>
+                    <div><strong>When</strong><span>{cell.meetingDay || 'Day to be announced'} · {cell.meetingTime || 'Time to be announced'}</span></div>
+                    <div><strong>Where</strong><span>{cell.location || cell.meetingVenue || 'Location to be announced'}</span></div>
                     <div><strong>Leader</strong><span>{`${cell.leader?.firstName || ''} ${cell.leader?.lastName || ''}`.trim() || 'Chapel leader'}</span></div>
                   </div>
                   <button

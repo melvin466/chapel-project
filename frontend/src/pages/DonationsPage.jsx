@@ -93,16 +93,36 @@ const DonationsPage = () => {
       if (paymentUrl) {
         setMessage({
           type: 'success',
-          text: 'Redirecting to Pesapal for MTN/Airtel mobile money payment...',
+          text: 'Redirecting to secure payment checkout...',
         });
         window.location.assign(paymentUrl);
         return;
       }
 
-      setMessage({
-        type: 'success',
-        text: response?.message || 'Mobile money prompt sent. Check your phone to approve the payment.',
-      });
+      if (response?.data?.donation?.status === 'pending' && provider === 'MTN' && paymentMethod === 'mobile_money') {
+        setMessage({
+          type: 'success',
+          text: (
+            <div className="momo-instructions-success">
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginBottom: '0.4rem' }}>🎉 Donation Recorded! Complete Your Payment:</strong>
+              <ol style={{ margin: '0.5rem 0', paddingLeft: '1.2rem', textAlign: 'left', lineHeight: '1.6' }}>
+                <li>Dial <strong style={{ color: 'white' }}>*165*3#</strong> on your MTN phone.</li>
+                <li>Enter Merchant Code: <strong style={{ color: 'white' }}>04074416</strong>.</li>
+                <li>Enter Amount: <strong style={{ color: 'white' }}>UGX {parseInt(amount, 10).toLocaleString()}</strong>.</li>
+                <li>Enter your MoMo PIN to authorize.</li>
+              </ol>
+              <p style={{ margin: '0.5rem 0 0', fontSize: '0.86rem', color: '#b9f5cf', lineHeight: '1.4' }}>
+                * Please ensure you pay using the same phone number (<strong style={{ color: 'white' }}>{phoneNumber}</strong>) you entered above. Your payment will be verified and matched automatically!
+              </p>
+            </div>
+          )
+        });
+      } else {
+        setMessage({
+          type: 'success',
+          text: response?.message || 'Mobile money prompt sent. Check your phone to approve the payment.',
+        });
+      }
       setAmount('');
       setPhoneNumber('');
     } catch (error) {

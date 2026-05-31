@@ -21,7 +21,7 @@ const getDay = (dateString) => {
 };
 
 const getMonth = (dateString) => {
-  if (!dateString) return 'TBA';
+  if (!dateString) return 'To be announced';
   return new Date(dateString).toLocaleDateString(undefined, { month: 'short' });
 };
 
@@ -150,10 +150,10 @@ const EventsPage = () => {
                   </div>
                   <div>
                     <h3>{event.title}</h3>
-                    <p className="event-card-time">{formatDate(event.startDate)} · {event.startTime || 'Time TBA'}</p>
+                    <p className="event-card-time">{formatDate(event.startDate)} · {event.startTime || 'Time to be announced'}</p>
                     <p>{excerpt(event.description)}</p>
                     <div className="event-card-meta">
-                      <span>{event.location || 'Location TBA'}</span>
+                      <span>{event.location || 'Location to be announced'}</span>
                       {event.registrationRequired && <span>{event.registeredCount || 0}/{event.capacity || '∞'} registered</span>}
                     </div>
                   </div>

@@ -215,7 +215,7 @@ const AnnouncementsPage = () => {
         }
         .announcements-feature-copy h1 {
           max-width: 760px;
-          font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+          font-size: clamp(1.5rem, 2.4vw, 2rem);
           line-height: 1.15;
           margin-bottom: 0.7rem;
         }
