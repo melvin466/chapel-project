@@ -176,7 +176,7 @@ const AnnouncementsPage = () => {
           color: white;
         }
         .announcements-feature {
-          min-height: 430px;
+          min-height: 250px;
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
           gap: 1.1rem;
@@ -237,7 +237,7 @@ const AnnouncementsPage = () => {
         }
         .announcements-feature-media {
           position: relative;
-          min-height: 330px;
+          min-height: 250px;
         }
         .announcements-feature-media img {
           width: 100%;

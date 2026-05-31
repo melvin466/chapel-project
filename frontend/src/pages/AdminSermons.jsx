@@ -12,6 +12,7 @@ const emptyForm = {
   duration: '',
   audioUrl: '',
   videoUrl: '',
+  thumbnail: '',
 };
 
 const emptyFiles = {
@@ -73,6 +74,7 @@ const AdminSermons = () => {
       duration: sermon.duration || '',
       audioUrl: sermon.audioUrl || '',
       videoUrl: sermon.videoUrl || '',
+      thumbnail: sermon.thumbnail || '',
     });
     setFiles(emptyFiles);
   };
@@ -155,9 +157,21 @@ const AdminSermons = () => {
             <input name="videoUrl" placeholder="Video URL (optional if uploading)" value={formData.videoUrl} onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })} />
           </div>
           <div className="media-upload-section">
-            <label>Thumbnail image<input type="file" accept="image/*" onChange={(e) => setFiles({ ...files, thumbnail: e.target.files[0] || null })} /></label>
-            <label>Voice/music audio<input type="file" accept="audio/*,.webm" onChange={(e) => setFiles({ ...files, sermonAudio: e.target.files[0] || null })} /></label>
-            <label>Sermon video<input type="file" accept="video/*" onChange={(e) => setFiles({ ...files, sermonVideo: e.target.files[0] || null })} /></label>
+            <label>
+              Thumbnail image
+              <input type="file" accept="image/*" onChange={(e) => setFiles({ ...files, thumbnail: e.target.files[0] || null })} />
+              {formData.thumbnail && <small className="file-hint">Current image: {formData.thumbnail}</small>}
+            </label>
+            <label>
+              Voice/music audio
+              <input type="file" accept="audio/*,.webm" onChange={(e) => setFiles({ ...files, sermonAudio: e.target.files[0] || null })} />
+              {formData.audioUrl && <small className="file-hint">Current audio: {formData.audioUrl}</small>}
+            </label>
+            <label>
+              Sermon video
+              <input type="file" accept="video/*" onChange={(e) => setFiles({ ...files, sermonVideo: e.target.files[0] || null })} />
+              {formData.videoUrl && <small className="file-hint">Current video: {formData.videoUrl}</small>}
+            </label>
           </div>
           <button className="btn-primary" type="submit" disabled={saving}>{saving ? 'Saving...' : editing ? 'Update Sermon' : 'Create Sermon'}</button>
         </form>
@@ -209,6 +223,7 @@ const AdminSermons = () => {
         .btn-delete { background: #c2413a; }
         .btn-secondary { background: #4c5f7a; }
         .role-chip { display: inline-block; margin-left: 0.45rem; padding: 0.15rem 0.45rem; border-radius: 999px; background: rgba(155,216,170,0.2); color: #9bd8aa; font-size: 0.72rem; text-transform: capitalize; }
+        .file-hint { display: block; color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-top: 0.25rem; font-weight: normal; overflow-wrap: anywhere; }
       `}</style>
       <ConfirmDialog
         isOpen={Boolean(deleteTarget)}

@@ -208,7 +208,7 @@ const SermonsPage = () => {
           color: white;
         }
         .sermons-feature {
-          min-height: 430px;
+          min-height: 250px;
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
           gap: 1.1rem;
@@ -269,7 +269,7 @@ const SermonsPage = () => {
         }
         .sermons-feature-media {
           position: relative;
-          min-height: 330px;
+          min-height: 250px;
         }
         .sermons-feature-media img {
           width: 100%;
