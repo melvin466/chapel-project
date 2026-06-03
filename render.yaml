@@ -46,7 +46,7 @@ services:
       - key: PESAPAL_CANCELLATION_URL
         value: https://chapel-system-web.onrender.com/donations
       - key: DONATION_PAYMENT_PROVIDER
-        value: relworx
+        value: pesapal
       - key: RELWORX_API_BASE_URL
         value: https://payments.relworx.com/api
       - key: RELWORX_API_KEY
