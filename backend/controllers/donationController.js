@@ -109,7 +109,13 @@ const getRelworxMsisdn = (phoneNumber) => `+${phoneNumber}`;
 
 const getDonationPaymentProvider = () => {
   if (process.env.NODE_ENV === 'test') return 'legacy';
-  return String(process.env.DONATION_PAYMENT_PROVIDER || 'relworx').toLowerCase();
+  const configuredProvider = String(process.env.DONATION_PAYMENT_PROVIDER || '').toLowerCase();
+
+  if (configuredProvider === 'relworx' && isPesapalConfigured()) {
+    return 'pesapal';
+  }
+
+  return configuredProvider || 'pesapal';
 };
 
 const getPaymentProviderErrorMessage = (error, fallback) => {
