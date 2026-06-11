@@ -30,16 +30,6 @@ Optional integrations:
 BREVO_API_KEY=
 BREVO_SENDER_EMAIL=
 BREVO_SENDER_NAME=Chapel Management
-PAYMENT_CALLBACK_SECRET=
-MTN_API_URL=
-MTN_API_KEY=
-AIRTEL_API_URL=
-AIRTEL_API_KEY=
-DONATION_PAYMENT_PROVIDER=relworx
-RELWORX_API_BASE_URL=https://payments.relworx.com/api
-RELWORX_API_KEY=
-RELWORX_ACCOUNT_NO=
-RELWORX_WEBHOOK_KEY=
 PESAPAL_ENVIRONMENT=sandbox
 PESAPAL_CONSUMER_KEY=
 PESAPAL_CONSUMER_SECRET=
@@ -49,8 +39,6 @@ PESAPAL_CANCELLATION_URL=https://your-frontend-domain.com/donations
 ```
 
 Pesapal API 3.0 requires a registered IPN URL before checkout links can be created. Register your public callback URL in Pesapal, then set the returned `PESAPAL_IPN_ID`. The backend verifies the final payment status by querying Pesapal with the returned order tracking ID.
-
-When `RELWORX_API_KEY` and `RELWORX_ACCOUNT_NO` are set, donations use Relworx direct mobile money prompts before falling back to Pesapal. In the Relworx dashboard, set the business account webhook URL to `https://your-backend-domain.com/api/donations/callback` so completed or failed prompt statuses update the donation record.
 
 You can register the IPN URL from the backend folder after setting `PESAPAL_CONSUMER_KEY`, `PESAPAL_CONSUMER_SECRET`, and `PESAPAL_CALLBACK_URL`:
 
@@ -118,5 +106,5 @@ npm run build
 - Confirm `.env` files are not committed.
 - Confirm MongoDB backups are enabled.
 - Confirm uploads are persistent or move them to cloud storage.
-- Confirm payment gateway is either configured or clearly treated as manual/pending.
+- Confirm Pesapal credentials and `PESAPAL_IPN_ID` are configured.
 - Keep `REQUIRE_EMAIL_VERIFICATION=false` until email sending is configured.

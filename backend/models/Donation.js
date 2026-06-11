@@ -13,7 +13,6 @@ const donationSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ['mobile_money', 'credit_card', 'bank_transfer', 'cash'], required: true },
   transactionId: String,
   pesapalOrderTrackingId: String,
-  relworxInternalReference: String,
   providerTransactionId: String,
   paymentUrl: String,
   status: { type: String, enum: ['pending', 'completed', 'failed', 'refunded'], default: 'pending' },

@@ -36,7 +36,7 @@ describe('DonationsPage', () => {
     donationService.createDonation.mockResolvedValue({ success: true });
   });
 
-  it('submits an authenticated mobile money donation', async () => {
+  it('submits a donation through Pesapal checkout', async () => {
     render(<DonationsPage />);
 
     expect(screen.getByRole('heading', { name: /Give with clarity/i })).toBeInTheDocument();
@@ -45,7 +45,7 @@ describe('DonationsPage', () => {
     fireEvent.change(screen.getByPlaceholderText(/Amount/i), {
       target: { value: '25000' },
     });
-    fireEvent.change(screen.getByLabelText(/Mobile money phone number/i), {
+    fireEvent.change(screen.getByLabelText(/Payment phone number/i), {
       target: { value: '256700000000' },
     });
     fireEvent.click(screen.getByLabelText(/Donate Anonymously/i));
@@ -61,6 +61,6 @@ describe('DonationsPage', () => {
         isAnonymous: true,
       });
     });
-    expect(await screen.findByRole('status')).toHaveTextContent('Mobile money prompt sent. Check your phone to approve the payment.');
+    expect(await screen.findByRole('status')).toHaveTextContent('Pesapal checkout created. Use the secure payment link to complete your donation.');
   });
 });

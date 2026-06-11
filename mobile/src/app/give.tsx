@@ -79,17 +79,10 @@ export default function GiveScreen() {
         return;
       }
 
-      if (response?.data?.donation?.status === 'pending' && provider === 'MTN') {
-        setStatusMessage({
-          type: 'success',
-          text: `🎉 Donation Recorded!\n\nTo complete payment:\n1. Dial *165*3# on your MTN phone.\n2. Enter Merchant Code: 04074416\n3. Enter Amount: UGX ${parsedAmount.toLocaleString()}\n4. Enter MoMo PIN to authorize.\n\n* Use the phone number ${phoneNumber} to pay.`,
-        });
-      } else {
-        setStatusMessage({
-          type: 'success',
-          text: response?.message || 'Payment prompt sent to your phone. Please check and authorize.',
-        });
-      }
+      setStatusMessage({
+        type: 'success',
+        text: response?.message || 'Pesapal checkout created. Use the secure payment link to complete your donation.',
+      });
       setAmount('');
     } catch (error: any) {
       setStatusMessage({
@@ -145,7 +138,7 @@ export default function GiveScreen() {
               onChangeText={setAmount}
             />
 
-            <ThemedText type="smallBold" style={styles.label}>Mobile Operator</ThemedText>
+            <ThemedText type="smallBold" style={styles.label}>Preferred Mobile Wallet</ThemedText>
             <View style={styles.pickerContainer}>
               <Picker
                 selectedValue={provider}
@@ -158,7 +151,7 @@ export default function GiveScreen() {
               </Picker>
             </View>
 
-            <ThemedText type="smallBold" style={styles.label}>Mobile Money Number</ThemedText>
+            <ThemedText type="smallBold" style={styles.label}>Payment Phone Number</ThemedText>
             <TextInput
               style={styles.input}
               placeholder="e.g. 256770000000"

@@ -18,8 +18,6 @@ const getPesapalBaseUrl = () => {
 };
 
 const isPesapalConfigured = () => {
-  if (process.env.NODE_ENV === 'test') return false;
-
   return Boolean(
     process.env.PESAPAL_CONSUMER_KEY
       && process.env.PESAPAL_CONSUMER_SECRET
@@ -58,7 +56,7 @@ const requestJson = async (path, options = {}) => {
 };
 
 const getPesapalToken = async () => {
-  if (cachedToken && Date.now() < cachedTokenExpiry - 30 * 1000) {
+  if (process.env.NODE_ENV !== 'test' && cachedToken && Date.now() < cachedTokenExpiry - 30 * 1000) {
     return cachedToken;
   }
 
@@ -74,9 +72,12 @@ const getPesapalToken = async () => {
     throw new Error(data.message || 'Pesapal did not return an access token');
   }
 
-  cachedToken = data.token;
-  cachedTokenExpiry = parseExpiry(data.expiryDate);
-  return cachedToken;
+  if (process.env.NODE_ENV !== 'test') {
+    cachedToken = data.token;
+    cachedTokenExpiry = parseExpiry(data.expiryDate);
+  }
+
+  return data.token;
 };
 
 const trimToLength = (value, maxLength) => {

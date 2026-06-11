@@ -147,30 +147,10 @@ const DonationsPage = () => {
         return;
       }
 
-      if (response?.data?.donation?.status === 'pending' && provider === 'MTN' && paymentMethod === 'mobile_money') {
-        setMessage({
-          type: 'success',
-          text: (
-            <div className="momo-instructions-success">
-              <strong style={{ display: 'block', fontSize: '1.05rem', marginBottom: '0.4rem' }}>🎉 Donation Recorded! Complete Your Payment:</strong>
-              <ol style={{ margin: '0.5rem 0', paddingLeft: '1.2rem', textAlign: 'left', lineHeight: '1.6' }}>
-                <li>Dial <strong style={{ color: 'white' }}>*165*3#</strong> on your MTN phone.</li>
-                <li>Enter Merchant Code: <strong style={{ color: 'white' }}>04074416</strong>.</li>
-                <li>Enter Amount: <strong style={{ color: 'white' }}>UGX {parseInt(amount, 10).toLocaleString()}</strong>.</li>
-                <li>Enter your MoMo PIN to authorize.</li>
-              </ol>
-              <p style={{ margin: '0.5rem 0 0', fontSize: '0.86rem', color: '#b9f5cf', lineHeight: '1.4' }}>
-                * Please ensure you pay using the same phone number (<strong style={{ color: 'white' }}>{phoneNumber}</strong>) you entered above. Your payment will be verified and matched automatically!
-              </p>
-            </div>
-          )
-        });
-      } else {
-        setMessage({
-          type: 'success',
-          text: response?.message || 'Mobile money prompt sent. Check your phone to approve the payment.',
-        });
-      }
+      setMessage({
+        type: 'success',
+        text: response?.message || 'Pesapal checkout created. Use the secure payment link to complete your donation.',
+      });
       setAmount('');
       setPhoneNumber('');
     } catch (error) {
@@ -189,12 +169,12 @@ const DonationsPage = () => {
           <span>Secure chapel giving</span>
           <h1>Give with clarity, purpose, and care.</h1>
           <p>
-            Support worship, student ministry, outreach, chapel spaces, and pastoral care through a simple mobile money flow.
+            Support worship, student ministry, outreach, chapel spaces, and pastoral care through secure Pesapal checkout.
           </p>
         </div>
         <aside>
-          <strong>Mobile money ready</strong>
-          <p>Enter your amount and phone number, then approve the prompt from MTN or Airtel on your phone.</p>
+          <strong>Pesapal ready</strong>
+          <p>Enter your amount and phone number, then continue through Pesapal to choose the available payment method.</p>
         </aside>
       </section>
 
@@ -309,17 +289,17 @@ const DonationsPage = () => {
               </select>
               <div>
                 <label htmlFor="paymentMethod">Payment method</label>
-                <input id="paymentMethod" type="text" value="Mobile Money" disabled className="readonly-input" />
+                <input id="paymentMethod" type="text" value="Pesapal checkout" disabled className="readonly-input" />
               </div>
               <div>
-                <label htmlFor="provider">Operator</label>
+                <label htmlFor="provider">Preferred mobile wallet</label>
                 <select id="provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
                   <option value="MTN">MTN Mobile Money</option>
                   <option value="Airtel">Airtel Money</option>
                 </select>
               </div>
               <div>
-                <label htmlFor="phoneNumber">Mobile money phone number</label>
+                <label htmlFor="phoneNumber">Payment phone number</label>
                 <input id="phoneNumber" type="tel" placeholder="256700000000" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
               </div>
               <label className="checkbox-label"><input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} /> Donate Anonymously</label>
@@ -347,8 +327,8 @@ const DonationsPage = () => {
           </div>
           <h4>Bank Details</h4>
           <p>Bank: Stanbic Bank<br />Account: 1234567890<br />Name: Chapel System</p>
-          <h4>Mobile Money</h4>
-          <p>MTN: +256 700 000000<br />Airtel: +256 701 000000</p>
+          <h4>Pesapal Checkout</h4>
+          <p>Pesapal will present the available mobile money and card options configured for the chapel merchant account.</p>
         </div>
       </div>
 

@@ -12,6 +12,45 @@ const AuditLog = require('../models/AuditLog');
 const Notification = require('../models/Notification');
 
 let mongoServer;
+const originalFetch = global.fetch;
+
+const configurePesapalOrderMock = ({ orderTrackingId = 'pesapal-order-test' } = {}) => {
+  process.env.PESAPAL_CONSUMER_KEY = 'test-consumer-key';
+  process.env.PESAPAL_CONSUMER_SECRET = 'test-consumer-secret';
+  process.env.PESAPAL_IPN_ID = 'test-ipn-id';
+
+  global.fetch = jest.fn(async (url, options = {}) => {
+    const requestUrl = String(url);
+
+    if (requestUrl.includes('/Auth/RequestToken')) {
+      return {
+        ok: true,
+        json: async () => ({
+          token: 'test-token',
+          expiryDate: new Date(Date.now() + 60000).toISOString(),
+          status: '200',
+          error: null,
+        }),
+      };
+    }
+
+    if (requestUrl.includes('/Transactions/SubmitOrderRequest')) {
+      const payload = JSON.parse(options.body);
+      return {
+        ok: true,
+        json: async () => ({
+          order_tracking_id: orderTrackingId,
+          merchant_reference: payload.id,
+          redirect_url: 'https://pay.pesapal.test/checkout',
+          status: '200',
+          error: null,
+        }),
+      };
+    }
+
+    throw new Error(`Unexpected Pesapal test request: ${requestUrl}`);
+  });
+};
 
 describe('Auth Controller', () => {
   beforeAll(async () => {
@@ -28,6 +67,10 @@ describe('Auth Controller', () => {
   });
 
   beforeEach(async () => {
+    global.fetch = originalFetch;
+    delete process.env.PESAPAL_CONSUMER_KEY;
+    delete process.env.PESAPAL_CONSUMER_SECRET;
+    delete process.env.PESAPAL_IPN_ID;
     await mongoose.connection.db.dropDatabase();
   });
 
@@ -563,6 +606,8 @@ describe('Auth Controller', () => {
       .post('/api/auth/login')
       .send({ email: 'financeadmin@example.com', password: 'Password123!' });
 
+    configurePesapalOrderMock({ orderTrackingId: 'pesapal-admin-donation-test' });
+
     const donationRes = await request(app)
       .post('/api/donations')
       .set('Authorization', `Bearer ${memberLogin.body.data.token}`)
@@ -603,6 +648,8 @@ describe('Auth Controller', () => {
     expect(optionsRes.statusCode).toBe(200);
     expect(optionsRes.body.data.options.length).toBeGreaterThan(0);
 
+    configurePesapalOrderMock({ orderTrackingId: 'pesapal-guest-donation-test' });
+
     const donationRes = await request(app)
       .post('/api/donations')
       .send({
@@ -622,34 +669,54 @@ describe('Auth Controller', () => {
     expect(donation.donor).toBeUndefined();
   });
 
-  it('should update a donation from a Relworx webhook', async () => {
+  it('should update a donation from a Pesapal IPN callback', async () => {
     const donation = await Donation.create({
       amount: 5000,
       donationType: 'offering',
       paymentMethod: 'mobile_money',
       phoneNumber: '256700000000',
       provider: 'MTN',
-      transactionId: 'donation-relworx-test',
-      relworxInternalReference: 'relworx-internal-test',
+      transactionId: 'donation-pesapal-test',
+      pesapalOrderTrackingId: 'pesapal-tracking-test',
       status: 'pending',
     });
+
+    const originalFetch = global.fetch;
+    process.env.PESAPAL_CONSUMER_KEY = 'test-consumer-key';
+    process.env.PESAPAL_CONSUMER_SECRET = 'test-consumer-secret';
+    process.env.PESAPAL_IPN_ID = 'test-ipn-id';
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ token: 'test-token', expiryDate: new Date(Date.now() + 60000).toISOString() }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          status_code: 1,
+          payment_status_description: 'Completed',
+          merchant_reference: 'donation-pesapal-test',
+          description: 'Payment completed',
+        }),
+      });
 
     const callbackRes = await request(app)
       .post('/api/donations/callback')
       .send({
-        status: 'success',
-        message: 'Request payment completed successfully.',
-        customer_reference: 'donation-relworx-test',
-        internal_reference: 'relworx-internal-test',
-        provider_transaction_id: 'provider-test-123',
-        completed_at: '2026-05-28T18:00:00.000+03:00',
+        OrderTrackingId: 'pesapal-tracking-test',
+        OrderMerchantReference: 'donation-pesapal-test',
+        OrderNotificationType: 'IPNCHANGE',
       });
 
+    global.fetch = originalFetch;
+
     expect(callbackRes.statusCode).toBe(200);
+    expect(callbackRes.body.status).toBe(200);
+    expect(callbackRes.body.orderTrackingId).toBe('pesapal-tracking-test');
 
     const updatedDonation = await Donation.findById(donation._id);
     expect(updatedDonation.status).toBe('completed');
-    expect(updatedDonation.providerTransactionId).toBe('provider-test-123');
+    expect(updatedDonation.message).toBe('Payment completed');
     expect(updatedDonation.completedAt).toBeTruthy();
   });
 

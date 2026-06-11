@@ -6,12 +6,6 @@ const {
   isPesapalConfigured,
   submitPesapalOrder,
 } = require('../utils/pesapalService');
-const {
-  isRelworxConfigured,
-  RelworxRequestError,
-  requestRelworxPayment,
-} = require('../utils/relworxService');
-const { parseUgandaSms } = require('../utils/smsParser');
 
 const donationOptions = [
   { id: 'tithe', name: 'Tithe' },
@@ -113,55 +107,6 @@ const getDonationCancellationUrl = () => {
   return frontendBaseUrl;
 };
 
-const getRelworxMsisdn = (phoneNumber) => `+${phoneNumber}`;
-
-const getDonationPaymentProvider = () => {
-  if (process.env.NODE_ENV === 'test') return 'legacy';
-  const configuredProvider = String(process.env.DONATION_PAYMENT_PROVIDER || '').toLowerCase();
-  return configuredProvider || 'pesapal';
-};
-
-const getPaymentProviderErrorMessage = (error, fallback) => {
-  if (error instanceof RelworxRequestError && error.message) return error.message;
-  return fallback;
-};
-
-const initiateMobileMoneyPayment = async (amount, phoneNumber, provider) => {
-  const apiUrl = provider === 'MTN' ? process.env.MTN_API_URL : process.env.AIRTEL_API_URL;
-  const apiKey = provider === 'MTN' ? process.env.MTN_API_KEY : process.env.AIRTEL_API_KEY;
-  const callbackUrl = getDonationCallbackUrl();
-
-  if (!apiUrl || !apiKey) {
-    return {
-      transactionId: `${provider.toLowerCase()}-${Date.now()}`,
-      provider,
-      sandbox: true,
-    };
-  }
-
-  const response = await fetch(`${apiUrl}/payments`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      amount,
-      phoneNumber,
-      currency: 'UGX',
-      provider,
-      callbackUrl,
-    }),
-  });
-
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.message || `Payment provider returned ${response.status}`);
-  }
-
-  return data;
-};
-
 const createDonation = async (req, res) => {
   try {
     const { amount, phoneNumber, paymentMethod, provider = 'MTN' } = req.body;
@@ -200,103 +145,35 @@ const createDonation = async (req, res) => {
       currency: 'UGX',
     };
 
-    const donationPaymentProvider = getDonationPaymentProvider();
-
-    if (donationPaymentProvider === 'momo_sms') {
-      const donation = await Donation.create({
-        ...donationPayload,
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: 'Donation recorded. Please dial *165*3# to complete the MoMo Pay payment.',
-        data: { donation },
+    if (!isPesapalConfigured()) {
+      return res.status(503).json({
+        success: false,
+        message: 'Pesapal payments are not configured. Set PESAPAL_CONSUMER_KEY, PESAPAL_CONSUMER_SECRET, and PESAPAL_IPN_ID.',
       });
     }
 
-    if (donationPaymentProvider === 'relworx') {
-      if (!isRelworxConfigured()) {
-        return res.status(503).json({
-          success: false,
-          message: 'Relworx mobile money is not configured on the server.',
-        });
-      }
+    const userEmail = req.user?.email || `donor+${transactionId}@chapel.local`;
+    const pesapalOrder = await submitPesapalOrder({
+      amount: numericAmount,
+      description: `Donation - ${req.body.donationType || 'General'}`,
+      reference: transactionId,
+      email: userEmail,
+      phoneNumber: normalizedPhoneNumber,
+      callbackUrl: getDonationFrontendRedirectUrl(transactionId),
+      cancellationUrl: getDonationCancellationUrl(),
+      user: req.user,
+    });
 
-      let relworxResponse;
-      try {
-        relworxResponse = await requestRelworxPayment({
-          amount: numericAmount,
-          description: `Donation - ${req.body.donationType || 'General'}`,
-          reference: transactionId,
-          phoneNumber: getRelworxMsisdn(normalizedPhoneNumber),
-        });
-      } catch (error) {
-        console.error('Relworx donation request failed:', {
-          message: error.message,
-          statusCode: error.statusCode,
-          responseBody: error.responseBody,
-        });
-
-        const statusCode = error.statusCode >= 400 && error.statusCode < 500 ? 400 : 502;
-        return res.status(statusCode).json({
-          success: false,
-          message: getPaymentProviderErrorMessage(
-            error,
-            'Relworx could not start the mobile money prompt. Please try again shortly.'
-          ),
-        });
-      }
-
-      const donation = await Donation.create({
-        ...donationPayload,
-        relworxInternalReference: relworxResponse.internal_reference,
-        message: relworxResponse.message || 'Mobile money prompt sent.',
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: 'Mobile money prompt sent. Check your phone to approve the payment.',
-        data: { donation },
-      });
-    }
-
-    if (donationPaymentProvider === 'pesapal' && isPesapalConfigured()) {
-      const userEmail = req.user?.email || `donor+${transactionId}@chapel.local`;
-      const pesapalOrder = await submitPesapalOrder({
-        amount: numericAmount,
-        description: `Donation - ${req.body.donationType || 'General'}`,
-        reference: transactionId,
-        email: userEmail,
-        phoneNumber: normalizedPhoneNumber,
-        callbackUrl: getDonationFrontendRedirectUrl(transactionId),
-        cancellationUrl: getDonationCancellationUrl(),
-        user: req.user,
-      });
-
-      const donation = await Donation.create({
-        ...donationPayload,
-        transactionId: pesapalOrder.merchant_reference || transactionId,
-        pesapalOrderTrackingId: pesapalOrder.order_tracking_id,
-        paymentUrl: pesapalOrder.redirect_url,
-      });
-
-      return res.status(201).json({
-        success: true,
-        message: 'Pesapal payment created. Redirecting to checkout.',
-        data: { donation, paymentUrl: donation.paymentUrl },
-      });
-    }
-
-    const paymentResponse = await initiateMobileMoneyPayment(numericAmount, normalizedPhoneNumber, normalizedProvider);
     const donation = await Donation.create({
       ...donationPayload,
-      transactionId: paymentResponse.transactionId || transactionId,
-      paymentUrl: paymentResponse.checkoutUrl,
+      transactionId: pesapalOrder.merchant_reference || transactionId,
+      pesapalOrderTrackingId: pesapalOrder.order_tracking_id,
+      paymentUrl: pesapalOrder.redirect_url,
     });
 
     return res.status(201).json({
       success: true,
-      message: 'Payment recorded. Configure Pesapal credentials and PESAPAL_IPN_ID to enable checkout.',
+      message: 'Pesapal payment created. Redirecting to checkout.',
       data: { donation, paymentUrl: donation.paymentUrl },
     });
   } catch (error) {
@@ -345,14 +222,6 @@ const mapPesapalStatus = (statusResponse) => {
   return 'pending';
 };
 
-const mapRelworxStatus = (status) => {
-  const normalizedStatus = String(status || '').toLowerCase();
-
-  if (['success', 'successful', 'completed'].includes(normalizedStatus)) return 'completed';
-  if (['failed', 'failure', 'cancelled', 'canceled', 'reversed'].includes(normalizedStatus)) return 'failed';
-  return 'pending';
-};
-
 const sendPesapalIpnResponse = (req, res, status = 200) => {
   const orderTrackingId = getCallbackField(req, ['OrderTrackingId', 'orderTrackingId', 'order_tracking_id']);
   const orderMerchantReference = getCallbackField(req, [
@@ -376,40 +245,6 @@ const sendPesapalIpnResponse = (req, res, status = 200) => {
 
 const handlePaymentCallback = async (req, res) => {
   try {
-    const relworxReference = getCallbackField(req, ['customer_reference', 'customerReference']);
-    const relworxInternalReference = getCallbackField(req, ['internal_reference', 'internalReference']);
-    const relworxStatus = getCallbackField(req, ['status', 'request_status', 'requestStatus']);
-
-    if (relworxReference || relworxInternalReference) {
-      const donation = await Donation.findOne({
-        $or: [
-          ...(relworxReference ? [{ transactionId: relworxReference }] : []),
-          ...(relworxInternalReference ? [{ relworxInternalReference }] : []),
-        ],
-      });
-
-      if (!donation) {
-        return res.status(404).json({ success: false, message: 'Donation not found' });
-      }
-
-      donation.relworxInternalReference = relworxInternalReference || donation.relworxInternalReference;
-      donation.status = mapRelworxStatus(relworxStatus);
-      donation.message = getCallbackField(req, ['message']) || donation.message;
-      donation.providerTransactionId = getCallbackField(req, ['provider_transaction_id', 'providerTransactionId'])
-        || donation.providerTransactionId;
-      if (donation.status === 'completed') {
-        donation.completedAt = getCallbackField(req, ['completed_at', 'completedAt'])
-          ? new Date(getCallbackField(req, ['completed_at', 'completedAt']))
-          : new Date();
-      }
-      if (donation.status !== 'completed') {
-        donation.completedAt = null;
-      }
-
-      await donation.save();
-      return res.json({ success: true });
-    }
-
     const orderTrackingId = getCallbackField(req, ['OrderTrackingId', 'orderTrackingId', 'order_tracking_id']);
     const merchantReference = getCallbackField(req, [
       'OrderMerchantReference',
@@ -528,60 +363,6 @@ const updateManagedDonation = async (req, res) => {
   }
 };
 
-const handleSmsCallback = async (req, res) => {
-  try {
-    const { message, secret } = req.body;
-    
-    // 1. Verify SMS Gateway Secret to prevent unauthorized spoofing
-    const configuredSecret = process.env.SMS_GATEWAY_SECRET || 'fallback_sms_secret_123';
-    if (secret !== configuredSecret) {
-      return res.status(401).json({ success: false, message: 'Invalid gateway secret' });
-    }
-
-    if (!message) {
-      return res.status(400).json({ success: false, message: 'SMS message body is required' });
-    }
-
-    // 2. Parse the Uganda SMS text
-    const parsedData = parseUgandaSms(message);
-    if (!parsedData || !parsedData.phoneNumber || !parsedData.amount) {
-      console.warn('SMS message could not be parsed as a valid MoMo payment:', message);
-      return res.status(422).json({ success: false, message: 'Unrecognized SMS message format' });
-    }
-
-    const { amount, phoneNumber, reference } = parsedData;
-
-    // 3. Search for a pending donation matching the parsed phoneNumber and amount
-    const donation = await Donation.findOne({
-      phoneNumber,
-      amount,
-      status: 'pending',
-    });
-
-    if (!donation) {
-      console.warn(`No matching pending donation found for Phone: ${phoneNumber}, Amount: ${amount}`);
-      return res.status(404).json({ 
-        success: false, 
-        message: `No matching pending donation found for Phone: ${phoneNumber}, Amount: ${amount}` 
-      });
-    }
-
-    // 4. Update the donation status to Completed and store the Transaction ID
-    donation.status = 'completed';
-    donation.completedAt = new Date();
-    donation.providerTransactionId = reference || donation.providerTransactionId;
-    donation.message = `SMS Auto-Verified (Ref: ${reference || 'N/A'})`;
-
-    await donation.save();
-
-    console.log(`Donation ${donation._id} automatically completed via MoMo Pay SMS (Ref: ${reference})`);
-    return res.json({ success: true, message: 'Donation successfully completed via SMS verification' });
-  } catch (error) {
-    console.error('Error handling SMS callback:', error);
-    res.status(500).json({ success: false, message: getErrorMessage(error) });
-  }
-};
-
 const getDonationStatusPublic = async (req, res) => {
   try {
     const { transactionId } = req.params;
@@ -589,9 +370,27 @@ const getDonationStatusPublic = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Transaction ID is required' });
     }
 
-    const donation = await Donation.findOne({ transactionId });
+    const donation = await Donation.findOne({
+      $or: [
+        { transactionId },
+        { pesapalOrderTrackingId: transactionId },
+      ],
+    });
     if (!donation) {
       return res.status(404).json({ success: false, message: 'Donation not found' });
+    }
+
+    if (donation.status === 'pending' && donation.pesapalOrderTrackingId && isPesapalConfigured()) {
+      const statusResponse = await getPesapalTransactionStatus(donation.pesapalOrderTrackingId);
+      donation.status = mapPesapalStatus(statusResponse);
+      donation.message = statusResponse.description || statusResponse.message || donation.message;
+      if (donation.status === 'completed') {
+        donation.completedAt = new Date();
+      }
+      if (donation.status !== 'completed') {
+        donation.completedAt = null;
+      }
+      await donation.save();
     }
 
     res.json({
@@ -618,6 +417,5 @@ module.exports = {
   getDonationStats,
   updateManagedDonation,
   handlePaymentCallback,
-  handleSmsCallback,
   getDonationStatusPublic,
 };
