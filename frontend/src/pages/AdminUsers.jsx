@@ -171,7 +171,7 @@ const AdminUsers = () => {
           <option value="admin">Admin</option>
           <option value="chaplain">Chaplain</option>
           <option value="member">Member</option>
-          <option value="student_leader">Student Leader</option>
+          <option value="chapel_leader">Chapel Leader</option>
         </select>
       </div>
 
@@ -201,7 +201,7 @@ const AdminUsers = () => {
                 <option value="member">Member</option>
                 <option value="chaplain">Chaplain</option>
                 <option value="admin">Admin</option>
-                <option value="student_leader">Student Leader</option>
+                <option value="chapel_leader">Chapel Leader</option>
               </select>
             </div>
             
@@ -244,7 +244,7 @@ const AdminUsers = () => {
                   <td>{user.firstName} {user.lastName}</td>
                   <td>{user.email}</td>
                   <td>{user.phoneNumber}</td>
-                  <td><span className={`role-badge role-${user.role}`}>{user.role}</span></td>
+                  <td><span className={`role-badge role-${user.role}`}>{user.role === 'chapel_leader' ? 'chapel leader' : user.role}</span></td>
                   <td>
                     <span className={`status-badge ${user.isActive ? 'status-active' : 'status-inactive'}`}>
                       {user.isActive ? 'Active' : 'Inactive'}
@@ -292,7 +292,7 @@ const AdminUsers = () => {
         .role-admin { background: #f44336; color: white; }
         .role-chaplain { background: #2196F3; color: white; }
         .role-member { background: #4CAF50; color: white; }
-        .role-student_leader { background: #ff9800; color: white; }
+        .role-chapel_leader { background: #ff9800; color: white; }
         .status-badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.7rem; }
         .status-active { background: #4CAF50; color: white; }
         .status-inactive { background: #9e9e9e; color: white; }

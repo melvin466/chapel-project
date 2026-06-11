@@ -811,7 +811,7 @@ input[type="checkbox"] {
 
 .password-field input {
   display: block;
-  padding-right: 5.25rem;
+  padding-right: 3.25rem;
 }
 
 .password-toggle {
@@ -823,24 +823,53 @@ input[type="checkbox"] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 3.4rem;
-  min-height: 2rem;
-  padding: 0 0.55rem;
+  width: 2.25rem;
+  height: 2rem;
+  padding: 0;
   border-radius: 7px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.1);
   color: white;
   cursor: pointer;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1;
 }
 
 .password-toggle:hover,
 .password-toggle:focus-visible {
   background: rgba(255, 255, 255, 0.18);
   outline: none;
+}
+
+.password-toggle-icon {
+  position: relative;
+  display: block;
+  width: 1.15rem;
+  height: 0.72rem;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+}
+
+.password-toggle-icon::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.28rem;
+  height: 0.28rem;
+  border-radius: 50%;
+  background: currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.password-toggle.is-visible .password-toggle-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -0.2rem;
+  width: 1.55rem;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: rotate(-35deg);
 }
 
 .auth-card .error {
@@ -3045,7 +3074,7 @@ select optgroup {
     min-height: 40px;
     font-weight: 700;
   }
-  
+
   .nav-links {
     display: none;
     position: fixed;
@@ -3065,7 +3094,7 @@ select optgroup {
     box-shadow: 0 18px 38px rgba(0, 0, 0, 0.28);
     z-index: 250;
   }
-  
+
   .nav-links.active {
     display: flex;
   }
@@ -3118,11 +3147,11 @@ select optgroup {
     background: rgba(255, 255, 255, 0.14);
     color: white;
   }
-  
+
   .two-columns {
     grid-template-columns: 1fr;
   }
-  
+
   .footer-content {
     grid-template-columns: 1fr;
   }
@@ -3132,19 +3161,19 @@ select optgroup {
     align-items: flex-start;
     flex-direction: column;
   }
-  
+
   .hero h1 {
     font-size: 2rem;
   }
-  
+
   .section-title, .page-title {
     font-size: 1.8rem;
   }
-  
+
   .events-grid, .sermons-grid, .cells-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .notifications-header {
     flex-direction: column;
     text-align: center;
@@ -3237,4 +3266,182 @@ body.menu-open {
   overflow: hidden !important;
   height: 100vh !important;
   position: relative !important;
+}
+
+/* ============================================
+   PESAPAL PAYMENT STATUS UI
+   ============================================ */
+
+.status-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.status-container {
+  width: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Spinner Animation */
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.loading-dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #9bd8aa;
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  } 40% {
+    transform: scale(1.0);
+  }
+}
+
+.status-container h2 {
+  color: white;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.status-container p {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* Status Icons */
+.status-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.success-icon {
+  background: rgba(47, 125, 70, 0.2);
+  border: 2px solid #9bd8aa;
+  color: #9bd8aa;
+}
+
+.error-icon {
+  background: rgba(194, 65, 58, 0.2);
+  border: 2px solid #ff6b6b;
+  color: #ff6b6b;
+}
+
+/* Scripture quote card styling */
+.scripture-quote {
+  font-style: italic;
+  color: #b9f5cf;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  background: rgba(255, 255, 255, 0.05);
+  border-left: 4px solid #9bd8aa;
+  padding: 1rem;
+  border-radius: 4px;
+  margin: 1.5rem 0;
+  max-width: 440px;
+}
+
+.scripture-quote span {
+  display: block;
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 0.4rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* Receipt Details */
+.receipt-details {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+}
+
+.receipt-row:last-child {
+  margin-bottom: 0;
+}
+
+.receipt-row span {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.receipt-row strong {
+  color: white;
+  font-size: 1.1rem;
+}
+
+.anonymous-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  margin-top: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.thank-you-msg {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.95rem !important;
+  margin-bottom: 1.5rem !important;
+  max-width: 380px;
+}
+
+.error-msg {
+  color: rgba(255, 255, 255, 0.74) !important;
+  margin-bottom: 1.5rem !important;
+  max-width: 360px;
+}
+
+.reset-btn {
+  width: 100%;
+  max-width: 200px;
 }

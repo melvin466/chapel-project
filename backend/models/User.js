@@ -1,12 +1,19 @@
 const mongoose = require('mongoose');
 
+const normalizeRole = (role) => (role === 'student_leader' ? 'chapel_leader' : role);
+
 const userSchema = new mongoose.Schema({
   firstName: { type: String, required: true, trim: true },
   lastName: { type: String, required: true, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
   phoneNumber: { type: String, required: true },
-  role: { type: String, enum: ['member', 'chaplain', 'admin', 'student_leader'], default: 'member' },
+  role: {
+    type: String,
+    enum: ['member', 'chaplain', 'admin', 'chapel_leader'],
+    default: 'member',
+    set: normalizeRole,
+  },
   isActive: { type: Boolean, default: true },
   isEmailVerified: { type: Boolean, default: false },
   emailVerificationToken: String,

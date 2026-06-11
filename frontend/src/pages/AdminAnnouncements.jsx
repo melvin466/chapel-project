@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 
 const AdminAnnouncements = () => {
-  const { isAdmin } = useAuth();
+  const { hasAdminPower } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -220,7 +220,7 @@ const AdminAnnouncements = () => {
                   <td>{new Date(item.createdAt).toLocaleDateString()}</td>
                   <td>
                     <button onClick={() => handleEdit(item)} className="btn-edit">Edit</button>
-                    {isAdmin && <button onClick={() => setDeleteTarget(item)} className="btn-delete">Delete</button>}
+                    {hasAdminPower && <button onClick={() => setDeleteTarget(item)} className="btn-delete">Delete</button>}
                   </td>
                 </tr>
               ))

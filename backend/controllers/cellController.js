@@ -1,6 +1,7 @@
 const Cell = require('../models/Cell');
 const CellJoinRequest = require('../models/CellJoinRequest');
 const User = require('../models/User');
+const { hasAdminPower } = require('../middleware/auth');
 const { recordAuditLog } = require('../utils/auditLogger');
 const { notifyUser, notifyAudience } = require('../utils/notificationDispatcher');
 
@@ -171,7 +172,7 @@ const requestJoinCell = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cell is already at capacity' });
     }
 
-    if (user.role === 'admin') {
+    if (hasAdminPower(user)) {
       user.cellId = cell._id;
       await user.save();
       await refreshMemberCount(cell._id);

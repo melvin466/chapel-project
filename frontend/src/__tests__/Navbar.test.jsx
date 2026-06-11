@@ -11,6 +11,7 @@ vi.mock('../context/AuthContext', () => ({
     logout: vi.fn(),
     isAdmin: true,
     isChaplain: false,
+    hasAdminPower: true,
   }),
 }));
 

@@ -105,7 +105,9 @@ export const AuthProvider = ({ children }) => {
     refreshUser,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
-    isChaplain: user?.role === 'chaplain'  // ← ADD THIS LINE
+    isChaplain: user?.role === 'chaplain',
+    isChapelLeader: user?.role === 'chapel_leader',
+    hasAdminPower: ['admin', 'chaplain'].includes(user?.role)
   };
 
   return (

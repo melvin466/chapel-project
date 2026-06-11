@@ -117,7 +117,7 @@ const AdminUserForm = () => {
               <option value="member">Member</option>
               <option value="chaplain">Chaplain</option>
               <option value="admin">Admin</option>
-              <option value="student_leader">Student Leader</option>
+              <option value="chapel_leader">Chapel Leader</option>
             </select>
             <label className="checkbox-label">
               <input type="checkbox" name="isActive" checked={formData.isActive} onChange={handleChange} />

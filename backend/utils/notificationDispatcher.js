@@ -25,9 +25,9 @@ const audienceFilters = {
   everyone: {},
   students: { role: 'member' },
   staff: { role: { $in: ['admin', 'chaplain'] } },
-  leaders: { role: { $in: ['admin', 'chaplain', 'student_leader'] } },
+  leaders: { role: { $in: ['admin', 'chaplain', 'chapel_leader'] } },
   cell_members: { cellId: { $exists: true, $ne: null } },
-  ministry_members: { role: { $in: ['member', 'student_leader'] } },
+  ministry_members: { role: { $in: ['member', 'chapel_leader'] } },
 };
 
 const notifyAudience = async (targetAudience = 'everyone', notification) => {

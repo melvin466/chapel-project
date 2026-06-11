@@ -13,7 +13,7 @@ const CellsPage = () => {
   const [error, setError] = useState('');
   const [joinedCellId, setJoinedCellId] = useState('');
   const [pendingCellId, setPendingCellId] = useState('');
-  const { user, isAuthenticated, isAdmin, refreshUser } = useAuth();
+  const { user, isAuthenticated, hasAdminPower, refreshUser } = useAuth();
 
   const currentCellId = (joinedCellId || user?.cellId?._id || user?.cellId || '').toString();
 
@@ -49,9 +49,9 @@ const CellsPage = () => {
 
     try {
       const response = await cellService.joinCell(cellId);
-      setMessage(response.message || (isAdmin ? 'You joined this cell.' : 'Your request to join this cell has been sent.'));
+      setMessage(response.message || (hasAdminPower ? 'You joined this cell.' : 'Your request to join this cell has been sent.'));
 
-      if (response.data?.joinedDirectly || isAdmin) {
+      if (response.data?.joinedDirectly || hasAdminPower) {
         setJoinedCellId(response.data?.cellId || cellId);
         await refreshUser?.();
       } else {
@@ -161,7 +161,7 @@ const CellsPage = () => {
                   ? 'Already in a Cell'
                   : isPending
                     ? 'Request Sent'
-                    : isAdmin
+                    : hasAdminPower
                       ? 'Join Cell'
                       : 'Request to Join';
 

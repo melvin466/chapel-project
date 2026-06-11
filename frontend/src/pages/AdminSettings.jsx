@@ -4,9 +4,9 @@ import ConfirmDialog from '../components/ConfirmDialog';
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState({
-    siteName: 'St. Francis Chapel',
-    siteDescription: 'Welcome to St. Francis Chapel - A place of worship and fellowship',
-    contactEmail: 'chapel@mak.ac.ug',
+    siteName: 'Chapel System',
+    siteDescription: 'Welcome to Chapel System - A place of worship and fellowship',
+    contactEmail: 'managementchapel98@gmail.com',
     contactPhone: '+256 700 000000',
     address: 'Kampala, Uganda',
     serviceTimes: {
@@ -15,9 +15,9 @@ const AdminSettings = () => {
       friday: '4:00 PM'
     },
     socialMedia: {
-      facebook: 'https://facebook.com/stfrancischapel',
-      twitter: 'https://twitter.com/stfrancischapel',
-      instagram: 'https://instagram.com/stfrancischapel'
+      facebook: 'https://facebook.com/chapelsystem',
+      twitter: 'https://twitter.com/chapelsystem',
+      instagram: 'https://instagram.com/chapelsystem'
     },
     emailNotifications: true,
     allowRegistration: true,

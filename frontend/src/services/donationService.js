@@ -29,6 +29,11 @@ const donationService = {
   updateManagedDonation: async (id, data) => {
     const response = await api.put(`/donations/${id}/manage`, data);
     return response.data;
+  },
+
+  getDonationStatusPublic: async (transactionId) => {
+    const response = await api.get(`/donations/status/${transactionId}`);
+    return response.data;
   }
 };
 

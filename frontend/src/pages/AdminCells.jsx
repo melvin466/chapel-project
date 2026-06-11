@@ -29,7 +29,7 @@ const AdminCells = () => {
   const [assignments, setAssignments] = useState({});
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  const leaders = useMemo(() => users.filter((user) => ['admin', 'chaplain', 'student_leader'].includes(user.role)), [users]);
+  const leaders = useMemo(() => users.filter((user) => ['admin', 'chaplain', 'chapel_leader'].includes(user.role)), [users]);
   const assignableUsers = useMemo(() => users.filter((user) => user.role !== 'admin'), [users]);
 
   useEffect(() => {

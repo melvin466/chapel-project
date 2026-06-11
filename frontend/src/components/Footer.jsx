@@ -25,7 +25,7 @@ const Footer = () => {
             <p>Serving the chapel community through worship, fellowship, prayer, and care.</p>
             <div className="footer-contact-list">
               <span>Kampala, Uganda</span>
-              <a href="mailto:chapel@example.org">chapel@example.org</a>
+              <a href="mailto:managementchapel98@gmail.com">managementchapel98@gmail.com</a>
               <a href="tel:+256789030837">+256 789 030 837</a>
             </div>
           </div>

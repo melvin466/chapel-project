@@ -48,7 +48,7 @@ const statusOptions = {
   donations: ['pending', 'completed', 'failed', 'refunded'],
 };
 
-const roleOptions = ['member', 'chaplain', 'admin', 'student_leader'];
+const roleOptions = ['member', 'chaplain', 'admin', 'chapel_leader'];
 
 const formatMoney = (value) => `UGX ${Number(value || 0).toLocaleString()}`;
 

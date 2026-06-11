@@ -14,7 +14,12 @@ vi.mock('../services/donationService', () => ({
   default: {
     getDonationOptions: vi.fn(),
     createDonation: vi.fn(),
+    getDonationStatusPublic: vi.fn(),
   },
+}));
+
+vi.mock('react-router-dom', () => ({
+  useSearchParams: () => [new URLSearchParams(), vi.fn()],
 }));
 
 describe('DonationsPage', () => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import  eventService  from '../services/eventService';
 import  announcementService  from '../services/announcementService';
 import userService from '../services/userService';
@@ -12,6 +13,9 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 
 const AdminDashboardPage = () => {
   const navigate = useNavigate();
+  const { isChaplain } = useAuth();
+  const dashboardTitle = isChaplain ? 'Chaplain Dashboard' : 'Dashboard';
+  const dashboardSubtitle = isChaplain ? 'Pastoral care, chapel operations, and community oversight.' : '';
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
     events: { total: 0, published: 0, draft: 0, upcoming: 0, past: 0, monthly: [] },
@@ -186,7 +190,10 @@ const AdminDashboardPage = () => {
       {/* Main Content */}
       <main className="admin-main">
         <div className="main-header">
-          <h1>Dashboard</h1>
+          <div>
+            <h1>{dashboardTitle}</h1>
+            {dashboardSubtitle && <p className="dashboard-subtitle">{dashboardSubtitle}</p>}
+          </div>
           <div className="header-actions">
             <div className="date-display">
               {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
@@ -271,6 +278,7 @@ const AdminDashboardPage = () => {
         .admin-main { padding: 0; overflow: visible; }
         .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
         .main-header h1 { color: white; font-size: 1.8rem; }
+        .dashboard-subtitle { color: rgba(255,255,255,0.72); margin-top: 0.35rem; }
         .date-display { background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 50px; color: white; font-size: 0.85rem; }
         
         /* Stats Grid */

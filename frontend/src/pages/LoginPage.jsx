@@ -22,7 +22,7 @@ const LoginPage = () => {
     setLoading(true);
     const response = await login(email.trim().toLowerCase(), password);
     if (response.success) {
-      navigate(response.user?.role === 'admin' ? '/admin' : '/', { replace: true });
+      navigate(['admin', 'chaplain'].includes(response.user?.role) ? '/admin' : '/', { replace: true });
     } else if (response.status === 403 || response.message?.toLowerCase().includes('verify your email')) {
       setVerificationPending(true);
       setMessage('Please check your email and tap the verification link before logging in.');
@@ -73,11 +73,11 @@ const LoginPage = () => {
                 />
                 <button
                   type="button"
-                  className="password-toggle"
+                  className={`password-toggle ${showPassword ? 'is-visible' : ''}`}
                   onClick={() => setShowPassword((current) => !current)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  <span className="password-toggle-icon" aria-hidden="true" />
                 </button>
               </div>
               <button type="submit" disabled={loading} className="btn-primary">{loading ? 'Logging in...' : 'Login'}</button>

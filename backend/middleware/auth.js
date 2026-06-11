@@ -49,22 +49,24 @@ const optionalProtect = async (req, _res, next) => {
   next();
 };
 
-// Admin only middleware
+const hasAdminPower = (user) => user && ['admin', 'chaplain'].includes(user.role);
+
+// Admin-power middleware
 const admin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (hasAdminPower(req.user)) {
     next();
   } else {
-    res.status(403).json({ success: false, message: 'Admin access required' });
+    res.status(403).json({ success: false, message: 'Admin or Chaplain access required' });
   }
 };
 
 // Chaplain or Admin middleware
 const chaplain = (req, res, next) => {
-  if (req.user && (req.user.role === 'chaplain' || req.user.role === 'admin')) {
+  if (hasAdminPower(req.user)) {
     next();
   } else {
     res.status(403).json({ success: false, message: 'Chaplain or Admin access required' });
   }
 };
 
-module.exports = { protect, optionalProtect, admin, chaplain };
+module.exports = { protect, optionalProtect, admin, chaplain, hasAdminPower };

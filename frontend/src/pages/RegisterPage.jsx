@@ -56,11 +56,11 @@ const RegisterPage = () => {
                 />
                 <button
                   type="button"
-                  className="password-toggle"
+                  className={`password-toggle ${showPassword ? 'is-visible' : ''}`}
                   onClick={() => setShowPassword((current) => !current)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  <span className="password-toggle-icon" aria-hidden="true" />
                 </button>
               </div>
               <input type="tel" name="phoneNumber" placeholder="Phone Number" onChange={handleChange} required />

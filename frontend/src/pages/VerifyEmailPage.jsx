@@ -28,7 +28,7 @@ const VerifyEmailPage = () => {
         setStatus('success');
         setMessage(response.message || 'Email verified successfully.');
         window.setTimeout(() => {
-          navigate(response.user?.role === 'admin' ? '/admin' : '/dashboard', { replace: true });
+          navigate(['admin', 'chaplain'].includes(response.user?.role) ? '/admin' : '/dashboard', { replace: true });
         }, 1000);
       } else {
         setStatus('error');

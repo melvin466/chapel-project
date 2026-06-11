@@ -5,9 +5,10 @@ import { preloadProps } from '../routePreload';
 
 const AdminLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, isAdmin, isChaplain } = useAuth();
+  const { user, logout, isChaplain } = useAuth();
   const navigate = useNavigate();
-  const canManageContent = isAdmin || isChaplain;
+  const consoleTitle = isChaplain ? 'Chaplain Console' : 'Admin Console';
+  const signedInLabel = isChaplain ? 'Chaplain signed in' : 'Signed in as';
 
   const handleLogout = () => {
     setIsMobileMenuOpen(false);
@@ -22,13 +23,13 @@ const AdminLayout = ({ children }) => {
       <aside className={`admin-sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="admin-sidebar-header">
           <Link
-            to={isAdmin ? '/admin' : '/admin/announcements'}
+            to="/admin"
             className="admin-brand"
             onClick={closeMobileMenu}
-            {...preloadProps(isAdmin ? '/admin' : '/admin/announcements')}
+            {...preloadProps('/admin')}
           >
             <span>Chapel</span>
-            <strong>Admin Console</strong>
+            <strong>{consoleTitle}</strong>
           </Link>
 
           <button
@@ -44,18 +45,18 @@ const AdminLayout = ({ children }) => {
         </div>
 
         <nav className="admin-nav" id="admin-navigation" aria-label="Admin navigation">
-          {isAdmin && <NavLink to="/admin" end onClick={closeMobileMenu} {...preloadProps('/admin')}>Overview</NavLink>}
-          {isAdmin && <NavLink to="/admin/events" onClick={closeMobileMenu} {...preloadProps('/admin/events')}>Events</NavLink>}
-          {canManageContent && <NavLink to="/admin/announcements" onClick={closeMobileMenu} {...preloadProps('/admin/announcements')}>Announcements</NavLink>}
-          {canManageContent && <NavLink to="/admin/bookings" onClick={closeMobileMenu} {...preloadProps('/admin/bookings')}>Bookings</NavLink>}
-          {canManageContent && <NavLink to="/admin/sermons" onClick={closeMobileMenu} {...preloadProps('/admin/sermons')}>Sermons</NavLink>}
-          {isAdmin && <NavLink to="/admin/cells" onClick={closeMobileMenu} {...preloadProps('/admin/cells')}>Cells</NavLink>}
-          {canManageContent && <NavLink to="/admin/prayers" onClick={closeMobileMenu} {...preloadProps('/admin/prayers')}>Prayers</NavLink>}
-          {isAdmin && <NavLink to="/admin/donations" onClick={closeMobileMenu} {...preloadProps('/admin/donations')}>Donations</NavLink>}
-          {isAdmin && <NavLink to="/admin/users" onClick={closeMobileMenu} {...preloadProps('/admin/users')}>Users</NavLink>}
-          {isAdmin && <NavLink to="/admin/reports" onClick={closeMobileMenu} {...preloadProps('/admin/reports')}>Reports</NavLink>}
-          {isAdmin && <NavLink to="/admin/audit-logs" onClick={closeMobileMenu} {...preloadProps('/admin/audit-logs')}>Audit Logs</NavLink>}
-          {isAdmin && <NavLink to="/admin/settings" onClick={closeMobileMenu} {...preloadProps('/admin/settings')}>Settings</NavLink>}
+          <NavLink to="/admin" end onClick={closeMobileMenu} {...preloadProps('/admin')}>Overview</NavLink>
+          <NavLink to="/admin/events" onClick={closeMobileMenu} {...preloadProps('/admin/events')}>Events</NavLink>
+          <NavLink to="/admin/announcements" onClick={closeMobileMenu} {...preloadProps('/admin/announcements')}>Announcements</NavLink>
+          <NavLink to="/admin/bookings" onClick={closeMobileMenu} {...preloadProps('/admin/bookings')}>Bookings</NavLink>
+          <NavLink to="/admin/sermons" onClick={closeMobileMenu} {...preloadProps('/admin/sermons')}>Sermons</NavLink>
+          <NavLink to="/admin/cells" onClick={closeMobileMenu} {...preloadProps('/admin/cells')}>Cells</NavLink>
+          <NavLink to="/admin/prayers" onClick={closeMobileMenu} {...preloadProps('/admin/prayers')}>Prayers</NavLink>
+          <NavLink to="/admin/donations" onClick={closeMobileMenu} {...preloadProps('/admin/donations')}>Donations</NavLink>
+          <NavLink to="/admin/users" onClick={closeMobileMenu} {...preloadProps('/admin/users')}>Users</NavLink>
+          <NavLink to="/admin/reports" onClick={closeMobileMenu} {...preloadProps('/admin/reports')}>Reports</NavLink>
+          <NavLink to="/admin/audit-logs" onClick={closeMobileMenu} {...preloadProps('/admin/audit-logs')}>Audit Logs</NavLink>
+          <NavLink to="/admin/settings" onClick={closeMobileMenu} {...preloadProps('/admin/settings')}>Settings</NavLink>
         </nav>
 
         <div className="admin-sidebar-footer">
@@ -67,7 +68,7 @@ const AdminLayout = ({ children }) => {
       <section className="admin-workspace">
         <header className="admin-topbar">
           <div>
-            <span>Signed in as</span>
+            <span>{signedInLabel}</span>
             <strong>{user?.firstName || 'Admin'} {user?.lastName || ''}</strong>
           </div>
           <div className="admin-topbar-actions">

@@ -6,9 +6,9 @@ import { preloadProps } from '../routePreload';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const { user, isAuthenticated, logout, isAdmin, isChaplain } = useAuth();
+  const { user, isAuthenticated, logout, isChaplain, hasAdminPower } = useAuth();
   const navigate = useNavigate();
-  const canManageContent = isAdmin || isChaplain;
+  const managementLabel = isChaplain ? 'Chaplain' : 'Admin';
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -96,7 +96,7 @@ const Navbar = () => {
 
           {isAuthenticated ? (
             <>
-              {canManageContent && (
+              {hasAdminPower && (
                 <div className={`nav-dropdown ${openDropdown === 'admin' ? 'open' : ''}`}>
                   <button
                     type="button"
@@ -106,18 +106,18 @@ const Navbar = () => {
                     aria-expanded={openDropdown === 'admin'}
                     aria-controls="admin-menu"
                   >
-                    {isAdmin ? 'Admin' : 'Manage'}
+                    {managementLabel}
                   </button>
                   <div className="dropdown-content" id="admin-menu">
-                    {isAdmin && <NavLink to="/admin" onClick={closeMenu} {...preloadProps('/admin')}>Overview</NavLink>}
+                    <NavLink to="/admin" onClick={closeMenu} {...preloadProps('/admin')}>Overview</NavLink>
                     <NavLink to="/admin/events" onClick={closeMenu} {...preloadProps('/admin/events')}>Events</NavLink>
                     <NavLink to="/admin/announcements" onClick={closeMenu} {...preloadProps('/admin/announcements')}>Announcements</NavLink>
                     <NavLink to="/admin/bookings" onClick={closeMenu} {...preloadProps('/admin/bookings')}>Bookings</NavLink>
-                    {isAdmin && <NavLink to="/admin/users" onClick={closeMenu} {...preloadProps('/admin/users')}>Users</NavLink>}
-                    {canManageContent && <NavLink to="/admin/prayers" onClick={closeMenu} {...preloadProps('/admin/prayers')}>Prayers</NavLink>}
-                    {isAdmin && <NavLink to="/admin/donations" onClick={closeMenu} {...preloadProps('/admin/donations')}>Donations</NavLink>}
-                    {isAdmin && <NavLink to="/admin/audit-logs" onClick={closeMenu} {...preloadProps('/admin/audit-logs')}>Audit Logs</NavLink>}
-                    {isAdmin && <NavLink to="/admin/settings" onClick={closeMenu} {...preloadProps('/admin/settings')}>Settings</NavLink>}
+                    <NavLink to="/admin/users" onClick={closeMenu} {...preloadProps('/admin/users')}>Users</NavLink>
+                    <NavLink to="/admin/prayers" onClick={closeMenu} {...preloadProps('/admin/prayers')}>Prayers</NavLink>
+                    <NavLink to="/admin/donations" onClick={closeMenu} {...preloadProps('/admin/donations')}>Donations</NavLink>
+                    <NavLink to="/admin/audit-logs" onClick={closeMenu} {...preloadProps('/admin/audit-logs')}>Audit Logs</NavLink>
+                    <NavLink to="/admin/settings" onClick={closeMenu} {...preloadProps('/admin/settings')}>Settings</NavLink>
                   </div>
                 </div>
               )}

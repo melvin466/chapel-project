@@ -59,11 +59,11 @@ const ResetPasswordPage = () => {
             />
             <button
               type="button"
-              className="password-toggle"
+              className={`password-toggle ${showPassword ? 'is-visible' : ''}`}
               onClick={() => setShowPassword((current) => !current)}
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
-              {showPassword ? 'Hide' : 'Show'}
+              <span className="password-toggle-icon" aria-hidden="true" />
             </button>
           </div>
           <div className="password-field" style={{ marginBottom: '1rem' }}>
@@ -77,11 +77,11 @@ const ResetPasswordPage = () => {
             />
             <button
               type="button"
-              className="password-toggle"
+              className={`password-toggle ${showConfirmPassword ? 'is-visible' : ''}`}
               onClick={() => setShowConfirmPassword((current) => !current)}
               aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
             >
-              {showConfirmPassword ? 'Hide' : 'Show'}
+              <span className="password-toggle-icon" aria-hidden="true" />
             </button>
           </div>
           <button type="submit" className="btn-primary" disabled={loading}>

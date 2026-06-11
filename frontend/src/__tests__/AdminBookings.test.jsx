@@ -8,6 +8,7 @@ import userService from '../services/userService';
 vi.mock('../context/AuthContext', () => ({
   useAuth: () => ({
     isAdmin: true,
+    hasAdminPower: true,
   }),
 }));
 

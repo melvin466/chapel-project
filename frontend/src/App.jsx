@@ -58,7 +58,9 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Admin Route Component - Only accessible when logged in as admin
+const hasAdminPower = (user) => ['admin', 'chaplain'].includes(user?.role);
+
+// Admin Route Component - Accessible to admin-power roles
 const AdminRoute = ({ children }) => {
   const { isAuthenticated, loading, user } = useAuth();
   if (loading) {
@@ -67,25 +69,15 @@ const AdminRoute = ({ children }) => {
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
-  if (user?.role !== 'admin') {
+  if (!hasAdminPower(user)) {
     return <Navigate to="/dashboard" />;
   }
   return <AdminLayout>{children}</AdminLayout>;
 };
 
-// Content Manager Route Component - Accessible to admin or chaplain
+// Content Manager Route Component - Kept for route readability
 const ContentManagerRoute = ({ children }) => {
-  const { isAuthenticated, loading, user } = useAuth();
-  if (loading) {
-    return <PageSkeleton variant="admin" />;
-  }
-  if (!isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
-  if (user?.role !== 'admin' && user?.role !== 'chaplain') {
-    return <Navigate to="/dashboard" />;
-  }
-  return <AdminLayout>{children}</AdminLayout>;
+  return <AdminRoute>{children}</AdminRoute>;
 };
 
 // Public Route - Redirect to dashboard if already logged in
@@ -95,7 +87,7 @@ const PublicRoute = ({ children }) => {
     return <PageSkeleton />;
   }
   if (isAuthenticated) {
-    return <Navigate to={user?.role === 'admin' ? '/admin' : '/'} />;
+    return <Navigate to={hasAdminPower(user) ? '/admin' : '/'} />;
   }
   return children;
 };

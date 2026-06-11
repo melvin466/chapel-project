@@ -33,7 +33,7 @@ const formatDateTime = (date, time) => {
 };
 
 const AdminBookings = () => {
-  const { isAdmin } = useAuth();
+  const { hasAdminPower } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [staffUsers, setStaffUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
@@ -73,7 +73,7 @@ const AdminBookings = () => {
   };
 
   const loadStaff = async () => {
-    if (!isAdmin) return;
+    if (!hasAdminPower) return;
     try {
       const response = await userService.getUsers();
       setStaffUsers(response.data?.users || []);
@@ -84,7 +84,7 @@ const AdminBookings = () => {
 
   useEffect(() => {
     loadStaff();
-  }, [isAdmin]);
+  }, [hasAdminPower]);
 
   useEffect(() => {
     loadBookings();
@@ -240,7 +240,7 @@ const AdminBookings = () => {
                 </div>
               )}
 
-              {isAdmin && (
+              {hasAdminPower && (
                 <label className="admin-booking-assign">
                   Assigned to
                   <select
@@ -261,7 +261,7 @@ const AdminBookings = () => {
                 </label>
               )}
 
-              {!isAdmin && booking.assignedTo && (
+              {!hasAdminPower && booking.assignedTo && (
                 <p className="admin-booking-assigned">
                   Assigned to {booking.assignedTo.firstName} {booking.assignedTo.lastName}
                 </p>

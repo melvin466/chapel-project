@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import  donationService  from '../services/donationService';
 
 const scriptureNotes = [
@@ -65,6 +66,10 @@ const DonationsPage = () => {
     { id: 'benevolence', name: 'Benevolence' },
   ]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [verifying, setVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState(null);
+
   useEffect(() => {
     donationService.getDonationOptions()
       .then(response => {
@@ -74,6 +79,49 @@ const DonationsPage = () => {
         console.error('Error fetching donation options:', error);
       });
   }, []);
+
+  useEffect(() => {
+    const reference = searchParams.get('reference') || searchParams.get('OrderMerchantReference');
+    if (reference) {
+      setVerifying(true);
+
+      const checkStatus = async () => {
+        try {
+          const res = await donationService.getDonationStatusPublic(reference);
+          if (res.success && res.data) {
+            setVerificationResult(res.data);
+            if (res.data.status !== 'pending') {
+              setVerifying(false);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error verifying donation:', error);
+        }
+
+        let retries = 0;
+        const interval = setInterval(async () => {
+          retries += 1;
+          try {
+            const res = await donationService.getDonationStatusPublic(reference);
+            if (res.success && res.data) {
+              setVerificationResult(res.data);
+              if (res.data.status !== 'pending' || retries >= 5) {
+                clearInterval(interval);
+                setVerifying(false);
+              }
+            }
+          } catch (error) {
+            console.error('Error verifying donation:', error);
+            clearInterval(interval);
+            setVerifying(false);
+          }
+        }, 3000);
+      };
+
+      checkStatus();
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -179,46 +227,107 @@ const DonationsPage = () => {
           ))}
         </div>
       </section>
-      
+
       <div className="two-columns">
-        <div className="form-card">
-          <div className="giving-form-heading">
-            <span>Selected purpose</span>
-            <h2>{donationOptions.find((option) => option.id === donationType)?.name || 'Make a Donation'}</h2>
-            <p>All payments are recorded securely and can be reviewed by the chapel finance team.</p>
+        {verifying || verificationResult ? (
+          <div className="form-card status-card">
+            {verifying ? (
+              <div className="status-container verifying">
+                <div className="loading-dots">
+                  <span></span><span></span><span></span>
+                </div>
+                <h2>Verifying Payment</h2>
+                <p>We are communicating with Pesapal to confirm your transaction. This will take just a moment...</p>
+              </div>
+            ) : (
+              <div className={`status-container result ${verificationResult.status}`}>
+                {verificationResult.status === 'completed' ? (
+                  <div className="success-flow">
+                    <div className="status-icon success-icon">✓</div>
+                    <h2>Donation Successful!</h2>
+                    <blockquote className="scripture-quote">
+                      "God loves a cheerful giver."
+                      <span>— 2 Corinthians 9:7</span>
+                    </blockquote>
+                    <div className="receipt-details">
+                      <div className="receipt-row">
+                        <span>Amount Paid:</span>
+                        <strong>UGX {verificationResult.amount?.toLocaleString()}</strong>
+                      </div>
+                      <div className="receipt-row">
+                        <span>Purpose:</span>
+                        <strong>{donationOptions.find(o => o.id === verificationResult.donationType)?.name || verificationResult.donationType}</strong>
+                      </div>
+                      {verificationResult.isAnonymous && (
+                        <div className="anonymous-badge">Donated Anonymously</div>
+                      )}
+                    </div>
+                    <p className="thank-you-msg">
+                      Thank you for your generous support of the Chapel System ministry.
+                    </p>
+                    <button type="button" onClick={() => {
+                      setVerificationResult(null);
+                      setSearchParams({});
+                    }} className="btn-primary reset-btn">Done</button>
+                  </div>
+                ) : (
+                  <div className="error-flow">
+                    <div className="status-icon error-icon">✗</div>
+                    <h2>Donation {verificationResult.status === 'pending' ? 'Pending' : 'Failed'}</h2>
+                    <p className="error-msg">
+                      {verificationResult.status === 'pending'
+                        ? 'Your payment is still processing. It will automatically update in your history once confirmed.'
+                        : 'The payment was not completed. Please try again.'}
+                    </p>
+                    <button type="button" onClick={() => {
+                      setVerificationResult(null);
+                      setSearchParams({});
+                    }} className="btn-primary reset-btn">Try Again</button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-          {message && (
-            <div className={`form-message ${message.type}`} role={message.type === 'error' ? 'alert' : 'status'}>
-              {message.text}
+        ) : (
+          <div className="form-card">
+            <div className="giving-form-heading">
+              <span>Selected purpose</span>
+              <h2>{donationOptions.find((option) => option.id === donationType)?.name || 'Make a Donation'}</h2>
+              <p>All payments are recorded securely and can be reviewed by the chapel finance team.</p>
             </div>
-          )}
-          <form onSubmit={handleSubmit}>
-            <input type="number" min="500" placeholder="Amount (UGX, min 500)" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-            <select value={donationType} onChange={(e) => setDonationType(e.target.value)}>
-              {donationOptions.map(option => (
-                <option key={option.id} value={option.id}>{option.name}</option>
-              ))}
-            </select>
-            <div>
-              <label htmlFor="paymentMethod">Payment method</label>
-              <input id="paymentMethod" type="text" value="Mobile Money" disabled className="readonly-input" />
-            </div>
-            <div>
-              <label htmlFor="provider">Operator</label>
-              <select id="provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
-                <option value="MTN">MTN Mobile Money</option>
-                <option value="Airtel">Airtel Money</option>
+            {message && (
+              <div className={`form-message ${message.type}`} role={message.type === 'error' ? 'alert' : 'status'}>
+                {message.text}
+              </div>
+            )}
+            <form onSubmit={handleSubmit}>
+              <input type="number" min="500" placeholder="Amount (UGX, min 500)" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+              <select value={donationType} onChange={(e) => setDonationType(e.target.value)}>
+                {donationOptions.map(option => (
+                  <option key={option.id} value={option.id}>{option.name}</option>
+                ))}
               </select>
-            </div>
-            <div>
-              <label htmlFor="phoneNumber">Mobile money phone number</label>
-              <input id="phoneNumber" type="tel" placeholder="256700000000" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
-            </div>
-            <label className="checkbox-label"><input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} /> Donate Anonymously</label>
-            <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Processing...' : 'Give Now'}</button>
-          </form>
-        </div>
-        
+              <div>
+                <label htmlFor="paymentMethod">Payment method</label>
+                <input id="paymentMethod" type="text" value="Mobile Money" disabled className="readonly-input" />
+              </div>
+              <div>
+                <label htmlFor="provider">Operator</label>
+                <select id="provider" value={provider} onChange={(e) => setProvider(e.target.value)}>
+                  <option value="MTN">MTN Mobile Money</option>
+                  <option value="Airtel">Airtel Money</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="phoneNumber">Mobile money phone number</label>
+                <input id="phoneNumber" type="tel" placeholder="256700000000" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
+              </div>
+              <label className="checkbox-label"><input type="checkbox" checked={isAnonymous} onChange={(e) => setIsAnonymous(e.target.checked)} /> Donate Anonymously</label>
+              <button type="submit" disabled={submitting} className="btn-primary">{submitting ? 'Processing...' : 'Give Now'}</button>
+            </form>
+          </div>
+        )}
+
         <div className="info-card">
           <span className="info-kicker">Giving guide</span>
           <h3>Where your support goes</h3>
@@ -237,7 +346,7 @@ const DonationsPage = () => {
             </div>
           </div>
           <h4>Bank Details</h4>
-          <p>Bank: Stanbic Bank<br />Account: 1234567890<br />Name: St. Francis Chapel</p>
+          <p>Bank: Stanbic Bank<br />Account: 1234567890<br />Name: Chapel System</p>
           <h4>Mobile Money</h4>
           <p>MTN: +256 700 000000<br />Airtel: +256 701 000000</p>
         </div>
@@ -287,7 +396,7 @@ const DonationsPage = () => {
         <div className="giving-question-card">
           <strong>Still have questions?</strong>
           <p>Giving can be personal. Contact the chapel office for guidance, records, or payment support.</p>
-          <a href="mailto:chapel@example.org">chapel@example.org</a>
+          <a href="mailto:managementchapel98@gmail.com">managementchapel98@gmail.com</a>
         </div>
       </section>
     </div>

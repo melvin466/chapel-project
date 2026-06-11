@@ -98,6 +98,14 @@ const getDonationCallbackUrl = () => {
   return process.env.PESAPAL_CALLBACK_URL || `${backendBaseUrl.replace(/\/+$/, '')}/api/donations/callback`;
 };
 
+const getDonationFrontendRedirectUrl = (transactionId) => {
+  const baseUrl = process.env.PESAPAL_CANCELLATION_URL
+    ? process.env.PESAPAL_CANCELLATION_URL.split('?')[0]
+    : (process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/+$/, '')}/donations` : 'http://localhost:5173/donations');
+
+  return `${baseUrl}?reference=${transactionId}`;
+};
+
 const getDonationCancellationUrl = () => {
   const frontendBaseUrl = process.env.PESAPAL_CANCELLATION_URL
     || (process.env.FRONTEND_URL ? `${process.env.FRONTEND_URL.replace(/\/+$/, '')}/give` : undefined);
@@ -110,11 +118,6 @@ const getRelworxMsisdn = (phoneNumber) => `+${phoneNumber}`;
 const getDonationPaymentProvider = () => {
   if (process.env.NODE_ENV === 'test') return 'legacy';
   const configuredProvider = String(process.env.DONATION_PAYMENT_PROVIDER || '').toLowerCase();
-
-  if (configuredProvider === 'relworx' && isPesapalConfigured()) {
-    return 'pesapal';
-  }
-
   return configuredProvider || 'pesapal';
 };
 
@@ -265,7 +268,7 @@ const createDonation = async (req, res) => {
         reference: transactionId,
         email: userEmail,
         phoneNumber: normalizedPhoneNumber,
-        callbackUrl: getDonationCallbackUrl(),
+        callbackUrl: getDonationFrontendRedirectUrl(transactionId),
         cancellationUrl: getDonationCancellationUrl(),
         user: req.user,
       });
@@ -579,6 +582,34 @@ const handleSmsCallback = async (req, res) => {
   }
 };
 
+const getDonationStatusPublic = async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    if (!transactionId) {
+      return res.status(400).json({ success: false, message: 'Transaction ID is required' });
+    }
+
+    const donation = await Donation.findOne({ transactionId });
+    if (!donation) {
+      return res.status(404).json({ success: false, message: 'Donation not found' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        status: donation.status,
+        amount: donation.amount,
+        donationType: donation.donationType,
+        isAnonymous: donation.isAnonymous,
+        completedAt: donation.completedAt,
+        message: donation.message
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: getErrorMessage(error) });
+  }
+};
+
 module.exports = {
   getDonations,
   getManageDonations,
@@ -588,4 +619,5 @@ module.exports = {
   updateManagedDonation,
   handlePaymentCallback,
   handleSmsCallback,
+  getDonationStatusPublic,
 };

@@ -54,6 +54,9 @@ describe('Report endpoints', () => {
     const admin = await registerAndLogin({ email: 'reportsadmin@example.com', role: 'admin' });
     const member = await registerAndLogin({ email: 'reportsmember@example.com' });
 
+    // Set user creation dates outside the query range to make the test date-independent
+    await User.updateMany({}, { createdAt: new Date('2026-05-01T00:00:00.000Z') });
+
     await Event.create({
       title: 'Attendance Sunday',
       description: 'Report event',

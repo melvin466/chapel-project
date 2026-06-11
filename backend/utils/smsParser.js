@@ -9,6 +9,17 @@ const parseUgandaSms = (text) => {
     amount = parseFloat(amountMatch[1].replace(/,/g, ''));
   }
 
+  // 1b. Parse Fee (UGX, Shs, or Shs.) to reconstruct original amount if fee was deducted
+  let fee = 0;
+  const feeMatch = text.match(/(?:Fee charged|Transaction fee|Fee|Charge|Charges)\s*(?:was|is|:|of)?\s*(?:UGX|Shs|Shs\.)?\s*([\d,]+)/i);
+  if (feeMatch) {
+    fee = parseFloat(feeMatch[1].replace(/,/g, ''));
+  }
+
+  if (amount !== null && fee > 0) {
+    amount += fee;
+  }
+
   // 2. Parse Phone Number (normalizing to Uganda standard format, e.g. 2567...)
   let phoneNumber = null;
   const phoneMatch = text.match(/(?:from|by)\s+[^(\n]*\((256\d{9}|0\d{9}|\d{9})\)/i)

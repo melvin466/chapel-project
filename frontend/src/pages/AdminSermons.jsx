@@ -28,7 +28,7 @@ const getApiErrorMessage = (err, fallback) => (
 );
 
 const AdminSermons = () => {
-  const { isAdmin } = useAuth();
+  const { hasAdminPower } = useAuth();
   const [sermons, setSermons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -111,7 +111,7 @@ const AdminSermons = () => {
   };
 
   const requestDelete = (sermon) => {
-    if (!isAdmin) return;
+    if (!hasAdminPower) return;
     setDeleteTarget(sermon);
   };
 
@@ -194,7 +194,7 @@ const AdminSermons = () => {
                 <td>{[sermon.audioUrl && 'Audio', sermon.videoUrl && 'Video', sermon.thumbnail && 'Thumbnail'].filter(Boolean).join(', ') || '-'}</td>
                 <td>
                   <button className="btn-edit" onClick={() => handleEdit(sermon)}>Edit</button>
-                  {isAdmin && <button className="btn-delete" onClick={() => requestDelete(sermon)}>Delete</button>}
+                  {hasAdminPower && <button className="btn-delete" onClick={() => requestDelete(sermon)}>Delete</button>}
                 </td>
               </tr>
             ))}

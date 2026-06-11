@@ -7,7 +7,7 @@ import ConfirmDialog from '../components/ConfirmDialog';
 const currentYear = new Date().getFullYear();
 
 const AdminEvents = () => {
-  const { isAdmin } = useAuth();
+  const { hasAdminPower } = useAuth();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
   const [stats, setStats] = useState(null);
@@ -99,8 +99,8 @@ const AdminEvents = () => {
   };
 
   const requestDelete = (event) => {
-    if (!isAdmin) {
-      setError('Only admins can delete events');
+    if (!hasAdminPower) {
+      setError('Admin or chaplain access required to delete events');
       return;
     }
     setDeleteTarget(event);
@@ -253,7 +253,7 @@ const AdminEvents = () => {
                   <td>
                     <button onClick={() => loadAttendees(event)} className="btn-edit">Attendees</button>
                     <button onClick={() => navigate(`/admin/events/edit/${event._id}`)} className="btn-edit">Edit</button>
-                    {isAdmin && <button onClick={() => requestDelete(event)} className="btn-delete">Delete</button>}
+                    {hasAdminPower && <button onClick={() => requestDelete(event)} className="btn-delete">Delete</button>}
                   </td>
                 </tr>
               ))

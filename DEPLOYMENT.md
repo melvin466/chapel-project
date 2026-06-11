@@ -71,7 +71,7 @@ VITE_API_BASE_URL=https://your-backend-domain.com/api
 Set these temporarily in the backend environment:
 
 ```env
-ADMIN_EMAIL=admin@example.com
+ADMIN_EMAIL=managementchapel98@gmail.com
 ADMIN_PASSWORD=replace_with_a_strong_password
 ADMIN_FIRST_NAME=System
 ADMIN_LAST_NAME=Admin
