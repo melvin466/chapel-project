@@ -2,6 +2,7 @@ const Donation = require('../models/Donation');
 const { recordAuditLog } = require('../utils/auditLogger');
 const { getErrorMessage } = require('../utils/errorResponse');
 const {
+  PesapalRequestError,
   getPesapalTransactionStatus,
   isPesapalConfigured,
   submitPesapalOrder,
@@ -15,6 +16,17 @@ const donationOptions = [
   { id: 'missions', name: 'Missions' },
   { id: 'benevolence', name: 'Benevolence' },
 ];
+
+const sendPaymentProviderError = (res, error) => {
+  if (error instanceof PesapalRequestError) {
+    return res.status(error.statusCode || 502).json({
+      success: false,
+      message: error.publicMessage || 'Pesapal could not start the payment. Please try again shortly.',
+    });
+  }
+
+  return res.status(500).json({ success: false, message: getErrorMessage(error) });
+};
 
 const getDonations = async (req, res) => {
   try {
@@ -69,7 +81,7 @@ const getManageDonations = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: getErrorMessage(error) });
+    return sendPaymentProviderError(res, error);
   }
 };
 
@@ -177,7 +189,7 @@ const createDonation = async (req, res) => {
       data: { donation, paymentUrl: donation.paymentUrl },
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: getErrorMessage(error) });
+    return sendPaymentProviderError(res, error);
   }
 };
 

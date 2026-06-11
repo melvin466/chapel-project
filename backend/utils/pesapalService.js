@@ -6,6 +6,16 @@ const PESAPAL_BASE_URLS = {
 let cachedToken;
 let cachedTokenExpiry = 0;
 
+class PesapalRequestError extends Error {
+  constructor(message, { statusCode = 502, pesapalStatus, publicMessage } = {}) {
+    super(message);
+    this.name = 'PesapalRequestError';
+    this.statusCode = statusCode;
+    this.pesapalStatus = pesapalStatus;
+    this.publicMessage = publicMessage;
+  }
+}
+
 const stripTrailingSlash = (value) => value.replace(/\/+$/, '');
 
 const getPesapalBaseUrl = () => {
@@ -49,7 +59,14 @@ const requestJson = async (path, options = {}) => {
       || data?.error?.code
       || data.message
       || `Pesapal request failed with status ${response.status}`;
-    throw new Error(message);
+    const isApiDisabled = /api\s+disabled|disabled\s+.*api/i.test(message);
+    throw new PesapalRequestError(message, {
+      statusCode: isApiDisabled ? 403 : (response.status >= 400 ? response.status : 502),
+      pesapalStatus: data.status,
+      publicMessage: isApiDisabled
+        ? 'Pesapal rejected this payment because API access is disabled for the merchant account. Ask Pesapal to enable API 3.0/e-commerce payments for this live account, or switch PESAPAL_ENVIRONMENT to sandbox with sandbox credentials while testing.'
+        : undefined,
+    });
   }
 
   return data;
@@ -172,6 +189,7 @@ const registerPesapalIpn = async ({ url, notificationType = 'GET' }) => {
 };
 
 module.exports = {
+  PesapalRequestError,
   getPesapalTransactionStatus,
   isPesapalConfigured,
   registerPesapalIpn,

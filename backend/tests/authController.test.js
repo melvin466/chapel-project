@@ -669,6 +669,57 @@ describe('Auth Controller', () => {
     expect(donation.donor).toBeUndefined();
   });
 
+  it('should explain when Pesapal API access is disabled for donations', async () => {
+    process.env.PESAPAL_CONSUMER_KEY = 'test-consumer-key';
+    process.env.PESAPAL_CONSUMER_SECRET = 'test-consumer-secret';
+    process.env.PESAPAL_IPN_ID = 'test-ipn-id';
+
+    global.fetch = jest.fn(async (url) => {
+      const requestUrl = String(url);
+
+      if (requestUrl.includes('/Auth/RequestToken')) {
+        return {
+          ok: true,
+          json: async () => ({
+            token: 'test-token',
+            expiryDate: new Date(Date.now() + 60000).toISOString(),
+            status: '200',
+            error: null,
+          }),
+        };
+      }
+
+      if (requestUrl.includes('/Transactions/SubmitOrderRequest')) {
+        return {
+          ok: false,
+          status: 403,
+          json: async () => ({
+            error: { message: 'API disabled' },
+            status: '500',
+          }),
+        };
+      }
+
+      throw new Error(`Unexpected Pesapal test request: ${requestUrl}`);
+    });
+
+    const donationRes = await request(app)
+      .post('/api/donations')
+      .send({
+        amount: 5000,
+        donationType: 'offering',
+        paymentMethod: 'mobile_money',
+        provider: 'MTN',
+        phoneNumber: '256700000000',
+        isAnonymous: true
+      });
+
+    expect(donationRes.statusCode).toBe(403);
+    expect(donationRes.body.success).toBe(false);
+    expect(donationRes.body.message).toContain('API access is disabled');
+    expect(await Donation.countDocuments()).toBe(0);
+  });
+
   it('should update a donation from a Pesapal IPN callback', async () => {
     const donation = await Donation.create({
       amount: 5000,
