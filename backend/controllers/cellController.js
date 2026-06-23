@@ -1,5 +1,6 @@
 const Cell = require('../models/Cell');
 const CellJoinRequest = require('../models/CellJoinRequest');
+const CellMessage = require('../models/CellMessage');
 const User = require('../models/User');
 const { hasAdminPower } = require('../middleware/auth');
 const { recordAuditLog } = require('../utils/auditLogger');
@@ -61,6 +62,138 @@ const getCellById = async (req, res) => {
       .populate('assistantLeader', 'firstName lastName');
     if (!cell) return res.status(404).json({ success: false, message: 'Cell not found' });
     res.json({ success: true, data: { cell } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+const getCellDetail = async (req, res) => {
+  try {
+    const cell = await Cell.findById(req.params.id)
+      .populate('leader', 'firstName lastName email phoneNumber')
+      .populate('assistantLeader', 'firstName lastName email phoneNumber');
+
+    if (!cell) {
+      return res.status(404).json({ success: false, message: 'Cell not found' });
+    }
+
+    const isMember = req.user ? await User.findOne({ _id: req.user._id, cellId: cell._id }) : null;
+
+    if (!isMember && req.user) {
+      return res.status(403).json({ success: false, message: 'You must be a member of this cell to view details' });
+    }
+
+    const members = await User.find({ cellId: cell._id })
+      .select('firstName lastName email phoneNumber _id')
+      .sort({ firstName: 1, lastName: 1 })
+      .lean();
+
+    const messages = await CellMessage.find({ cell: cell._id })
+      .populate('sender', 'firstName lastName _id')
+      .sort({ createdAt: 1 })
+      .limit(100)
+      .lean();
+
+    res.json({
+      success: true,
+      data: {
+        cell,
+        members,
+        messages
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+const getCellMembers = async (req, res) => {
+  try {
+    const cell = await Cell.findById(req.params.id);
+    if (!cell) {
+      return res.status(404).json({ success: false, message: 'Cell not found' });
+    }
+
+    const isMember = req.user ? await User.findOne({ _id: req.user._id, cellId: cell._id }) : null;
+    if (!isMember && req.user) {
+      return res.status(403).json({ success: false, message: 'You must be a member of this cell to view members' });
+    }
+
+    const members = await User.find({ cellId: cell._id })
+      .select('firstName lastName email phoneNumber _id')
+      .sort({ firstName: 1, lastName: 1 })
+      .lean();
+
+    res.json({ success: true, data: { members } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+const sendCellMessage = async (req, res) => {
+  try {
+    const { text } = req.body;
+    if (!text || !text.trim()) {
+      return res.status(400).json({ success: false, message: 'Message cannot be empty' });
+    }
+
+    const cell = await Cell.findById(req.params.id);
+    if (!cell) {
+      return res.status(404).json({ success: false, message: 'Cell not found' });
+    }
+
+    const isMember = await User.findOne({ _id: req.user._id, cellId: cell._id });
+    if (!isMember) {
+      return res.status(403).json({ success: false, message: 'You must be a member of this cell to send messages' });
+    }
+
+    const message = await CellMessage.create({
+      cell: cell._id,
+      sender: req.user._id,
+      text: text.trim()
+    });
+
+    await message.populate('sender', 'firstName lastName _id');
+
+    res.status(201).json({
+      success: true,
+      message: 'Message sent',
+      data: { message }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
+  }
+};
+
+const getCellMessages = async (req, res) => {
+  try {
+    const { limit = 50, offset = 0 } = req.query;
+    const cell = await Cell.findById(req.params.id);
+    if (!cell) {
+      return res.status(404).json({ success: false, message: 'Cell not found' });
+    }
+
+    const isMember = req.user ? await User.findOne({ _id: req.user._id, cellId: cell._id }) : null;
+    if (!isMember && req.user) {
+      return res.status(403).json({ success: false, message: 'You must be a member of this cell to view messages' });
+    }
+
+    const messages = await CellMessage.find({ cell: cell._id })
+      .populate('sender', 'firstName lastName _id')
+      .sort({ createdAt: -1 })
+      .skip(parseInt(offset))
+      .limit(parseInt(limit))
+      .lean();
+
+    const total = await CellMessage.countDocuments({ cell: cell._id });
+
+    res.json({
+      success: true,
+      data: {
+        messages: messages.reverse(),
+        pagination: { offset: parseInt(offset), limit: parseInt(limit), total }
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });
   }
@@ -342,6 +475,10 @@ module.exports = {
   getCells,
   getManageCells,
   getCellById,
+  getCellDetail,
+  getCellMembers,
+  sendCellMessage,
+  getCellMessages,
   createCell,
   updateCell,
   deleteCell,

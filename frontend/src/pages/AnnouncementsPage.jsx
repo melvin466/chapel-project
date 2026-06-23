@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import announcementService from '../services/announcementService';
 import { getMediaUrl } from '../utils/media';
 
-const announcementFallbackImage = 'https://images.pexels.com/photos/208315/pexels-photo-208315.jpeg?auto=compress&cs=tinysrgb&w=1200';
+const announcementFallbackImage = 'https://kabaraphotography.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-BXw6Rxx';
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Date to be announced';
@@ -147,7 +147,7 @@ const AnnouncementsPage = () => {
                     <span>{formatDate(announcement.publishDate || announcement.createdAt)}</span>
                   </div>
                   <h3>{announcement.title}</h3>
-                  <p className="announcement-poster">Posted by {getPosterName(announcement)}</p>
+                  <p className="announcement-poster">By: {getPosterName(announcement)}</p>
                   <p>{excerpt(announcement.summary || announcement.content)}</p>
                 </div>
               </Link>
@@ -311,7 +311,6 @@ const AnnouncementsPage = () => {
           gap: 1rem;
         }
         .announcement-media-card {
-          min-height: 410px;
           display: flex;
           flex-direction: column;
           color: white;

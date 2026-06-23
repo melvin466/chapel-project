@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import sermonService from '../services/sermonService';
 import { getMediaUrl } from '../utils/media';
 
-const fallbackSermonImage = 'https://images.pexels.com/photos/8468474/pexels-photo-8468474.jpeg?auto=compress&cs=tinysrgb&w=1200';
+const fallbackSermonImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Chapel-Photos/i-XdZhcSd/0/K5kMzL6wRZjKrVvzv2rT6MgHQ6JT4h9Z3ZFQGwnQX/X3/IMGW4094-X3.jpg';
 
 const getPosterName = (sermon) => (
   sermon.createdBy
@@ -173,7 +173,7 @@ const SermonsPage = () => {
                     <span>{formatDate(sermon.date)}</span>
                   </div>
                   <h3>{sermon.title}</h3>
-                  <p className="sermon-speaker">{getPosterName(sermon) || 'Chapel Team'}</p>
+                  <p className="sermon-speaker">Speaker: {getPosterName(sermon) || 'Chapel Team'}</p>
                   <p>{excerpt(sermon.description, 120)}</p>
                   <div className="sermon-media-stats">
                     <span>{sermon.views || 0} views</span>
@@ -352,7 +352,6 @@ const SermonsPage = () => {
           gap: 1rem;
         }
         .sermon-media-card {
-          min-height: 420px;
           display: flex;
           flex-direction: column;
           color: white;

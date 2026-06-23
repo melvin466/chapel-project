@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import eventService from '../services/eventService';
 import { getMediaUrl } from '../utils/media';
 
-const eventFallbackImage = 'https://images.pexels.com/photos/267559/pexels-photo-267559.jpeg?auto=compress&cs=tinysrgb&w=1200';
+const eventFallbackImage = 'https://kabaraphotography.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-5TQxFz3';
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Date to be announced';
@@ -150,11 +150,11 @@ const EventsPage = () => {
                   </div>
                   <div>
                     <h3>{event.title}</h3>
-                    <p className="event-card-time">{formatDate(event.startDate)} · {event.startTime || 'Time to be announced'}</p>
+                    <p className="event-card-time">🕐 {formatDate(event.startDate)} · {event.startTime || 'Time TBA'}</p>
                     <p>{excerpt(event.description)}</p>
                     <div className="event-card-meta">
-                      <span>{event.location || 'Location to be announced'}</span>
-                      {event.registrationRequired && <span>{event.registeredCount || 0}/{event.capacity || '∞'} registered</span>}
+                      <span>📍 Location: <strong>{event.location || 'TBA'}</strong></span>
+                      {event.registrationRequired && <span>👥 Capacity: <strong>{event.registeredCount || 0}/{event.capacity || '∞'}</strong></span>}
                     </div>
                   </div>
                 </div>
@@ -338,7 +338,6 @@ const EventsPage = () => {
           gap: 1rem;
         }
         .event-media-card {
-          min-height: 440px;
           display: flex;
           flex-direction: column;
           color: white;

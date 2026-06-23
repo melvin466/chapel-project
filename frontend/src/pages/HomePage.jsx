@@ -166,9 +166,9 @@ const HomePage = () => {
                   </div>
                   <div className="home-event-content">
                     <h3>{event.title}</h3>
-                    <p className="home-muted">{formatDate(event.startDate, { withYear: true })}</p>
+                    <p className="home-muted">🕐 {formatDate(event.startDate, { withYear: true })} · {event.startTime || 'Time TBA'}</p>
                     <p>{excerpt(event.description)}</p>
-                    <span className="home-meta">{event.location || 'Location to be announced'}</span>
+                    <span className="home-meta">📍 Location: {event.location || 'TBA'}</span>
                   </div>
                 </Link>
               ))}

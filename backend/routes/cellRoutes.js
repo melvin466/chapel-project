@@ -4,6 +4,10 @@ const {
   getCells,
   getManageCells,
   getCellById,
+  getCellDetail,
+  getCellMembers,
+  getCellMessages,
+  sendCellMessage,
   createCell,
   updateCell,
   deleteCell,
@@ -18,6 +22,10 @@ const { validateCell } = require('../middleware/validation');
 router.get('/', optionalProtect, getCells);
 router.get('/manage/all', protect, admin, getManageCells);
 router.get('/:id', getCellById);
+router.get('/:id/detail', protect, getCellDetail);
+router.get('/:id/members', protect, getCellMembers);
+router.get('/:id/messages', protect, getCellMessages);
+router.post('/:id/messages', protect, sendCellMessage);
 router.post('/', protect, admin, validateCell, createCell);
 router.put('/:id', protect, admin, validateCell, updateCell);
 router.delete('/:id', protect, admin, deleteCell);

@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import cellService from '../services/cellService';
 import { useAuth } from '../context/AuthContext';
 
 const zones = ['All', 'North', 'South', 'East', 'West', 'Central'];
 
 const CellsPage = () => {
+  const navigate = useNavigate();
   const [cells, setCells] = useState([]);
   const [loading, setLoading] = useState(true);
   const [zone, setZone] = useState('');
@@ -166,7 +168,7 @@ const CellsPage = () => {
                       : 'Request to Join';
 
               return (
-                <article key={cell._id} className="cell-media-card">
+                <article key={cell._id} className="cell-media-card" onClick={() => navigate(`/cells/${cell._id}`)}>
                   <div className="cell-card-topline">
                     <span>{cell.zone || 'Zone'}</span>
                     <span>{cell.memberCount || 0}/{cell.maxCapacity || 30}</span>
@@ -174,13 +176,13 @@ const CellsPage = () => {
                   <h3>{cell.name}</h3>
                   <p>{cell.description || `Gather at ${cell.meetingVenue || cell.location || 'a chapel location'} for fellowship, prayer, and growth.`}</p>
                   <div className="cell-card-details">
-                    <div><strong>When</strong><span>{cell.meetingDay || 'Day to be announced'} · {cell.meetingTime || 'Time to be announced'}</span></div>
-                    <div><strong>Where</strong><span>{cell.location || cell.meetingVenue || 'Location to be announced'}</span></div>
-                    <div><strong>Leader</strong><span>{`${cell.leader?.firstName || ''} ${cell.leader?.lastName || ''}`.trim() || 'Chapel leader'}</span></div>
+                    <div><strong>When</strong><span>{cell.meetingDay || 'Day TBA'} · {cell.meetingTime || 'Time TBA'}</span></div>
+                    <div><strong>Where</strong><span>{cell.location || cell.meetingVenue || 'Location TBA'}</span></div>
+                    <div><strong>Leader</strong><span>{`${cell.leader?.firstName || ''} ${cell.leader?.lastName || ''}`.trim() || 'Leader TBA'}</span></div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => handleJoinCell(cell._id)}
+                    onClick={(e) => { e.stopPropagation(); handleJoinCell(cell._id); }}
                     className="cell-join-button"
                     disabled={Boolean(isCurrentCell || hasOtherCell || isPending)}
                   >
@@ -224,10 +226,8 @@ const CellsPage = () => {
           flex-direction: column;
           justify-content: flex-end;
           background:
-            linear-gradient(90deg, rgba(10,16,21,0.92), rgba(10,16,21,0.55)),
-            url('https://images.pexels.com/photos/58200/pexels-photo-58200.jpeg?auto=compress&cs=tinysrgb&w=1600');
-          background-size: cover;
-          background-position: center;
+            linear-gradient(135deg, rgba(47,125,70,0.16), rgba(49,95,114,0.12)),
+            var(--glass-panel);
         }
         .cells-feature-copy > span,
         .cells-feature-panel > span,
@@ -326,7 +326,6 @@ const CellsPage = () => {
           gap: 1rem;
         }
         .cell-media-card {
-          min-height: 360px;
           display: flex;
           flex-direction: column;
           padding: 1rem;
@@ -334,6 +333,12 @@ const CellsPage = () => {
           background: rgba(255,255,255,0.08);
           border: 1px solid rgba(255,255,255,0.14);
           transition: transform 0.2s ease, background 0.2s ease;
+          cursor: pointer;
+        }
+        @media (max-width: 768px) {
+          .cell-media-card {
+            min-height: 300px;
+          }
         }
         .cell-media-card:hover {
           transform: translateY(-4px);

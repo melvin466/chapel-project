@@ -26,6 +26,7 @@ const eventSchema = new mongoose.Schema({
   status: { type: String, enum: ['draft', 'published', 'cancelled', 'completed'], default: 'draft' },
   visibility: { type: String, enum: ['public', 'members_only', 'private'], default: 'public' },
   isFeatured: { type: Boolean, default: false },
+  expiryDate: Date,
   speakers: [{ name: String, title: String, photo: String }],
   organizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

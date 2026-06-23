@@ -59,7 +59,13 @@ const cleanupSermonMedia = async (sermon) => {
 const getSermons = async (req, res) => {
   try {
     const { page = 1, limit = 10, speaker, series } = req.query;
-    const filter = {};
+    const now = new Date();
+    const filter = {
+      $or: [
+        { expiryDate: { $exists: false } },
+        { expiryDate: { $gt: now } }
+      ]
+    };
     if (speaker) filter.speaker = speaker;
     if (series) filter.series = series;
 

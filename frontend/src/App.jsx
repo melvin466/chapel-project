@@ -27,6 +27,7 @@ const AnnouncementDetailPage = lazy(routeLoaders.AnnouncementDetailPage);
 const SermonsPage = lazy(routeLoaders.SermonsPage);
 const SermonDetailPage = lazy(routeLoaders.SermonDetailPage);
 const CellsPage = lazy(routeLoaders.CellsPage);
+const CellDetailPage = lazy(routeLoaders.CellDetailPage);
 const AdminDashboardPage = lazy(routeLoaders.AdminDashboardPage);
 const BookingsPage = lazy(routeLoaders.BookingsPage);
 const GivePage = lazy(routeLoaders.GivePage);
@@ -165,6 +166,11 @@ function AppRoutes() {
               } />
               <Route path="/cells" element={
                 <CellsPage />
+              } />
+              <Route path="/cells/:id" element={
+                <ProtectedRoute>
+                  <CellDetailPage />
+                </ProtectedRoute>
               } />
 
               {/* ===== PROTECTED ROUTES (Login required) ===== */}

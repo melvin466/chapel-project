@@ -59,11 +59,6 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <p>&copy; {year} Chapel. All rights reserved.</p>
-          <div className="footer-bottom-links">
-            <Link to="/login">Login</Link>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/admin">Admin</Link>
-          </div>
         </div>
       </div>
     </footer>

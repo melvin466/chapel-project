@@ -21,9 +21,14 @@ const withUploadedEventFiles = (body, files = {}) => {
 const getEvents = async (req, res) => {
   try {
     const { page = 1, limit = 10, type } = req.query;
-    const filter = { 
+    const now = new Date();
+    const filter = {
       status: 'published',
-      endDate: { $gte: new Date() }
+      endDate: { $gte: now },
+      $or: [
+        { expiryDate: { $exists: false } },
+        { expiryDate: { $gt: now } }
+      ]
     };
     if (type) filter.type = type;
 

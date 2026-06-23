@@ -12,6 +12,7 @@ const sermonSchema = new mongoose.Schema({
   videoUrl: String,
   thumbnail: String,
   duration: Number,
+  expiryDate: Date,
   views: { type: Number, default: 0 },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   series: String,
