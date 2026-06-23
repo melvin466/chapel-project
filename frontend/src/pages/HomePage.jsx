@@ -4,6 +4,7 @@ import eventService from '../services/eventService';
 import announcementService from '../services/announcementService';
 import VerseOfDay from '../components/VerseOfDay';
 import { getMediaUrl } from '../utils/media';
+import { getRotatedImage } from '../utils/imageRotation';
 import '/HomePage.css';
 
 const eventFallbackImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-GwB63b7/0/MSp79rm3QMPHDsvTsSHg4BdJFbpxvbHdN98xqXCJP/M/IMGW4103-M.jpg';
@@ -158,7 +159,7 @@ const HomePage = () => {
               {events.map((event) => (
                 <Link key={event._id} className="home-event-card" to={`/events/${event._id}`}>
                   <div className="home-event-image-container">
-                    <img src={event.featuredImage ? getMediaUrl(event.featuredImage) : eventFallbackImage} alt="" loading="lazy" />
+                    <img src={getRotatedImage(event.featuredImage ? getMediaUrl(event.featuredImage) : null)} alt="" loading="lazy" />
                     <div className="home-event-date-overlay">
                       <span>{getMonth(event.startDate)}</span>
                       <strong>{getDay(event.startDate)}</strong>
@@ -210,7 +211,7 @@ const HomePage = () => {
               {announcements.map((announcement) => (
                 <Link key={announcement._id} to={`/announcements/${announcement._id}`} className="home-announcement-card">
                   <div className="home-announcement-image">
-                    <img src={announcement.featuredImage ? getMediaUrl(announcement.featuredImage) : announcementFallbackImage} alt="" loading="lazy" />
+                    <img src={getRotatedImage(announcement.featuredImage ? getMediaUrl(announcement.featuredImage) : null)} alt="" loading="lazy" />
                   </div>
                   <div className="home-announcement-content">
                     <div>

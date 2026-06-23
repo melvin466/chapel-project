@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import announcementService from '../services/announcementService';
 import { getMediaUrl } from '../utils/media';
+import { getRotatedImage } from '../utils/imageRotation';
 
 const announcementFallbackImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-GwB63b7/0/MSp79rm3QMPHDsvTsSHg4BdJFbpxvbHdN98xqXCJP/M/IMGW4103-M.jpg';
 
@@ -87,7 +88,7 @@ const AnnouncementsPage = () => {
         </div>
         <div className="announcements-feature-media">
           <img
-            src={featuredAnnouncement?.featuredImage ? getMediaUrl(featuredAnnouncement.featuredImage) : announcementFallbackImage}
+            src={getRotatedImage(featuredAnnouncement?.featuredImage ? getMediaUrl(featuredAnnouncement.featuredImage) : null)}
             alt=""
           />
           <span>{featuredAnnouncement?.priority || 'Update'}</span>
@@ -136,7 +137,7 @@ const AnnouncementsPage = () => {
               <Link key={announcement._id} to={`/announcements/${announcement._id}`} className="announcement-media-card">
                 <div className="announcement-media-image">
                   <img
-                    src={announcement.featuredImage ? getMediaUrl(announcement.featuredImage) : announcementFallbackImage}
+                    src={getRotatedImage(announcement.featuredImage ? getMediaUrl(announcement.featuredImage) : null)}
                     alt=""
                     loading="lazy"
                   />

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import eventService from '../services/eventService';
 import { getMediaUrl } from '../utils/media';
+import { getRotatedImage } from '../utils/imageRotation';
 
 const eventFallbackImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-PSrkGPW/0/LhzdWCd7txfCHgX6K2dkfFM8MjF8PbThjwkqrkJnw/M/IMGW4117-M.jpg';
 
@@ -92,7 +93,7 @@ const EventsPage = () => {
           )}
         </div>
         <div className="events-feature-card">
-          <img src={featuredEvent?.featuredImage ? getMediaUrl(featuredEvent.featuredImage) : eventFallbackImage} alt="" />
+          <img src={getRotatedImage(featuredEvent?.featuredImage ? getMediaUrl(featuredEvent.featuredImage) : null)} alt="" />
           <div className="events-date-tile">
             <span>{getMonth(featuredEvent?.startDate)}</span>
             <strong>{getDay(featuredEvent?.startDate)}</strong>
@@ -138,7 +139,7 @@ const EventsPage = () => {
               <Link key={event._id} to={`/events/${event._id}`} className="event-media-card">
                 <div className="event-card-image">
                   <img
-                    src={event.featuredImage ? getMediaUrl(event.featuredImage) : eventFallbackImage}
+                    src={getRotatedImage(event.featuredImage ? getMediaUrl(event.featuredImage) : null)}
                     alt=""
                     loading="lazy"
                   />
