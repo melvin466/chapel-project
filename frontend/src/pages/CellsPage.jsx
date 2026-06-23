@@ -126,9 +126,10 @@ const CellsPage = () => {
             <span className="sr-only">Search cell groups</span>
             <input
               type="search"
-              placeholder="Search groups..."
+              placeholder="🔍 Search groups..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search cell groups"
             />
           </label>
         </div>

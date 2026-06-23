@@ -110,9 +110,10 @@ const EventsPage = () => {
             <span className="sr-only">Search events</span>
             <input
               type="search"
-              placeholder="Search by event, location, or type..."
+              placeholder="🔍 Search by event, location, or type..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search events"
             />
           </label>
         </div>

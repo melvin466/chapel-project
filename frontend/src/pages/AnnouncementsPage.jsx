@@ -104,9 +104,10 @@ const AnnouncementsPage = () => {
             <span className="sr-only">Search announcements</span>
             <input
               type="search"
-              placeholder="Search notices, ministry updates, or keywords..."
+              placeholder="🔍 Search notices, ministry updates, or keywords..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search announcements"
             />
           </label>
         </div>

@@ -134,9 +134,10 @@ const SermonsPage = () => {
             <span className="sr-only">Search sermons</span>
             <input
               type="search"
-              placeholder="Search by title, speaker, scripture, topic..."
+              placeholder="🔍 Search by title, speaker, scripture, topic..."
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              aria-label="Search sermons"
             />
           </label>
         </div>
