@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import eventService from '../services/eventService';
 import { getMediaUrl } from '../utils/media';
 
-const eventFallbackImage = 'https://kabaraphotography.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-5TQxFz3';
+const eventFallbackImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-PSrkGPW/0/LhzdWCd7txfCHgX6K2dkfFM8MjF8PbThjwkqrkJnw/M/IMGW4117-M.jpg';
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Date to be announced';

@@ -6,8 +6,8 @@ import VerseOfDay from '../components/VerseOfDay';
 import { getMediaUrl } from '../utils/media';
 import '/HomePage.css';
 
-const eventFallbackImage = 'https://images.pexels.com/photos/267559/pexels-photo-267559.jpeg?auto=compress&cs=tinysrgb&w=1200';
-const announcementFallbackImage = 'https://images.pexels.com/photos/208315/pexels-photo-208315.jpeg?auto=compress&cs=tinysrgb&w=1200';
+const eventFallbackImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-GwB63b7/0/MSp79rm3QMPHDsvTsSHg4BdJFbpxvbHdN98xqXCJP/M/IMGW4103-M.jpg';
+const announcementFallbackImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Family-Sunday/i-VKbcgk3/0/Ld65MZ7DhzkHNX9hnhMJrK5mgzR9d3SC56KznZG5Z/M/IMGW5311-M.jpg';
 
 const HomePage = () => {
   const [events, setEvents] = useState([]);
