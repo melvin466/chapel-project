@@ -208,7 +208,7 @@ const SermonsPage = () => {
           color: white;
         }
         .sermons-feature {
-          min-height: 250px;
+          min-height: 220px;
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(320px, 0.82fr);
           gap: 1.1rem;

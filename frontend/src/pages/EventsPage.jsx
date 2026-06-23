@@ -189,7 +189,7 @@ const EventsPage = () => {
           color: white;
         }
         .events-feature {
-          min-height: 430px;
+          min-height: 320px;
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(320px, 0.78fr);
           gap: 1.1rem;

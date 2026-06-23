@@ -203,7 +203,7 @@ const CellsPage = () => {
           color: white;
         }
         .cells-feature {
-          min-height: 410px;
+          min-height: 320px;
           display: grid;
           grid-template-columns: minmax(0, 1fr) minmax(320px, 0.74fr);
           gap: 1.1rem;
