@@ -1,0 +1,68 @@
+/* Unique Search Bar Styles */
+
+.events-search,
+.announcements-search,
+.sermons-search,
+.cells-search {
+  position: relative;
+  display: block;
+}
+
+.events-search input,
+.announcements-search input,
+.sermons-search input,
+.cells-search input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0.8rem 1rem 0.8rem 2.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: linear-gradient(135deg, rgba(155, 216, 170, 0.12), rgba(255, 255, 255, 0.08));
+  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.events-search input::placeholder,
+.announcements-search input::placeholder,
+.sermons-search input::placeholder,
+.cells-search input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.events-search input:focus,
+.announcements-search input:focus,
+.sermons-search input:focus,
+.cells-search input:focus {
+  outline: none;
+  border-color: rgba(155, 216, 170, 0.8);
+  background: linear-gradient(135deg, rgba(155, 216, 170, 0.18), rgba(255, 255, 255, 0.12));
+  box-shadow: 0 12px 32px rgba(155, 216, 170, 0.25), inset 0 0 12px rgba(155, 216, 170, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Search icon positioning */
+.events-search::before,
+.announcements-search::before,
+.sermons-search::before,
+.cells-search::before {
+  content: '🔍';
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.3rem;
+  pointer-events: none;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.events-search input:focus ~ ::before,
+.announcements-search input:focus ~ ::before,
+.sermons-search input:focus ~ ::before,
+.cells-search input:focus ~ ::before {
+  opacity: 1;
+}

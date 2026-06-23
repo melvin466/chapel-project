@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import announcementService from '../services/announcementService';
 import { getMediaUrl } from '../utils/media';
 import { getRotatedImage } from '../utils/imageRotation';
+import '../styles/searchBar.css';
 
 const announcementFallbackImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Worship-Evening/i-GwB63b7/0/MSp79rm3QMPHDsvTsSHg4BdJFbpxvbHdN98xqXCJP/M/IMGW4103-M.jpg';
 

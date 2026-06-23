@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import sermonService from '../services/sermonService';
 import { getMediaUrl } from '../utils/media';
+import '../styles/searchBar.css';
 
 const fallbackSermonImage = 'https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Chapel-Photos/i-XdZhcSd/0/K5kMzL6wRZjKrVvzv2rT6MgHQ6JT4h9Z3ZFQGwnQX/X3/IMGW4094-X3.jpg';
 

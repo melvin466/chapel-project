@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import cellService from '../services/cellService';
 import { useAuth } from '../context/AuthContext';
+import '../styles/searchBar.css';
 
 const zones = ['All', 'North', 'South', 'East', 'West', 'Central'];
 
