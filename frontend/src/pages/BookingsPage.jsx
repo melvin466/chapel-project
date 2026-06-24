@@ -165,55 +165,73 @@ const BookingsPage = () => {
           {error && <div className="error-message">{error}</div>}
 
           <form onSubmit={handleSubmit}>
-            <select name="bookingType" value={formData.bookingType} onChange={handleChange} required>
-              {bookingTypes.map((type) => (
-                <option key={type.value} value={type.value}>{type.label}</option>
-              ))}
-            </select>
+            <label className="form-label-group">
+              <span>Booking Type</span>
+              <select name="bookingType" value={formData.bookingType} onChange={handleChange} required>
+                {bookingTypes.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
+            </label>
 
             <div className="booking-form-row">
-              <input
-                type="date"
-                name="requestedDate"
-                min={today}
-                value={formData.requestedDate}
-                onChange={handleChange}
-                required
-              />
-              <input
-                type="time"
-                name="requestedTime"
-                value={formData.requestedTime}
-                onChange={handleChange}
-                required
-              />
+              <label className="form-label-group">
+                <span>Preferred Date</span>
+                <input
+                  type="date"
+                  name="requestedDate"
+                  min={today}
+                  value={formData.requestedDate}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+              <label className="form-label-group">
+                <span>Preferred Time</span>
+                <input
+                  type="time"
+                  name="requestedTime"
+                  value={formData.requestedTime}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
             </div>
 
-            <input
-              type="number"
-              name="numberOfPeople"
-              min="1"
-              value={formData.numberOfPeople}
-              onChange={handleChange}
-              placeholder="Number of people"
-            />
+            <label className="form-label-group">
+              <span>Number of People</span>
+              <input
+                type="number"
+                name="numberOfPeople"
+                min="1"
+                value={formData.numberOfPeople}
+                onChange={handleChange}
+                required
+              />
+            </label>
 
-            <textarea
-              name="purpose"
-              rows="4"
-              value={formData.purpose}
-              onChange={handleChange}
-              placeholder="Tell us what you need. For weddings, include preferred ceremony details."
-              required
-            />
+            <label className="form-label-group textarea-label">
+              <span>What do you need?</span>
+              <textarea
+                name="purpose"
+                rows="4"
+                value={formData.purpose}
+                onChange={handleChange}
+                placeholder="Tell us what you need. For weddings, include preferred ceremony details."
+                required
+              />
+            </label>
 
-            <textarea
-              name="specialRequests"
-              rows="3"
-              value={formData.specialRequests}
-              onChange={handleChange}
-              placeholder="Special requests, accessibility needs, or notes for the chapel team"
-            />
+            <label className="form-label-group textarea-label">
+              <span>Special Requests or Notes</span>
+              <textarea
+                name="specialRequests"
+                rows="3"
+                value={formData.specialRequests}
+                onChange={handleChange}
+                placeholder="Accessibility needs, special requests, or notes for the chapel team"
+              />
+            </label>
 
             <button type="submit" className="btn-primary" disabled={submitting}>
               {submitting ? 'Sending...' : 'Submit Booking'}

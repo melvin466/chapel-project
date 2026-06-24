@@ -2225,6 +2225,57 @@ input[type="checkbox"] {
   min-width: 0;
 }
 
+.booking-form-card form {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.form-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label-group span {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.form-label-group input,
+.form-label-group select,
+.form-label-group textarea {
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.form-label-group input:focus,
+.form-label-group select:focus,
+.form-label-group textarea:focus {
+  outline: none;
+  border-color: var(--brand-soft);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.form-label-group input::placeholder,
+.form-label-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-label-group select option {
+  background: #1f2933;
+  color: white;
+}
+
+.textarea-label {
+  grid-column: 1 / -1;
+}
+
 .bookings-list {
   min-width: 0;
 }
