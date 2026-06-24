@@ -88,12 +88,19 @@ const AdminLayout = ({ children }) => {
           display: grid;
           grid-template-columns: 260px minmax(0, 1fr);
           background:
-            linear-gradient(180deg, rgba(16, 22, 28, 0.7), rgba(16, 22, 28, 0.92)),
-            url('https://images.pexels.com/photos/2570062/pexels-photo-2570062.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            linear-gradient(180deg, rgba(13, 19, 24, 0.45), rgba(13, 19, 24, 0.55)),
+            url('https://photos.smugmug.com/2025/n-LrkspB/Makfest-25/Chapel-Photos/i-n9NhT7v/0/LMGtFBSvghHmxPBRDD3vQN46g4KhMLr4FHT9J597s/M/IMGW5873-M.jpg');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
           color: white;
+        }
+        @media (max-width: 768px) {
+          .admin-shell {
+            background-attachment: scroll;
+            background-size: contain;
+            background-position: center;
+          }
         }
         .admin-sidebar {
           position: sticky;
