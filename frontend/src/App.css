@@ -42,7 +42,13 @@ body {
 @media (max-width: 768px) {
   body {
     background-attachment: scroll;
-    background-size: 120%;
+    background-size: contain;
+    background-position: center;
+  }
+
+  .admin-app {
+    background-attachment: scroll;
+    background-size: contain;
     background-position: center;
   }
 }

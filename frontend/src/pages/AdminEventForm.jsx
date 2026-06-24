@@ -86,10 +86,34 @@ const AdminEventForm = () => {
     return payload;
   };
 
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  const validateDates = () => {
+    const today = getTodayDate();
+    if (formData.startDate < today) {
+      setError('Start date cannot be in the past');
+      return false;
+    }
+    if (formData.endDate < formData.startDate) {
+      setError('End date must be after or equal to start date');
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!validateDates()) {
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isEditing) {
         await eventService.updateEvent(id, buildPayload());
@@ -138,11 +162,11 @@ const AdminEventForm = () => {
           <div className="form-row">
             <label className="form-label-group">
               <span>Start Date</span>
-              <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} required />
+              <input type="date" name="startDate" min={getTodayDate()} value={formData.startDate} onChange={handleChange} required />
             </label>
             <label className="form-label-group">
               <span>End Date</span>
-              <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} required />
+              <input type="date" name="endDate" min={formData.startDate || getTodayDate()} value={formData.endDate} onChange={handleChange} required />
             </label>
           </div>
 
