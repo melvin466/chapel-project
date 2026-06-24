@@ -525,6 +525,8 @@
   .home-hero {
     min-height: auto;
     padding: 4rem 0;
+    background-attachment: scroll;
+    background-size: 130%;
   }
 
   .home-hero-inner,
