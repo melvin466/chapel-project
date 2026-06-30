@@ -240,7 +240,7 @@ const AnnouncementsPage = () => {
         }
         .announcements-feature-media {
           position: relative;
-          min-height: 250px;
+          height: 250px;
         }
         .announcements-feature-media img {
           width: 100%;
@@ -330,7 +330,7 @@ const AnnouncementsPage = () => {
         }
         .announcement-media-image {
           position: relative;
-          height: 180px;
+          height: 150px;
           overflow: hidden;
         }
         .announcement-media-image img {

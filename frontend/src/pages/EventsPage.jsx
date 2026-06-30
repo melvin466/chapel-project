@@ -253,7 +253,7 @@ const EventsPage = () => {
         }
         .events-feature-card {
           position: relative;
-          min-height: 330px;
+          height: 250px;
         }
         .events-feature-card img {
           width: 100%;
@@ -357,7 +357,7 @@ const EventsPage = () => {
         }
         .event-card-image {
           position: relative;
-          height: 185px;
+          height: 150px;
           overflow: hidden;
         }
         .event-card-image img {

@@ -13,6 +13,7 @@
     url('https://kabaraphotography.smugmug.com/2025/n-LrkspB/Makfest-25/Chapel-Photos/i-WwDfLcJ/0/original/i-WwDfLcJ.jpg');
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
 }
 
 .home-hero::before {
@@ -526,7 +527,8 @@
     min-height: auto;
     padding: 4rem 0;
     background-attachment: scroll;
-    background-size: contain;
+    background-size: cover;
+    background-repeat: no-repeat;
   }
 
   .home-hero-inner,

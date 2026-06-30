@@ -42,14 +42,16 @@ body {
 @media (max-width: 768px) {
   body {
     background-attachment: scroll;
-    background-size: contain;
+    background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
   }
 
   .admin-app {
     background-attachment: scroll;
-    background-size: contain;
+    background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
   }
 }
 

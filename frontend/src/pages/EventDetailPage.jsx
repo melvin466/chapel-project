@@ -255,7 +255,7 @@ const EventDetailPage = () => {
           backdrop-filter: blur(22px) saturate(130%);
         }
         .event-detail-hero {
-          min-height: 260px;
+          height: 300px;
           position: relative;
           border-radius: 8px;
           overflow: hidden;
@@ -264,7 +264,6 @@ const EventDetailPage = () => {
         .event-detail-hero img {
           width: 100%;
           height: 100%;
-          min-height: 260px;
           display: block;
           object-fit: cover;
         }
@@ -398,9 +397,11 @@ const EventDetailPage = () => {
           }
         }
         @media (max-width: 560px) {
-          .event-detail-hero,
+          .event-detail-hero {
+            height: 180px;
+          }
           .event-detail-hero img {
-            min-height: 180px;
+            min-height: auto;
           }
         }
       `}</style>
