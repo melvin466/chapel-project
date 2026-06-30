@@ -104,6 +104,8 @@ const AnnouncementDetailPage = () => {
       <style>{`
         .announcement-detail-page { padding-bottom: 3rem; }
         .announcement-detail-rich {
+          max-width: 960px;
+          margin: 0 auto;
           background: var(--glass-panel);
           border: 1px solid rgba(255,255,255,0.22);
           border-radius: 8px;
@@ -112,7 +114,7 @@ const AnnouncementDetailPage = () => {
           backdrop-filter: blur(22px) saturate(130%);
         }
         .announcement-detail-hero {
-          height: 300px;
+          height: 220px;
           position: relative;
           border-radius: 8px;
           overflow: hidden;
@@ -132,7 +134,7 @@ const AnnouncementDetailPage = () => {
         }
         .announcement-detail-overlay {
           position: absolute;
-          inset: auto 1.3rem 1.3rem;
+          inset: auto 1.2rem 1.2rem;
           z-index: 1;
           color: white;
         }
@@ -147,9 +149,9 @@ const AnnouncementDetailPage = () => {
         }
         .announcement-detail-overlay h1 {
           max-width: 820px;
-          font-size: clamp(2.2rem, 5vw, 4.5rem);
-          line-height: 0.98;
-          margin-bottom: 0.8rem;
+          font-size: clamp(1.4rem, 3vw, 2.0rem);
+          line-height: 1.1;
+          margin-bottom: 0.4rem;
         }
         .announcement-detail-overlay p {
           color: rgba(255,255,255,0.78);
@@ -233,7 +235,7 @@ const AnnouncementDetailPage = () => {
         }
         @media (max-width: 560px) {
           .announcement-detail-hero {
-            height: 180px;
+            height: 140px;
           }
           .announcement-detail-hero img {
             min-height: auto;

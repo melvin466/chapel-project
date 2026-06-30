@@ -132,7 +132,7 @@ const EventDetailPage = () => {
           <div className="event-detail-overlay">
             <span>{prettyType(event.type)}</span>
             <h1>{event.title}</h1>
-            <p>{event.description}</p>
+            <p>{formatDate(event.startDate)} · {event.startTime || 'Time TBA'} · {event.location || 'TBA'}</p>
           </div>
         </section>
 
@@ -247,6 +247,8 @@ const EventDetailPage = () => {
       <style>{`
         .event-detail-page { padding-bottom: 3rem; }
         .event-detail-rich {
+          max-width: 960px;
+          margin: 0 auto;
           background: var(--glass-panel);
           border: 1px solid rgba(255,255,255,0.22);
           border-radius: 8px;
@@ -255,7 +257,7 @@ const EventDetailPage = () => {
           backdrop-filter: blur(22px) saturate(130%);
         }
         .event-detail-hero {
-          height: 300px;
+          height: 220px;
           position: relative;
           border-radius: 8px;
           overflow: hidden;
@@ -275,7 +277,7 @@ const EventDetailPage = () => {
         }
         .event-detail-overlay {
           position: absolute;
-          inset: auto 1.3rem 1.3rem;
+          inset: auto 1.2rem 1.2rem;
           z-index: 1;
           color: white;
         }
@@ -294,9 +296,9 @@ const EventDetailPage = () => {
         }
         .event-detail-overlay h1 {
           max-width: 820px;
-          font-size: clamp(2.2rem, 5vw, 4.5rem);
-          line-height: 0.98;
-          margin-bottom: 0.8rem;
+          font-size: clamp(1.4rem, 3vw, 2.0rem);
+          line-height: 1.1;
+          margin-bottom: 0.4rem;
         }
         .event-detail-overlay p {
           max-width: 720px;
@@ -398,7 +400,7 @@ const EventDetailPage = () => {
         }
         @media (max-width: 560px) {
           .event-detail-hero {
-            height: 180px;
+            height: 140px;
           }
           .event-detail-hero img {
             min-height: auto;
