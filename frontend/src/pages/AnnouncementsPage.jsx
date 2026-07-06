@@ -150,6 +150,13 @@ const AnnouncementsPage = () => {
                     <span>{formatDate(announcement.publishDate || announcement.createdAt)}</span>
                   </div>
                   <h3>{announcement.title}</h3>
+                  {announcement.eventDate && (
+                    <div className="announcement-event-datetime" style={{ fontSize: '0.82rem', color: '#a8ff78', background: 'rgba(255,255,255,0.05)', padding: '0.35rem 0.6rem', borderRadius: '6px', margin: '0.4rem 0', display: 'flex', alignItems: 'center', gap: '0.3rem', border: '1px solid rgba(255,255,255,0.08)', alignSelf: 'flex-start' }}>
+                      <span>📅</span>
+                      <strong>{new Date(announcement.eventDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                      {announcement.eventTime && <span>at {announcement.eventTime}</span>}
+                    </div>
+                  )}
                   <p className="announcement-poster">By: {getPosterName(announcement)}</p>
                   <p>{excerpt(announcement.summary || announcement.content)}</p>
                 </div>

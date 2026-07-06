@@ -68,6 +68,7 @@ describe('BookingsPage', () => {
         bookingType: 'baptism',
         requestedDate: '2026-08-02',
         requestedTime: '09:30',
+        hours: 1,
         numberOfPeople: 5,
         purpose: 'Baptism service request',
         specialRequests: 'Reserve front seats',

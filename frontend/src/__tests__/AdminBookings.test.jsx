@@ -127,6 +127,7 @@ describe('AdminBookings', () => {
         bookingType: 'facility',
         requestedDate: '2026-08-12',
         requestedTime: '14:00',
+        hours: 1,
         numberOfPeople: 20,
         purpose: 'Admin facility reservation',
         specialRequests: '',

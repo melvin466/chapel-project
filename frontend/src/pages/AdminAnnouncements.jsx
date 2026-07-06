@@ -16,7 +16,9 @@ const AdminAnnouncements = () => {
     type: 'general',
     priority: 'medium',
     targetAudience: 'everyone',
-    status: 'published'
+    status: 'published',
+    eventDate: '',
+    eventTime: ''
   });
   const [mediaFiles, setMediaFiles] = useState({
     featuredImage: null,
@@ -78,7 +80,7 @@ const AdminAnnouncements = () => {
       }
       setShowForm(false);
       setEditingItem(null);
-      setFormData({ title: '', content: '', summary: '', type: 'general', priority: 'medium', targetAudience: 'everyone', status: 'published' });
+      setFormData({ title: '', content: '', summary: '', type: 'general', priority: 'medium', targetAudience: 'everyone', status: 'published', eventDate: '', eventTime: '' });
       setMediaFiles({ featuredImage: null, announcementVideo: null });
       loadAnnouncements();
     } catch (error) {
@@ -108,7 +110,9 @@ const AdminAnnouncements = () => {
       type: item.type,
       priority: item.priority,
       targetAudience: item.targetAudience || 'everyone',
-      status: item.status
+      status: item.status,
+      eventDate: item.eventDate ? item.eventDate.split('T')[0] : '',
+      eventTime: item.eventTime || ''
     });
     setShowForm(true);
   };
@@ -149,6 +153,17 @@ const AdminAnnouncements = () => {
               <label>
                 Announcement video
                 <input type="file" name="announcementVideo" accept="video/*" onChange={handleMediaChange} />
+              </label>
+            </div>
+            
+            <div className="form-row">
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', color: 'white', flex: '1 1 180px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Event Date (Optional)</span>
+                <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', color: 'white', flex: '1 1 180px' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)' }}>Event Time (Optional)</span>
+                <input type="time" name="eventTime" value={formData.eventTime} onChange={handleChange} />
               </label>
             </div>
             
@@ -209,7 +224,14 @@ const AdminAnnouncements = () => {
             ) : (
               announcements.map(item => (
                 <tr key={item._id}>
-                  <td>{item.title}</td>
+                  <td>
+                    {item.title}
+                    {item.eventDate && (
+                      <div style={{ fontSize: '0.78rem', color: '#a8ff78', marginTop: '0.3rem', fontWeight: 'bold' }}>
+                        📅 {new Date(item.eventDate).toLocaleDateString()} {item.eventTime ? `@ ${item.eventTime}` : ''}
+                      </div>
+                    )}
+                  </td>
                   <td><span className={`type-badge type-${item.type}`}>{item.type}</span></td>
                   <td><span className={`priority-${item.priority}`}>{item.priority}</span></td>
                   <td><span className={`status-badge status-${item.status}`}>{item.status}</span></td>

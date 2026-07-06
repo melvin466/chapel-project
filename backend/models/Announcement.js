@@ -13,6 +13,8 @@ const announcementSchema = new mongoose.Schema({
   status: { type: String, enum: ['draft', 'published', 'archived'], default: 'draft' },
   publishDate: { type: Date, default: Date.now },
   expiryDate: Date,
+  eventDate: Date,
+  eventTime: String,
   views: { type: Number, default: 0 },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now }

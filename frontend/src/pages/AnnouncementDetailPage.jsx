@@ -84,6 +84,13 @@ const AnnouncementDetailPage = () => {
           </main>
 
           <aside className="announcement-side">
+            {announcement.eventDate && (
+              <div style={{ border: '1px solid rgba(168, 255, 120, 0.3)', background: 'rgba(168, 255, 120, 0.05)' }}>
+                <span>Event Date & Time</span>
+                <strong>{new Date(announcement.eventDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</strong>
+                {announcement.eventTime && <p style={{ marginTop: '0.2rem', fontWeight: 600, color: '#a8ff78' }}>🕒 at {announcement.eventTime}</p>}
+              </div>
+            )}
             <div>
               <span>Published</span>
               <strong>{formatDate(announcement.publishDate || announcement.createdAt)}</strong>

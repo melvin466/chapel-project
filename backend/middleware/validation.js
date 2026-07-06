@@ -54,6 +54,7 @@ const validateBooking = [
       return true;
     }),
   body('requestedTime').notEmpty().withMessage('Requested time required'),
+  body('hours').isInt({ min: 1 }).withMessage('Duration in hours must be at least 1 hour'),
   body('purpose').notEmpty().withMessage('Purpose required'),
   body('numberOfPeople').optional().isInt({ min: 1 }).withMessage('Number of people must be at least 1'),
   validate

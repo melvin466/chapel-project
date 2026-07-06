@@ -53,16 +53,50 @@ const getManageBookings = async (req, res) => {
   }
 };
 
+const HOURLY_RATES = {
+  counselling: 10000,
+  wedding: 200000,
+  baptism: 50000,
+  facility: 100000,
+  appointment: 30000,
+};
+
 const createBooking = async (req, res) => {
   try {
+    const { bookingType, requestedDate, requestedTime, hours = 1, purpose, numberOfPeople, specialRequests, event } = req.body;
+    
+    // Check hourly rate
+    const rate = HOURLY_RATES[bookingType] || 0;
+    const price = rate * hours;
+
+    // Detect collision
+    const datePart = new Date(requestedDate).toISOString().split('T')[0];
+    const startDateTime = new Date(`${datePart}T${requestedTime}:00`);
+    const endDateTime = new Date(startDateTime.getTime() + hours * 60 * 60 * 1000);
+
+    const conflictingBooking = await Booking.findOne({
+      status: 'approved',
+      startDateTime: { $lt: endDateTime },
+      endDateTime: { $gt: startDateTime }
+    });
+
+    if (conflictingBooking) {
+      return res.status(400).json({
+        success: false,
+        message: 'This date and time conflicts with an already approved booking.'
+      });
+    }
+
     const booking = await Booking.create({
-      bookingType: req.body.bookingType,
-      requestedDate: req.body.requestedDate,
-      requestedTime: req.body.requestedTime,
-      purpose: req.body.purpose,
-      numberOfPeople: req.body.numberOfPeople,
-      specialRequests: req.body.specialRequests,
-      event: req.body.event,
+      bookingType,
+      requestedDate,
+      requestedTime,
+      hours,
+      price,
+      purpose,
+      numberOfPeople,
+      specialRequests,
+      event,
       user: req.user.id,
       status: 'pending',
     });
@@ -105,6 +139,26 @@ const updateManagedBooking = async (req, res) => {
       }
       if (['approved', 'denied'].includes(req.body.status) && !req.body.reviewReason?.trim()) {
         return res.status(400).json({ success: false, message: 'A reason is required to approve or deny a booking' });
+      }
+      if (req.body.status === 'approved') {
+        const currentBooking = await Booking.findById(req.params.id);
+        if (!currentBooking) {
+          return res.status(404).json({ success: false, message: 'Booking not found' });
+        }
+        
+        const conflictingBooking = await Booking.findOne({
+          _id: { $ne: req.params.id },
+          status: 'approved',
+          startDateTime: { $lt: currentBooking.endDateTime },
+          endDateTime: { $gt: currentBooking.startDateTime }
+        });
+
+        if (conflictingBooking) {
+          return res.status(400).json({
+            success: false,
+            message: 'Cannot approve this booking because it conflicts with an already approved booking.'
+          });
+        }
       }
       updateData.status = req.body.status;
     }

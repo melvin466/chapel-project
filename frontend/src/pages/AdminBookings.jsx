@@ -17,6 +17,7 @@ const initialForm = {
   bookingType: 'counselling',
   requestedDate: '',
   requestedTime: '',
+  hours: 1,
   numberOfPeople: 1,
   purpose: '',
   specialRequests: '',
@@ -94,7 +95,7 @@ const AdminBookings = () => {
     const { name, value } = event.target;
     setFormData((current) => ({
       ...current,
-      [name]: name === 'numberOfPeople' ? Number(value) : value,
+      [name]: name === 'numberOfPeople' || name === 'hours' ? Number(value) : value,
     }));
   };
 
@@ -168,7 +169,8 @@ const AdminBookings = () => {
           <div className="admin-booking-form-row">
             <input type="date" name="requestedDate" min={today} value={formData.requestedDate} onChange={handleFormChange} required />
             <input type="time" name="requestedTime" value={formData.requestedTime} onChange={handleFormChange} required />
-            <input type="number" name="numberOfPeople" min="1" value={formData.numberOfPeople} onChange={handleFormChange} />
+            <input type="number" name="hours" min="1" placeholder="Duration (hours)" value={formData.hours || 1} onChange={handleFormChange} required />
+            <input type="number" name="numberOfPeople" min="1" placeholder="People" value={formData.numberOfPeople} onChange={handleFormChange} />
           </div>
           <textarea name="purpose" rows="3" placeholder="Purpose for this booking" value={formData.purpose} onChange={handleFormChange} required />
           <textarea name="specialRequests" rows="2" placeholder="Notes or special requests" value={formData.specialRequests} onChange={handleFormChange} />
@@ -211,6 +213,14 @@ const AdminBookings = () => {
                 <span>
                   <strong>Requested for</strong>
                   {formatDateTime(booking.requestedDate, booking.requestedTime)}
+                </span>
+                <span>
+                  <strong>Duration</strong>
+                  {booking.hours || 1} {booking.hours === 1 ? 'hour' : 'hours'}
+                </span>
+                <span>
+                  <strong>Cost</strong>
+                  {(booking.price || 0).toLocaleString()} UGX
                 </span>
                 <span>
                   <strong>People</strong>
@@ -314,7 +324,7 @@ const AdminBookings = () => {
         }
         .admin-booking-create h2 { color: white; margin-bottom: 1rem; }
         .admin-booking-create form { display: grid; gap: 0.75rem; }
-        .admin-booking-form-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+        .admin-booking-form-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; }
         .admin-booking-create button {
           justify-self: start;
           border: 0;

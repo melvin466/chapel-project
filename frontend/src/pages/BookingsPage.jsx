@@ -8,30 +8,35 @@ const bookingTypes = [
     label: 'Counselling',
     description: 'A private pastoral conversation for prayer, clarity, care, or support through a difficult season.',
     image: 'https://images.pexels.com/photos/5699456/pexels-photo-5699456.jpeg?auto=compress&cs=tinysrgb&w=700',
+    rate: 10000,
   },
   {
     value: 'wedding',
     label: 'Wedding',
     description: 'Begin planning a chapel ceremony, marriage preparation meeting, or pastoral guidance for your day.',
     image: 'https://images.pexels.com/photos/1730877/pexels-photo-1730877.jpeg?auto=compress&cs=tinysrgb&w=700',
+    rate: 200000,
   },
   {
     value: 'baptism',
     label: 'Baptism',
     description: 'Book baptism preparation and coordinate the details with the chapel team.',
     image: 'https://images.pexels.com/photos/8815058/pexels-photo-8815058.jpeg?auto=compress&cs=tinysrgb&w=700',
+    rate: 50000,
   },
   {
     value: 'facility',
     label: 'Facility use',
     description: 'Request chapel space for fellowships, meetings, rehearsals, ministry sessions, or special gatherings.',
     image: 'https://images.pexels.com/photos/709552/pexels-photo-709552.jpeg?auto=compress&cs=tinysrgb&w=700',
+    rate: 100000,
   },
   {
     value: 'appointment',
     label: 'Chaplain appointment',
     description: 'Reserve time with a chaplain for guidance, documentation, ministry planning, or spiritual direction.',
     image: 'https://images.pexels.com/photos/4101143/pexels-photo-4101143.jpeg?auto=compress&cs=tinysrgb&w=700',
+    rate: 30000,
   },
 ];
 
@@ -39,6 +44,7 @@ const initialForm = {
   bookingType: 'counselling',
   requestedDate: '',
   requestedTime: '',
+  hours: 1,
   numberOfPeople: 1,
   purpose: '',
   specialRequests: '',
@@ -87,7 +93,7 @@ const BookingsPage = () => {
     const { name, value } = event.target;
     setFormData((current) => ({
       ...current,
-      [name]: name === 'numberOfPeople' ? Number(value) : value,
+      [name]: name === 'numberOfPeople' || name === 'hours' ? Number(value) : value,
     }));
   };
 
@@ -198,17 +204,30 @@ const BookingsPage = () => {
               </label>
             </div>
 
-            <label className="form-label-group">
-              <span>Number of People</span>
-              <input
-                type="number"
-                name="numberOfPeople"
-                min="1"
-                value={formData.numberOfPeople}
-                onChange={handleChange}
-                required
-              />
-            </label>
+            <div className="booking-form-row">
+              <label className="form-label-group">
+                <span>Duration (Hours)</span>
+                <input
+                  type="number"
+                  name="hours"
+                  min="1"
+                  value={formData.hours || 1}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+              <label className="form-label-group">
+                <span>Number of People</span>
+                <input
+                  type="number"
+                  name="numberOfPeople"
+                  min="1"
+                  value={formData.numberOfPeople}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+            </div>
 
             <label className="form-label-group textarea-label">
               <span>What do you need?</span>
@@ -233,6 +252,12 @@ const BookingsPage = () => {
               />
             </label>
 
+            <div className="booking-price-preview">
+              <span>Estimated Cost:</span>
+              <strong>{((bookingTypes.find(t => t.value === formData.bookingType)?.rate || 0) * (formData.hours || 1)).toLocaleString()} UGX</strong>
+              <small>({(bookingTypes.find(t => t.value === formData.bookingType)?.rate || 0).toLocaleString()} UGX / hour)</small>
+            </div>
+
             <button type="submit" className="btn-primary" disabled={submitting}>
               {submitting ? 'Sending...' : 'Submit Booking'}
             </button>
@@ -250,7 +275,8 @@ const BookingsPage = () => {
                   <h2>{formatType(booking.bookingType)}</h2>
                   <span className={`booking-status status-${booking.status}`}>{booking.status}</span>
                 </div>
-                <p><strong>When:</strong> {formatDateTime(booking.requestedDate, booking.requestedTime)}</p>
+                <p><strong>When:</strong> {formatDateTime(booking.requestedDate, booking.requestedTime)} ({booking.hours || 1} {booking.hours === 1 ? 'hour' : 'hours'})</p>
+                <p><strong>Cost:</strong> {(booking.price || 0).toLocaleString()} UGX</p>
                 <p><strong>People:</strong> {booking.numberOfPeople || 1}</p>
                 <p>{booking.purpose}</p>
                 {booking.specialRequests && <p><strong>Notes:</strong> {booking.specialRequests}</p>}
@@ -275,6 +301,31 @@ const BookingsPage = () => {
           )}
         </section>
       </div>
+
+      <style>{`
+        .booking-price-preview {
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px dashed rgba(255, 255, 255, 0.15);
+          border-radius: 12px;
+          padding: 1rem;
+          margin-bottom: 1.5rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        .booking-price-preview span {
+          font-size: 0.85rem;
+          color: rgba(255, 255, 255, 0.7);
+        }
+        .booking-price-preview strong {
+          font-size: 1.4rem;
+          color: #a8ff78;
+        }
+        .booking-price-preview small {
+          font-size: 0.75rem;
+          color: rgba(255, 255, 255, 0.5);
+        }
+      `}</style>
     </div>
   );
 };

@@ -22,7 +22,9 @@ const AdminAnnouncementForm = () => {
     status: 'published',
     featuredImage: '',
     announcementVideo: '',
-    expiryDate: ''
+    expiryDate: '',
+    eventDate: '',
+    eventTime: ''
   });
 
   useEffect(() => {
@@ -46,7 +48,9 @@ const AdminAnnouncementForm = () => {
         status: announcement.status,
         featuredImage: announcement.featuredImage || '',
         announcementVideo: announcement.announcementVideo || '',
-        expiryDate: announcement.expiryDate ? announcement.expiryDate.split('T')[0] : ''
+        expiryDate: announcement.expiryDate ? announcement.expiryDate.split('T')[0] : '',
+        eventDate: announcement.eventDate ? announcement.eventDate.split('T')[0] : '',
+        eventTime: announcement.eventTime || ''
       });
     } catch (error) {
       console.error('Error loading announcement:', error);
@@ -172,6 +176,17 @@ const AdminAnnouncementForm = () => {
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
               </select>
+            </label>
+          </div>
+
+          <div className="form-row">
+            <label className="form-label-group">
+              <span>Event Date (Optional)</span>
+              <input type="date" name="eventDate" value={formData.eventDate} onChange={handleChange} />
+            </label>
+            <label className="form-label-group">
+              <span>Event Time (Optional)</span>
+              <input type="time" name="eventTime" value={formData.eventTime} onChange={handleChange} />
             </label>
           </div>
 
