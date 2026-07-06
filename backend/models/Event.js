@@ -31,8 +31,26 @@ const eventSchema = new mongoose.Schema({
   organizers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   checkedInAttendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  requiresChapel: { type: Boolean, default: false },
+  startDateTime: Date,
+  endDateTime: Date,
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now }
+});
+
+eventSchema.pre('save', function (next) {
+  if (this.isModified('startDate') || this.isModified('startTime') || this.isModified('endDate') || this.isModified('endTime')) {
+    try {
+      const startDatePart = new Date(this.startDate).toISOString().split('T')[0];
+      this.startDateTime = new Date(`${startDatePart}T${this.startTime}:00`);
+
+      const endDatePart = new Date(this.endDate).toISOString().split('T')[0];
+      this.endDateTime = new Date(`${endDatePart}T${this.endTime}:00`);
+    } catch (err) {
+      return next(err);
+    }
+  }
+  next();
 });
 
 eventSchema.index({ startDate: 1, status: 1 });

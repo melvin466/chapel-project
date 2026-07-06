@@ -19,6 +19,28 @@ const AdminEvents = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [chapelFilter, setChapelFilter] = useState('');
+
+  const filteredEvents = React.useMemo(() => {
+    return events.filter((event) => {
+      const matchesQuery = !query || 
+        event.title?.toLowerCase().includes(query.toLowerCase()) ||
+        event.location?.toLowerCase().includes(query.toLowerCase()) ||
+        event.description?.toLowerCase().includes(query.toLowerCase());
+      
+      const matchesType = !typeFilter || event.type === typeFilter;
+      const matchesStatus = !statusFilter || event.status === statusFilter;
+      
+      let matchesChapel = true;
+      if (chapelFilter === 'true') matchesChapel = event.requiresChapel === true;
+      if (chapelFilter === 'false') matchesChapel = event.requiresChapel !== true;
+
+      return matchesQuery && matchesType && matchesStatus && matchesChapel;
+    });
+  }, [events, query, typeFilter, statusFilter, chapelFilter]);
 
   useEffect(() => {
     loadEvents();
@@ -225,6 +247,81 @@ const AdminEvents = () => {
         </div>
       )}
 
+      <div className="admin-booking-toolbar" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', marginBottom: '1.25rem', background: 'rgba(255, 255, 255, 0.05)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        <input
+          type="search"
+          placeholder="🔍 Search events..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={{
+            flex: '1 1 200px',
+            minHeight: '42px',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            background: 'rgba(255,255,255,0.05)',
+            color: 'white',
+            padding: '0.65rem 0.8rem',
+            outline: 'none'
+          }}
+        />
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          style={{
+            minHeight: '42px',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            background: '#1f2933',
+            color: 'white',
+            padding: '0.65rem 0.8rem'
+          }}
+        >
+          <option value="">All event types</option>
+          <option value="worship_service">Worship Service</option>
+          <option value="fellowship">Fellowship</option>
+          <option value="conference">Conference</option>
+          <option value="retreat">Retreat</option>
+          <option value="prayer_meeting">Prayer Meeting</option>
+          <option value="bible_study">Bible Study</option>
+          <option value="wedding">Wedding</option>
+          <option value="baptism">Baptism</option>
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          style={{
+            minHeight: '42px',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            background: '#1f2933',
+            color: 'white',
+            padding: '0.65rem 0.8rem'
+          }}
+        >
+          <option value="">All statuses</option>
+          <option value="draft">Draft</option>
+          <option value="published">Published</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="completed">Completed</option>
+        </select>
+        <select
+          value={chapelFilter}
+          onChange={(e) => setChapelFilter(e.target.value)}
+          style={{
+            minHeight: '42px',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '8px',
+            background: '#1f2933',
+            color: 'white',
+            padding: '0.65rem 0.8rem'
+          }}
+        >
+          <option value="">All locations</option>
+          <option value="true">⛪ Requires Chapel</option>
+          <option value="false">Offsite / Non-Chapel</option>
+        </select>
+      </div>
+
       <div className="admin-table-container">
         <table className="admin-table">
           <thead>
@@ -234,21 +331,23 @@ const AdminEvents = () => {
               <th>Status</th>
               <th>Start Date</th>
               <th>Location</th>
+              <th>Chapel Space</th>
               <th>Registered</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {events.length === 0 ? (
-              <tr><td colSpan="7" style={{ textAlign: 'center' }}>No events found</td></tr>
+            {filteredEvents.length === 0 ? (
+              <tr><td colSpan="8" style={{ textAlign: 'center' }}>No events found</td></tr>
             ) : (
-              events.map((event) => (
+              filteredEvents.map((event) => (
                 <tr key={event._id}>
                   <td>{event.title}</td>
                   <td>{event.type?.replaceAll('_', ' ')}</td>
                   <td><span className={`status-badge status-${event.status}`}>{event.status}</span></td>
                   <td>{event.startDate ? new Date(event.startDate).toLocaleDateString() : '-'}</td>
                   <td>{event.location || '-'}</td>
+                  <td>{event.requiresChapel ? '⛪ Yes' : 'No'}</td>
                   <td>{event.registeredCount || 0}</td>
                   <td>
                     <button onClick={() => loadAttendees(event)} className="btn-edit">Attendees</button>

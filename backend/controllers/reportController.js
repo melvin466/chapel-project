@@ -2,8 +2,9 @@ const Booking = require('../models/Booking');
 const Donation = require('../models/Donation');
 const Event = require('../models/Event');
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
 
-const reportTypes = ['events', 'attendance', 'bookings', 'donations', 'users'];
+const reportTypes = ['events', 'attendance', 'bookings', 'donations', 'users', 'processes'];
 
 const escapeCsv = (value) => {
   if (value === undefined || value === null) return '';
@@ -68,6 +69,13 @@ const getUserFilter = (query) => {
   return filter;
 };
 
+const getProcessFilter = (query) => {
+  const filter = { ...buildDateFilter('createdAt', query) };
+  if (query.action) filter.action = query.action;
+  if (query.resource) filter.resource = query.resource;
+  return filter;
+};
+
 const countByField = async (Model, filter, field) => Model.aggregate([
   { $match: filter },
   { $group: { _id: `$${field}`, count: { $sum: 1 } } },
@@ -80,6 +88,7 @@ const getReportSummary = async (req, res) => {
     const bookingFilter = getBookingFilter(req.query);
     const donationFilter = getDonationFilter(req.query);
     const userFilter = getUserFilter(req.query);
+    const processFilter = getProcessFilter(req.query);
 
     const [
       events,
@@ -93,6 +102,7 @@ const getReportSummary = async (req, res) => {
       donationStatuses,
       users,
       userRoles,
+      processesCount,
     ] = await Promise.all([
       Event.find(eventFilter).select('registeredCount attendees checkedInAttendees'),
       countByField(Event, eventFilter, 'status'),
@@ -113,6 +123,7 @@ const getReportSummary = async (req, res) => {
       countByField(Donation, donationFilter, 'status'),
       User.countDocuments(userFilter),
       countByField(User, userFilter, 'role'),
+      AuditLog.countDocuments(processFilter),
     ]);
 
     const totalRegistered = events.reduce((sum, event) => sum + (event.registeredCount ?? event.attendees.length), 0);
@@ -151,6 +162,9 @@ const getReportSummary = async (req, res) => {
         users: {
           total: users,
           byRole: userRoles,
+        },
+        processes: {
+          total: processesCount,
         },
       },
     });
@@ -280,6 +294,28 @@ const exportUsers = async (req, res) => {
   ]));
 };
 
+const exportProcesses = async (req, res) => {
+  const logs = await AuditLog.find(getProcessFilter(req.query))
+    .populate('actor', 'firstName lastName email role')
+    .sort({ createdAt: -1 });
+
+  sendCsv(res, 'processes_report.csv', [
+    'Log ID', 'Action', 'Resource', 'Resource ID', 'Actor', 'Actor Email', 'Actor Role', 'IP Address', 'User Agent', 'Metadata', 'Created At'
+  ], logs.map((log) => [
+    log._id,
+    log.action,
+    log.resource,
+    log.resourceId || '',
+    log.actor ? `${log.actor.firstName || ''} ${log.actor.lastName || ''}`.trim() : 'System',
+    log.actor?.email || '',
+    log.actorRole || log.actor?.role || 'System',
+    log.ipAddress || '',
+    log.userAgent || '',
+    log.metadata ? JSON.stringify(log.metadata) : '',
+    log.createdAt,
+  ]));
+};
+
 const exportReport = async (req, res) => {
   try {
     const { type } = req.params;
@@ -291,6 +327,7 @@ const exportReport = async (req, res) => {
     if (type === 'attendance') return exportAttendance(req, res);
     if (type === 'bookings') return exportBookings(req, res);
     if (type === 'donations') return exportDonations(req, res);
+    if (type === 'processes') return exportProcesses(req, res);
     return exportUsers(req, res);
   } catch (error) {
     res.status(500).json({ success: false, message: require('../utils/errorResponse').getErrorMessage(error) });

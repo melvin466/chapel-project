@@ -21,6 +21,7 @@ const initialForm = {
   numberOfPeople: 1,
   purpose: '',
   specialRequests: '',
+  requiresChapel: false,
 };
 
 const formatDateTime = (date, time) => {
@@ -29,6 +30,7 @@ const formatDateTime = (date, time) => {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC',
   });
   return time ? `${day} at ${time}` : day;
 };
@@ -46,7 +48,13 @@ const AdminBookings = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
 
   const staffOptions = useMemo(
     () => staffUsers.filter((user) => ['admin', 'chaplain'].includes(user.role)),
@@ -92,11 +100,23 @@ const AdminBookings = () => {
   }, [statusFilter, typeFilter]);
 
   const handleFormChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((current) => ({
-      ...current,
-      [name]: name === 'numberOfPeople' || name === 'hours' ? Number(value) : value,
-    }));
+    const { name, value, type, checked } = event.target;
+    setFormData((current) => {
+      const nextVal = type === 'checkbox' ? checked : (name === 'numberOfPeople' || name === 'hours' ? Number(value) : value);
+      
+      if (name === 'bookingType') {
+        return {
+          ...current,
+          bookingType: value,
+          requiresChapel: ['facility', 'wedding'].includes(value),
+        };
+      }
+      
+      return {
+        ...current,
+        [name]: nextVal,
+      };
+    });
   };
 
   const createBooking = async (event) => {
@@ -174,6 +194,19 @@ const AdminBookings = () => {
           </div>
           <textarea name="purpose" rows="3" placeholder="Purpose for this booking" value={formData.purpose} onChange={handleFormChange} required />
           <textarea name="specialRequests" rows="2" placeholder="Notes or special requests" value={formData.specialRequests} onChange={handleFormChange} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: '0.2rem 0 0.8rem' }}>
+            <input
+              type="checkbox"
+              id="adminRequiresChapel"
+              name="requiresChapel"
+              checked={formData.requiresChapel || false}
+              onChange={handleFormChange}
+              style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer', margin: 0 }}
+            />
+            <label htmlFor="adminRequiresChapel" style={{ color: '#cbd5e1', fontWeight: '500', cursor: 'pointer', userSelect: 'none' }}>
+              Requires physical Chapel building/hall
+            </label>
+          </div>
           <button type="submit" disabled={submitting}>{submitting ? 'Creating...' : 'Create Booking'}</button>
         </form>
       </section>
@@ -206,6 +239,13 @@ const AdminBookings = () => {
                 <span className={`booking-status status-${booking.status}`}>{booking.status}</span>
                 <span>{bookingTypes[booking.bookingType] || booking.bookingType}</span>
               </div>
+              {booking.requiresChapel && (
+                <div style={{ margin: '-0.4rem 0 0.8rem' }}>
+                  <span className="booking-chapel-badge" style={{ display: 'inline-block', background: 'rgba(168, 255, 120, 0.15)', color: '#a8ff78', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700' }}>
+                    ⛪ Requires Chapel Space
+                  </span>
+                </div>
+              )}
 
               <h2>{booking.purpose}</h2>
 

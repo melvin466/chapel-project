@@ -131,6 +131,7 @@ describe('AdminBookings', () => {
         numberOfPeople: 20,
         purpose: 'Admin facility reservation',
         specialRequests: '',
+        requiresChapel: true,
       });
     });
     expect(await screen.findByText(/Booking request created/i)).toBeInTheDocument();

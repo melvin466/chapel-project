@@ -72,6 +72,7 @@ describe('BookingsPage', () => {
         numberOfPeople: 5,
         purpose: 'Baptism service request',
         specialRequests: 'Reserve front seats',
+        requiresChapel: false,
       });
     });
     expect(await screen.findByText(/booking request has been sent/i)).toBeInTheDocument();

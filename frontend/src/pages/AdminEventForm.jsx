@@ -25,7 +25,8 @@ const AdminEventForm = () => {
     status: 'published',
     isFeatured: false,
     featuredImage: '',
-    eventVideo: ''
+    eventVideo: '',
+    requiresChapel: false
   });
 
   useEffect(() => {
@@ -53,7 +54,8 @@ const AdminEventForm = () => {
         status: event.status,
         isFeatured: event.isFeatured || false,
         featuredImage: event.featuredImage || '',
-        eventVideo: event.eventVideo || ''
+        eventVideo: event.eventVideo || '',
+        requiresChapel: event.requiresChapel || false
       });
     } catch (error) {
       console.error('Error loading event:', error);
@@ -226,6 +228,10 @@ const AdminEventForm = () => {
                 <label className="checkbox-label">
                   <input type="checkbox" name="isFeatured" checked={formData.isFeatured} onChange={handleChange} />
                   <span>Feature this Event</span>
+                </label>
+                <label className="checkbox-label">
+                  <input type="checkbox" name="requiresChapel" checked={formData.requiresChapel} onChange={handleChange} />
+                  <span>Requires Chapel Hall</span>
                 </label>
               </div>
             </div>

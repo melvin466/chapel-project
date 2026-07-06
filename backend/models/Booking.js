@@ -18,10 +18,14 @@ const bookingSchema = new mongoose.Schema({
   reviewReason: String,
   reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   reviewedAt: Date,
+  requiresChapel: { type: Boolean },
   createdAt: { type: Date, default: Date.now }
 });
 
 bookingSchema.pre('save', function (next) {
+  if (this.requiresChapel === undefined || this.requiresChapel === null) {
+    this.requiresChapel = ['facility', 'wedding'].includes(this.bookingType);
+  }
   if (this.isModified('requestedDate') || this.isModified('requestedTime') || this.isModified('hours')) {
     try {
       const datePart = new Date(this.requestedDate).toISOString().split('T')[0];

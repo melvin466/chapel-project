@@ -6,6 +6,7 @@ const User = require('../models/User');
 const Event = require('../models/Event');
 const Booking = require('../models/Booking');
 const Donation = require('../models/Donation');
+const AuditLog = require('../models/AuditLog');
 
 let mongoServer;
 
@@ -95,6 +96,15 @@ describe('Report endpoints', () => {
       createdAt: new Date('2026-06-01T00:00:00.000Z'),
     });
 
+    await AuditLog.create({
+      actor: admin.user._id,
+      actorRole: 'admin',
+      action: 'event.create',
+      resource: 'Event',
+      resourceId: 'someid',
+      createdAt: new Date('2026-06-15T00:00:00.000Z'),
+    });
+
     const blockedRes = await request(app)
       .get('/api/reports/summary')
       .set('Authorization', `Bearer ${member.token}`);
@@ -113,6 +123,7 @@ describe('Report endpoints', () => {
     expect(summaryRes.body.data.bookings.total).toBe(1);
     expect(summaryRes.body.data.donations.completedAmount).toBe(5000);
     expect(summaryRes.body.data.users.total).toBe(0);
+    expect(summaryRes.body.data.processes.total).toBe(1);
   });
 
   it('exports attendance, booking, donation, user, and event CSV reports', async () => {
@@ -154,12 +165,21 @@ describe('Report endpoints', () => {
       createdAt: new Date('2026-07-12T00:00:00.000Z'),
     });
 
+    await AuditLog.create({
+      actor: admin.user._id,
+      actorRole: 'admin',
+      action: 'event.create',
+      resource: 'Event',
+      resourceId: 'someid',
+    });
+
     const expectations = [
       ['events', 'events_report.csv', 'CSV Event'],
       ['attendance', 'attendance_report.csv', 'csvmember@example.com'],
       ['bookings', 'bookings_report.csv', 'Pastoral appointment'],
       ['donations', 'donations_report.csv', '7000'],
       ['users', 'users_report.csv', 'csvmember@example.com'],
+      ['processes', 'processes_report.csv', 'event.create'],
     ];
 
     for (const [type, filename, content] of expectations) {

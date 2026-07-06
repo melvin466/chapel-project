@@ -48,6 +48,7 @@ const initialForm = {
   numberOfPeople: 1,
   purpose: '',
   specialRequests: '',
+  requiresChapel: false,
 };
 
 const formatType = (type) => bookingTypes.find((item) => item.value === type)?.label || type;
@@ -58,6 +59,7 @@ const formatDateTime = (date, time) => {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
+    timeZone: 'UTC',
   });
   return time ? `${formattedDate} at ${time}` : formattedDate;
 };
@@ -70,7 +72,13 @@ const BookingsPage = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const today = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
   const selectedBookingType = bookingTypes.find((type) => type.value === formData.bookingType) || bookingTypes[0];
 
   const loadBookings = async () => {
@@ -90,11 +98,23 @@ const BookingsPage = () => {
   }, []);
 
   const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((current) => ({
-      ...current,
-      [name]: name === 'numberOfPeople' || name === 'hours' ? Number(value) : value,
-    }));
+    const { name, value, type, checked } = event.target;
+    setFormData((current) => {
+      const nextVal = type === 'checkbox' ? checked : (name === 'numberOfPeople' || name === 'hours' ? Number(value) : value);
+      
+      if (name === 'bookingType') {
+        return {
+          ...current,
+          bookingType: value,
+          requiresChapel: ['facility', 'wedding'].includes(value),
+        };
+      }
+      
+      return {
+        ...current,
+        [name]: nextVal,
+      };
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -151,7 +171,11 @@ const BookingsPage = () => {
             key={type.value}
             type="button"
             className={`booking-service-card ${formData.bookingType === type.value ? 'active' : ''}`}
-            onClick={() => setFormData((current) => ({ ...current, bookingType: type.value }))}
+            onClick={() => setFormData((current) => ({
+              ...current,
+              bookingType: type.value,
+              requiresChapel: ['facility', 'wedding'].includes(type.value)
+            }))}
           >
             <img src={type.image} alt="" loading="lazy" />
             <span>{type.label}</span>
@@ -241,6 +265,20 @@ const BookingsPage = () => {
               />
             </label>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: '0.5rem 0 1.25rem' }}>
+              <input
+                type="checkbox"
+                id="requiresChapel"
+                name="requiresChapel"
+                checked={formData.requiresChapel || false}
+                onChange={handleChange}
+                style={{ width: '1.2rem', height: '1.2rem', cursor: 'pointer', margin: 0 }}
+              />
+              <label htmlFor="requiresChapel" style={{ color: '#cbd5e1', fontWeight: '500', cursor: 'pointer', userSelect: 'none' }}>
+                Requires physical Chapel building/hall
+              </label>
+            </div>
+
             <label className="form-label-group textarea-label">
               <span>Special Requests or Notes</span>
               <textarea
@@ -275,6 +313,13 @@ const BookingsPage = () => {
                   <h2>{formatType(booking.bookingType)}</h2>
                   <span className={`booking-status status-${booking.status}`}>{booking.status}</span>
                 </div>
+                {booking.requiresChapel && (
+                  <div style={{ margin: '-0.25rem 0 0.75rem' }}>
+                    <span className="booking-chapel-badge" style={{ display: 'inline-block', background: 'rgba(168, 255, 120, 0.15)', color: '#a8ff78', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700' }}>
+                      ⛪ Requires Chapel Hall
+                    </span>
+                  </div>
+                )}
                 <p><strong>When:</strong> {formatDateTime(booking.requestedDate, booking.requestedTime)} ({booking.hours || 1} {booking.hours === 1 ? 'hour' : 'hours'})</p>
                 <p><strong>Cost:</strong> {(booking.price || 0).toLocaleString()} UGX</p>
                 <p><strong>People:</strong> {booking.numberOfPeople || 1}</p>

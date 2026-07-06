@@ -18,6 +18,51 @@ const withUploadedEventFiles = (body, files = {}) => {
   return data;
 };
 
+const checkEventConflict = async (eventId, body) => {
+  const requiresChapel = body.requiresChapel === 'true' || body.requiresChapel === true;
+  const status = body.status;
+
+  if (requiresChapel && status === 'published') {
+    const { startDate, startTime, endDate, endTime } = body;
+    if (!startDate || !startTime || !endDate || !endTime) {
+      throw new Error('Start/End date and time are required for published chapel events');
+    }
+
+    const startDatePart = new Date(startDate).toISOString().split('T')[0];
+    const startDateTime = new Date(`${startDatePart}T${startTime}:00`);
+
+    const endDatePart = new Date(endDate).toISOString().split('T')[0];
+    const endDateTime = new Date(`${endDatePart}T${endTime}:00`);
+
+    const Booking = require('../models/Booking');
+    const conflictingBooking = await Booking.findOne({
+      requiresChapel: true,
+      status: 'approved',
+      startDateTime: { $lt: endDateTime },
+      endDateTime: { $gt: startDateTime }
+    });
+
+    if (conflictingBooking) {
+      throw new Error('This event conflicts with an approved chapel booking.');
+    }
+
+    const query = {
+      requiresChapel: true,
+      status: 'published',
+      startDateTime: { $lt: endDateTime },
+      endDateTime: { $gt: startDateTime }
+    };
+    if (eventId) {
+      query._id = { $ne: eventId };
+    }
+
+    const conflictingEvent = await Event.findOne(query);
+    if (conflictingEvent) {
+      throw new Error('This event conflicts with another published event in the chapel.');
+    }
+  }
+};
+
 const getEvents = async (req, res) => {
   try {
     const { page = 1, limit = 10, type } = req.query;
@@ -88,6 +133,7 @@ const getManageEvents = async (req, res) => {
 
 const createEvent = async (req, res) => {
   try {
+    await checkEventConflict(null, req.body);
     const event = await Event.create({ ...withUploadedEventFiles(req.body, req.files), createdBy: req.user.id });
     await recordAuditLog(req, {
       action: 'event.create',
@@ -103,8 +149,21 @@ const createEvent = async (req, res) => {
 
 const updateEvent = async (req, res) => {
   try {
+    const existing = await Event.findById(req.params.id);
+    if (!existing) return res.status(404).json({ success: false, message: 'Event not found' });
+
+    const mergedBody = {
+      startDate: req.body.startDate !== undefined ? req.body.startDate : existing.startDate,
+      startTime: req.body.startTime !== undefined ? req.body.startTime : existing.startTime,
+      endDate: req.body.endDate !== undefined ? req.body.endDate : existing.endDate,
+      endTime: req.body.endTime !== undefined ? req.body.endTime : existing.endTime,
+      requiresChapel: req.body.requiresChapel !== undefined ? req.body.requiresChapel : existing.requiresChapel,
+      status: req.body.status !== undefined ? req.body.status : existing.status,
+    };
+
+    await checkEventConflict(req.params.id, mergedBody);
+
     const event = await Event.findByIdAndUpdate(req.params.id, withUploadedEventFiles(req.body, req.files), { new: true });
-    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
     await recordAuditLog(req, {
       action: 'event.update',
       resource: 'Event',

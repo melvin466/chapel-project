@@ -7,6 +7,7 @@ const reportTypes = [
   { id: 'bookings', name: 'Bookings', description: 'Booking requests, decisions, assignments and review reasons.' },
   { id: 'donations', name: 'Donations', description: 'Donation totals, payment status, receipts and donor details.' },
   { id: 'users', name: 'Users', description: 'Member list with roles, active status and verification state.' },
+  { id: 'processes', name: 'Processes', description: 'Audit trail of system actions, updates, creations and deletions.' },
 ];
 
 const typeOptions = {

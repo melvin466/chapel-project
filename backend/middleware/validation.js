@@ -35,6 +35,7 @@ const validateEvent = [
   body('startDate').isISO8601().withMessage('Valid start date required'),
   body('endDate').isISO8601().withMessage('Valid end date required'),
   body('location').notEmpty().withMessage('Location required'),
+  body('requiresChapel').optional().isBoolean().withMessage('requiresChapel must be a boolean'),
   validate
 ];
 
@@ -46,17 +47,19 @@ const validateBooking = [
     .custom((value) => {
       const requestedDate = new Date(value);
       const today = new Date();
-      requestedDate.setHours(0, 0, 0, 0);
-      today.setHours(0, 0, 0, 0);
-      if (requestedDate < today) {
+      requestedDate.setUTCHours(0, 0, 0, 0);
+      today.setUTCHours(0, 0, 0, 0);
+      const threshold = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+      if (requestedDate < threshold) {
         throw new Error('Booking date cannot be in the past');
       }
       return true;
     }),
   body('requestedTime').notEmpty().withMessage('Requested time required'),
-  body('hours').isInt({ min: 1 }).withMessage('Duration in hours must be at least 1 hour'),
+  body('hours').optional().isInt({ min: 1 }).withMessage('Duration in hours must be at least 1 hour'),
   body('purpose').notEmpty().withMessage('Purpose required'),
   body('numberOfPeople').optional().isInt({ min: 1 }).withMessage('Number of people must be at least 1'),
+  body('requiresChapel').optional().isBoolean().withMessage('requiresChapel must be a boolean'),
   validate
 ];
 

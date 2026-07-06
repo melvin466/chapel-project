@@ -74,17 +74,39 @@ const createBooking = async (req, res) => {
     const startDateTime = new Date(`${datePart}T${requestedTime}:00`);
     const endDateTime = new Date(startDateTime.getTime() + hours * 60 * 60 * 1000);
 
-    const conflictingBooking = await Booking.findOne({
-      status: 'approved',
-      startDateTime: { $lt: endDateTime },
-      endDateTime: { $gt: startDateTime }
-    });
+    const requiresChapel = req.body.requiresChapel !== undefined
+      ? (req.body.requiresChapel === 'true' || req.body.requiresChapel === true)
+      : ['facility', 'wedding'].includes(bookingType);
 
-    if (conflictingBooking) {
-      return res.status(400).json({
-        success: false,
-        message: 'This date and time conflicts with an already approved booking.'
+    if (requiresChapel) {
+      const conflictingBooking = await Booking.findOne({
+        requiresChapel: true,
+        status: 'approved',
+        startDateTime: { $lt: endDateTime },
+        endDateTime: { $gt: startDateTime }
       });
+
+      if (conflictingBooking) {
+        return res.status(400).json({
+          success: false,
+          message: 'This date and time conflicts with an already approved booking.'
+        });
+      }
+
+      const Event = require('../models/Event');
+      const conflictingEvent = await Event.findOne({
+        requiresChapel: true,
+        status: 'published',
+        startDateTime: { $lt: endDateTime },
+        endDateTime: { $gt: startDateTime }
+      });
+
+      if (conflictingEvent) {
+        return res.status(400).json({
+          success: false,
+          message: 'This date and time conflicts with a scheduled event in the chapel.'
+        });
+      }
     }
 
     const booking = await Booking.create({
@@ -146,18 +168,36 @@ const updateManagedBooking = async (req, res) => {
           return res.status(404).json({ success: false, message: 'Booking not found' });
         }
         
-        const conflictingBooking = await Booking.findOne({
-          _id: { $ne: req.params.id },
-          status: 'approved',
-          startDateTime: { $lt: currentBooking.endDateTime },
-          endDateTime: { $gt: currentBooking.startDateTime }
-        });
-
-        if (conflictingBooking) {
-          return res.status(400).json({
-            success: false,
-            message: 'Cannot approve this booking because it conflicts with an already approved booking.'
+        if (currentBooking.requiresChapel) {
+          const conflictingBooking = await Booking.findOne({
+            _id: { $ne: req.params.id },
+            requiresChapel: true,
+            status: 'approved',
+            startDateTime: { $lt: currentBooking.endDateTime },
+            endDateTime: { $gt: currentBooking.startDateTime }
           });
+
+          if (conflictingBooking) {
+            return res.status(400).json({
+              success: false,
+              message: 'Cannot approve this booking because it conflicts with another approved booking.'
+            });
+          }
+
+          const Event = require('../models/Event');
+          const conflictingEvent = await Event.findOne({
+            requiresChapel: true,
+            status: 'published',
+            startDateTime: { $lt: currentBooking.endDateTime },
+            endDateTime: { $gt: currentBooking.startDateTime }
+          });
+
+          if (conflictingEvent) {
+            return res.status(400).json({
+              success: false,
+              message: 'Cannot approve this booking because it conflicts with a scheduled event in the chapel.'
+            });
+          }
         }
       }
       updateData.status = req.body.status;
