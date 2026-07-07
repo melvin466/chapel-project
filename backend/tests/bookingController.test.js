@@ -268,4 +268,62 @@ describe('Booking Controller Integration Tests', () => {
     expect(approveAppointment.statusCode).toBe(400);
     expect(approveAppointment.body.message).toContain('Cannot approve this booking because it conflicts');
   });
+
+  it('should support admin date filters and an all-bookings scope for past bookings', async () => {
+    const admin = await registerAndLogin({ email: 'admin@example.com', role: 'admin' });
+    const member = await registerAndLogin({ email: 'member@example.com' });
+    const now = new Date();
+    const pastStart = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+    const futureStart = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+    const pastEnd = new Date(pastStart.getTime() + 60 * 60 * 1000);
+    const futureEnd = new Date(futureStart.getTime() + 60 * 60 * 1000);
+    const futureDay = futureStart.toISOString().split('T')[0];
+
+    await Booking.create([
+      {
+        bookingType: 'appointment',
+        user: member.user._id,
+        requestedDate: pastStart,
+        requestedTime: '09:00',
+        purpose: 'Past appointment',
+        startDateTime: pastStart,
+        endDateTime: pastEnd,
+        status: 'pending'
+      },
+      {
+        bookingType: 'appointment',
+        user: member.user._id,
+        requestedDate: futureStart,
+        requestedTime: '09:00',
+        purpose: 'Future appointment',
+        startDateTime: futureStart,
+        endDateTime: futureEnd,
+        status: 'pending'
+      }
+    ]);
+
+    const defaultRes = await request(app)
+      .get('/api/bookings/manage/all')
+      .set('Authorization', `Bearer ${admin.token}`);
+
+    expect(defaultRes.statusCode).toBe(200);
+    expect(defaultRes.body.data.bookings.map((booking) => booking.purpose)).toEqual(['Future appointment']);
+
+    const allRes = await request(app)
+      .get('/api/bookings/manage/all?scope=all')
+      .set('Authorization', `Bearer ${admin.token}`);
+
+    expect(allRes.statusCode).toBe(200);
+    expect(allRes.body.data.bookings.map((booking) => booking.purpose)).toEqual([
+      'Past appointment',
+      'Future appointment'
+    ]);
+
+    const dateFilteredRes = await request(app)
+      .get(`/api/bookings/manage/all?scope=all&dateFrom=${futureDay}&dateTo=${futureDay}`)
+      .set('Authorization', `Bearer ${admin.token}`);
+
+    expect(dateFilteredRes.statusCode).toBe(200);
+    expect(dateFilteredRes.body.data.bookings.map((booking) => booking.purpose)).toEqual(['Future appointment']);
+  });
 });

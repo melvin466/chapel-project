@@ -103,12 +103,21 @@ describe('AdminBookings', () => {
     expect(await screen.findByText('Booking Management')).toBeInTheDocument();
     expect(screen.getByText('Wedding planning meeting')).toBeInTheDocument();
     expect(screen.getByText('Approved fellowship setup')).toBeInTheDocument();
-    expect(screen.queryByText('Old appointment')).not.toBeInTheDocument();
+    expect(screen.getByText('Past Bookings')).toBeInTheDocument();
+    expect(screen.getByText('Old appointment')).toBeInTheDocument();
     expect(screen.getByText('Pending Bookings')).toBeInTheDocument();
     expect(screen.getByText('Approved Bookings')).toBeInTheDocument();
     expect(screen.getByText('Mary Student')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Complete/i })).not.toBeInTheDocument();
+    expect(bookingService.getManageBookings).toHaveBeenCalledWith({
+      scope: 'all',
+      status: undefined,
+      type: undefined,
+      dateFrom: undefined,
+      dateTo: undefined,
+    });
 
-    const assignmentSelect = screen.getAllByRole('combobox').at(-2);
+    const assignmentSelect = screen.getAllByLabelText(/Assigned to/i)[0];
     fireEvent.change(assignmentSelect, { target: { value: 'staff-1' } });
 
     await waitFor(() => {
@@ -136,6 +145,41 @@ describe('AdminBookings', () => {
       });
     });
     expect(await screen.findByText(/Booking approved/i)).toBeInTheDocument();
+  });
+
+  it('filters bookings by requested date range', async () => {
+    render(<AdminBookings />);
+
+    expect(await screen.findByText('Booking Management')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('From'), {
+      target: { value: '2026-08-01' },
+    });
+    fireEvent.change(screen.getByLabelText('To'), {
+      target: { value: '2026-08-31' },
+    });
+
+    await waitFor(() => {
+      expect(bookingService.getManageBookings).toHaveBeenLastCalledWith({
+        scope: 'all',
+        status: undefined,
+        type: undefined,
+        dateFrom: '2026-08-01',
+        dateTo: '2026-08-31',
+      });
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /Clear dates/i }));
+
+    await waitFor(() => {
+      expect(bookingService.getManageBookings).toHaveBeenLastCalledWith({
+        scope: 'all',
+        status: undefined,
+        type: undefined,
+        dateFrom: undefined,
+        dateTo: undefined,
+      });
+    });
   });
 
   it('lets an admin create a booking request', async () => {

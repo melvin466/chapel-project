@@ -2,6 +2,36 @@ const Booking = require('../models/Booking');
 const { recordAuditLog } = require('../utils/auditLogger');
 const { notifyUser, notifyAudience } = require('../utils/notificationDispatcher');
 
+const setDateBoundary = (value, boundary) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  if (boundary === 'start') date.setUTCHours(0, 0, 0, 0);
+  if (boundary === 'end') date.setUTCHours(23, 59, 59, 999);
+  return date;
+};
+
+const applyRequestedDateFilter = (filter, { dateFrom, dateTo }) => {
+  const requestedDate = {};
+
+  if (dateFrom) {
+    const start = setDateBoundary(dateFrom, 'start');
+    if (!start) return false;
+    requestedDate.$gte = start;
+  }
+
+  if (dateTo) {
+    const end = setDateBoundary(dateTo, 'end');
+    if (!end) return false;
+    requestedDate.$lte = end;
+  }
+
+  if (Object.keys(requestedDate).length > 0) {
+    filter.requestedDate = requestedDate;
+  }
+
+  return true;
+};
+
 const getBookings = async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
@@ -28,18 +58,35 @@ const getBookings = async (req, res) => {
 
 const getManageBookings = async (req, res) => {
   try {
-    const { page = 1, limit = 100, status, type } = req.query;
+    const { page = 1, limit = 100, status, type, dateFrom, dateTo, scope = 'upcoming' } = req.query;
     const now = new Date();
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
-    const filter = {
-      $or: [
+    const filter = {};
+
+    if (!['upcoming', 'past', 'all'].includes(scope)) {
+      return res.status(400).json({ success: false, message: 'Invalid booking scope' });
+    }
+
+    if (scope === 'upcoming') {
+      filter.$or = [
         { endDateTime: { $gte: now } },
         { endDateTime: { $exists: false }, requestedDate: { $gte: todayStart } }
-      ]
-    };
+      ];
+    }
+
+    if (scope === 'past') {
+      filter.$or = [
+        { endDateTime: { $lt: now } },
+        { endDateTime: { $exists: false }, requestedDate: { $lt: todayStart } }
+      ];
+    }
+
     if (status) filter.status = status;
     if (type) filter.bookingType = type;
+    if (!applyRequestedDateFilter(filter, { dateFrom, dateTo })) {
+      return res.status(400).json({ success: false, message: 'Invalid booking date filter' });
+    }
 
     const bookings = await Booking.find(filter)
       .populate('user', 'firstName lastName email phoneNumber')
@@ -170,7 +217,7 @@ const cancelBooking = async (req, res) => {
 
 const updateManagedBooking = async (req, res) => {
   try {
-    const allowedStatuses = ['pending', 'approved', 'denied', 'cancelled', 'completed'];
+    const allowedStatuses = ['pending', 'approved', 'denied', 'cancelled'];
     const updateData = {};
 
     if (req.body.status !== undefined) {

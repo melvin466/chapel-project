@@ -11,12 +11,11 @@ const bookingTypes = {
   appointment: 'Chaplain appointment',
 };
 
-const reviewStatuses = ['pending', 'approved', 'denied', 'completed', 'cancelled'];
+const reviewStatuses = ['pending', 'approved', 'denied', 'cancelled'];
 
 const bookingStatusSections = [
   { status: 'pending', title: 'Pending', emptyText: 'No pending bookings.' },
   { status: 'approved', title: 'Approved', emptyText: 'No approved bookings.' },
-  { status: 'completed', title: 'Completed', emptyText: 'No completed bookings.' },
   { status: 'denied', title: 'Denied', emptyText: 'No denied bookings.' },
   { status: 'cancelled', title: 'Cancelled', emptyText: 'No cancelled bookings.' },
 ];
@@ -69,6 +68,8 @@ const AdminBookings = () => {
   const [staffUsers, setStaffUsers] = useState([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [dateFromFilter, setDateFromFilter] = useState('');
+  const [dateToFilter, setDateToFilter] = useState('');
   const [formData, setFormData] = useState(initialForm);
   const [reviewDrafts, setReviewDrafts] = useState({});
   const [initialLoading, setInitialLoading] = useState(true);
@@ -110,6 +111,14 @@ const AdminBookings = () => {
     });
   }, [bookings]);
 
+  const pastBookings = useMemo(() => {
+    const now = Date.now();
+    return bookings.filter((booking) => {
+      const endDate = getBookingEndDate(booking);
+      return endDate && endDate.getTime() < now;
+    });
+  }, [bookings]);
+
   const bookingGroups = useMemo(() => (
     bookingStatusSections.map((section) => ({
       ...section,
@@ -130,6 +139,11 @@ const AdminBookings = () => {
     }, {})
   ), [activeBookings]);
 
+  const clearDateFilters = () => {
+    setDateFromFilter('');
+    setDateToFilter('');
+  };
+
   const loadBookings = async () => {
     const isInitialLoad = initialLoading;
     try {
@@ -139,8 +153,11 @@ const AdminBookings = () => {
         setRefreshing(true);
       }
       const response = await bookingService.getManageBookings({
+        scope: 'all',
         status: statusFilter || undefined,
         type: typeFilter || undefined,
+        dateFrom: dateFromFilter || undefined,
+        dateTo: dateToFilter || undefined,
       });
       const loadedBookings = response.data?.bookings || [];
       setBookings(loadedBookings);
@@ -175,7 +192,7 @@ const AdminBookings = () => {
 
   useEffect(() => {
     loadBookings();
-  }, [statusFilter, typeFilter]);
+  }, [statusFilter, typeFilter, dateFromFilter, dateToFilter]);
 
   useEffect(() => {
     if (message || error) {
@@ -358,9 +375,6 @@ const AdminBookings = () => {
         <button onClick={() => reviewBooking(booking, 'approved')} disabled={booking.status === 'approved' || Boolean(busyMessage)}>
           Approve
         </button>
-        <button onClick={() => updateBooking(booking._id, { status: 'completed' }, 'Booking completed.', 'Completing booking...')} disabled={booking.status === 'completed' || Boolean(busyMessage)}>
-          Complete
-        </button>
         <button className="btn-cancel-booking" onClick={() => reviewBooking(booking, 'denied')} disabled={booking.status === 'denied' || Boolean(busyMessage)}>
           Deny
         </button>
@@ -433,6 +447,27 @@ const AdminBookings = () => {
             <option key={value} value={value}>{label}</option>
           ))}
         </select>
+        <label className="admin-booking-filter-label">
+          From
+          <input
+            type="date"
+            value={dateFromFilter}
+            onChange={(event) => setDateFromFilter(event.target.value)}
+          />
+        </label>
+        <label className="admin-booking-filter-label">
+          To
+          <input
+            type="date"
+            value={dateToFilter}
+            onChange={(event) => setDateToFilter(event.target.value)}
+          />
+        </label>
+        {(dateFromFilter || dateToFilter) && (
+          <button type="button" className="admin-booking-clear-filter" onClick={clearDateFilters}>
+            Clear dates
+          </button>
+        )}
       </div>
 
       <div ref={feedbackRef} style={{ scrollMarginTop: '1rem' }} />
@@ -445,7 +480,7 @@ const AdminBookings = () => {
       {error && <div className="error-message">{error}</div>}
       {refreshing && <div className="admin-refresh-chip">Refreshing booking list...</div>}
 
-      {activeBookings.length > 0 && (
+      {bookings.length > 0 && (
         <div className="admin-booking-status-summary" aria-label="Booking counts by status">
           {bookingStatusSections.map((section) => (
             <span key={section.status}>
@@ -453,33 +488,54 @@ const AdminBookings = () => {
               {section.title}
             </span>
           ))}
+          <span>
+            <strong>{pastBookings.length}</strong>
+            Past
+          </span>
         </div>
       )}
 
-      {activeBookings.length === 0 ? (
-        <p className="no-data">No upcoming booking requests found.</p>
+      {bookings.length === 0 ? (
+        <p className="no-data">No booking requests match these filters.</p>
       ) : (
-        <div className={`admin-booking-groups ${refreshing ? 'is-refreshing' : ''}`}>
-          {displayedBookingGroups.map((section) => (
-            <section key={section.status} className={`admin-booking-section admin-booking-section-${section.status}`}>
+        <>
+          <div className={`admin-booking-groups ${refreshing ? 'is-refreshing' : ''}`}>
+            {displayedBookingGroups.map((section) => (
+              <section key={section.status} className={`admin-booking-section admin-booking-section-${section.status}`}>
+                <div className="admin-booking-section-header">
+                  <div>
+                    <span className="profile-role">{section.title}</span>
+                    <h2>{section.title} Bookings</h2>
+                  </div>
+                  <span className="admin-booking-section-count">{section.bookings.length}</span>
+                </div>
+
+                {section.bookings.length > 0 ? (
+                  <div className="admin-booking-grid">
+                    {section.bookings.map(renderBookingCard)}
+                  </div>
+                ) : (
+                  <p className="admin-booking-section-empty">{section.emptyText}</p>
+                )}
+              </section>
+            ))}
+          </div>
+
+          {pastBookings.length > 0 && (
+            <section className="admin-booking-section admin-booking-section-past">
               <div className="admin-booking-section-header">
                 <div>
-                  <span className="profile-role">{section.title}</span>
-                  <h2>{section.title} Bookings</h2>
+                  <span className="profile-role">Past</span>
+                  <h2>Past Bookings</h2>
                 </div>
-                <span className="admin-booking-section-count">{section.bookings.length}</span>
+                <span className="admin-booking-section-count">{pastBookings.length}</span>
               </div>
-
-              {section.bookings.length > 0 ? (
-                <div className="admin-booking-grid">
-                  {section.bookings.map(renderBookingCard)}
-                </div>
-              ) : (
-                <p className="admin-booking-section-empty">{section.emptyText}</p>
-              )}
+              <div className="admin-booking-grid">
+                {pastBookings.map(renderBookingCard)}
+              </div>
             </section>
-          ))}
-        </div>
+          )}
+        </>
       )}
 
       <style>{`
@@ -506,7 +562,7 @@ const AdminBookings = () => {
           padding: 0.65rem 0.95rem;
           background: #2f7d46;
         }
-        .admin-booking-toolbar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .admin-booking-toolbar { display: flex; gap: 0.8rem; flex-wrap: wrap; align-items: flex-end; margin-bottom: 1rem; padding: 0.9rem; border-radius: 8px; }
         .booking-inline-status {
           min-height: 46px;
           display: inline-flex;
@@ -546,13 +602,34 @@ const AdminBookings = () => {
           font-size: 0.78rem;
           font-weight: 800;
         }
-        .admin-booking-toolbar select, .admin-booking-assign select, .admin-booking-create input, .admin-booking-create select, .admin-booking-create textarea, .admin-booking-review textarea {
+        .admin-booking-toolbar select, .admin-booking-toolbar input, .admin-booking-assign select, .admin-booking-create input, .admin-booking-create select, .admin-booking-create textarea, .admin-booking-review textarea {
           min-height: 42px;
           border: 1px solid rgba(255,255,255,0.2);
           border-radius: 8px;
           background: rgba(255,255,255,0.05);
           color: white;
           padding: 0.65rem 0.8rem;
+        }
+        .admin-booking-filter-label {
+          display: grid;
+          gap: 0.3rem;
+          color: rgba(255, 255, 255, 0.74);
+          font-size: 0.78rem;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+        .admin-booking-filter-label input {
+          min-width: 155px;
+        }
+        .admin-booking-clear-filter {
+          min-height: 42px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 8px;
+          color: white;
+          cursor: pointer;
+          padding: 0.65rem 0.8rem;
+          background: rgba(255, 255, 255, 0.08);
+          font-weight: 800;
         }
         .admin-booking-toolbar select option, .admin-booking-assign select option, .admin-booking-create select option, .admin-booking-review textarea {
           background: #1f2933;
