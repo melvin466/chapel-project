@@ -67,12 +67,15 @@ const formatDateTime = (date, time) => {
 const BookingsPage = () => {
   const [bookings, setBookings] = useState([]);
   const [formData, setFormData] = useState(initialForm);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [busyMessage, setBusyMessage] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const pageRef = useRef(null);
   const feedbackRef = useRef(null);
+  const isBusy = submitting || Boolean(busyMessage);
 
   const scrollToFeedback = (behavior = 'smooth') => {
     window.requestAnimationFrame(() => {
@@ -93,14 +96,23 @@ const BookingsPage = () => {
   const selectedBookingType = bookingTypes.find((type) => type.value === formData.bookingType) || bookingTypes[0];
 
   const loadBookings = async () => {
+    const isInitialLoad = initialLoading;
     try {
-      setLoading(true);
+      if (isInitialLoad) {
+        setInitialLoading(true);
+      } else {
+        setRefreshing(true);
+      }
       const response = await api.get('/bookings');
       setBookings(response.data.data.bookings || []);
     } catch (err) {
       setError(err.response?.data?.message || 'Could not load your bookings.');
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setInitialLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
   };
 
@@ -138,6 +150,7 @@ const BookingsPage = () => {
     event.preventDefault();
     setError('');
     setMessage('');
+    setBusyMessage('Sending your booking request...');
     setSubmitting(true);
     scrollToFeedback();
 
@@ -150,12 +163,14 @@ const BookingsPage = () => {
       setError(err.response?.data?.message || 'Could not create the booking request.');
     } finally {
       setSubmitting(false);
+      setBusyMessage('');
     }
   };
 
   const handleCancel = async (bookingId) => {
     setError('');
     setMessage('');
+    setBusyMessage('Cancelling this booking...');
     scrollToFeedback();
 
     try {
@@ -164,6 +179,8 @@ const BookingsPage = () => {
       await loadBookings();
     } catch (err) {
       setError(err.response?.data?.message || 'Could not cancel this booking.');
+    } finally {
+      setBusyMessage('');
     }
   };
 
@@ -211,6 +228,11 @@ const BookingsPage = () => {
             <p>{selectedBookingType.description}</p>
           </div>
           <div ref={feedbackRef} style={{ scrollMarginTop: '1rem' }} />
+          {busyMessage && (
+            <div className="booking-inline-status" role="status" aria-live="polite">
+              {busyMessage}
+            </div>
+          )}
           {message && <div className="success-message">{message}</div>}
           {error && <div className="error-message">{error}</div>}
 
@@ -322,9 +344,12 @@ const BookingsPage = () => {
           </form>
         </section>
 
-        <section className="bookings-list">
-          <h2>My Booking Requests</h2>
-          {loading && bookings.length === 0 ? (
+        <section className={`bookings-list ${refreshing ? 'is-refreshing' : ''}`}>
+          <div className="booking-list-heading">
+            <h2>My Booking Requests</h2>
+            {refreshing && <span className="booking-refresh-chip">Refreshing...</span>}
+          </div>
+          {initialLoading ? (
             <p className="member-empty">Loading bookings...</p>
           ) : bookings.length > 0 ? (
             bookings.map((booking) => (
@@ -355,7 +380,7 @@ const BookingsPage = () => {
                   </div>
                 )}
                 {['pending', 'approved'].includes(booking.status) && (
-                  <button type="button" className="btn-secondary" onClick={() => handleCancel(booking._id)}>
+                  <button type="button" className="btn-secondary" onClick={() => handleCancel(booking._id)} disabled={isBusy}>
                     Cancel
                   </button>
                 )}
@@ -389,6 +414,63 @@ const BookingsPage = () => {
         .booking-price-preview small {
           font-size: 0.75rem;
           color: rgba(255, 255, 255, 0.5);
+        }
+        .booking-inline-status {
+          min-height: 46px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.65rem;
+          width: 100%;
+          margin-bottom: 1rem;
+          padding: 0.8rem 0.95rem;
+          border-radius: 8px;
+          color: #e8f3ec;
+          background: rgba(47, 125, 70, 0.22);
+          border: 1px solid rgba(155, 216, 170, 0.28);
+          font-weight: 700;
+        }
+        .booking-inline-status::before,
+        .booking-refresh-chip::before {
+          content: '';
+          width: 0.8rem;
+          height: 0.8rem;
+          border-radius: 50%;
+          border: 2px solid rgba(255, 255, 255, 0.32);
+          border-top-color: #a8ff78;
+          animation: booking-spin 0.8s linear infinite;
+          flex: 0 0 auto;
+        }
+        .booking-list-heading {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          margin-bottom: 1rem;
+        }
+        .booking-list-heading h2 {
+          color: white;
+          font-size: 1.35rem;
+          margin: 0;
+        }
+        .booking-refresh-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          min-height: 32px;
+          padding: 0.35rem 0.6rem;
+          border-radius: 999px;
+          color: #e8f3ec;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          font-size: 0.78rem;
+          font-weight: 800;
+        }
+        .bookings-list.is-refreshing .booking-item {
+          opacity: 0.72;
+          transition: opacity 0.2s ease;
+        }
+        @keyframes booking-spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>

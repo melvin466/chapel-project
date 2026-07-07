@@ -2485,13 +2485,16 @@ input[type="checkbox"] {
    LOADING & ERROR STATES
    ============================================ */
 .loading {
-  width: min(720px, calc(100% - 48px));
-  min-height: 220px;
-  margin: 3rem auto;
-  padding: 2rem;
+  width: min(980px, calc(100% - 48px));
+  min-height: 260px;
+  margin: 2rem auto;
+  padding: 2rem 1.5rem 1.6rem;
   border-radius: 8px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
   position: relative;
   overflow: hidden;
   font-size: 1.05rem;
@@ -2500,6 +2503,8 @@ input[type="checkbox"] {
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: var(--shadow);
   backdrop-filter: blur(22px) saturate(130%);
+  animation: loading-fade-in 0.22s ease both;
+  isolation: isolate;
 }
 
 .loading::before,
@@ -2511,6 +2516,18 @@ input[type="checkbox"] {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.14), transparent);
   transform: translateX(-100%);
   animation: skeleton-shimmer 1.25s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.22);
+  border-top-color: var(--brand-soft);
+  animation: spin 0.85s linear infinite;
+  order: -1;
 }
 
 .loading-container {
@@ -2520,6 +2537,7 @@ input[type="checkbox"] {
   align-items: center;
   min-height: 50vh;
   color: white;
+  animation: loading-fade-in 0.22s ease both;
 }
 
 .loader {
@@ -2541,9 +2559,33 @@ input[type="checkbox"] {
   100% { transform: translateX(100%); }
 }
 
+@keyframes loading-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading,
+  .loading::before,
+  .loading::after,
+  .loading-container,
+  .skeleton-page,
+  .skeleton-card::before,
+  .skeleton-card-block::before {
+    animation: none;
+  }
+}
+
 .skeleton-page {
   width: min(1120px, calc(100% - 48px));
   margin: 2rem auto;
+  animation: loading-fade-in 0.22s ease both;
 }
 
 .skeleton-page-admin {
@@ -2560,6 +2602,7 @@ input[type="checkbox"] {
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: var(--shadow);
   backdrop-filter: blur(22px) saturate(130%);
+  overflow: hidden;
 }
 
 .skeleton-grid {

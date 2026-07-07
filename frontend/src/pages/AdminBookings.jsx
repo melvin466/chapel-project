@@ -43,8 +43,10 @@ const AdminBookings = () => {
   const [typeFilter, setTypeFilter] = useState('');
   const [formData, setFormData] = useState(initialForm);
   const [reviewDrafts, setReviewDrafts] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [busyMessage, setBusyMessage] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const pageRef = useRef(null);
@@ -73,8 +75,13 @@ const AdminBookings = () => {
   );
 
   const loadBookings = async () => {
+    const isInitialLoad = initialLoading;
     try {
-      setLoading(true);
+      if (isInitialLoad) {
+        setInitialLoading(true);
+      } else {
+        setRefreshing(true);
+      }
       const response = await bookingService.getManageBookings({
         status: statusFilter || undefined,
         type: typeFilter || undefined,
@@ -88,7 +95,11 @@ const AdminBookings = () => {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load booking requests');
     } finally {
-      setLoading(false);
+      if (isInitialLoad) {
+        setInitialLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
   };
 
@@ -141,6 +152,7 @@ const AdminBookings = () => {
     setError('');
     setMessage('');
     setSubmitting(true);
+    setBusyMessage('Creating booking request...');
     scrollToFeedback();
 
     try {
@@ -152,12 +164,14 @@ const AdminBookings = () => {
       setError(err.response?.data?.message || 'Failed to create booking request');
     } finally {
       setSubmitting(false);
+      setBusyMessage('');
     }
   };
 
-  const updateBooking = async (id, data, successText) => {
+  const updateBooking = async (id, data, successText, busyText = 'Updating booking...') => {
     setError('');
     setMessage('');
+    setBusyMessage(busyText);
     scrollToFeedback();
 
     try {
@@ -166,6 +180,8 @@ const AdminBookings = () => {
       await loadBookings();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update booking');
+    } finally {
+      setBusyMessage('');
     }
   };
 
@@ -180,11 +196,12 @@ const AdminBookings = () => {
     updateBooking(
       booking._id,
       { status, reviewReason },
-      status === 'approved' ? 'Booking approved.' : 'Booking denied.'
+      status === 'approved' ? 'Booking approved.' : 'Booking denied.',
+      status === 'approved' ? 'Approving booking...' : 'Denying booking...'
     );
   };
 
-  if (loading && bookings.length === 0) return <div className="loading">Loading booking requests...</div>;
+  if (initialLoading) return <div className="loading">Loading booking requests...</div>;
 
   return (
     <div className="admin-container admin-bookings-page" ref={pageRef}>
@@ -247,13 +264,19 @@ const AdminBookings = () => {
       </div>
 
       <div ref={feedbackRef} style={{ scrollMarginTop: '1rem' }} />
+      {busyMessage && (
+        <div className="booking-inline-status" role="status" aria-live="polite">
+          {busyMessage}
+        </div>
+      )}
       {message && <div className="success-message">{message}</div>}
       {error && <div className="error-message">{error}</div>}
+      {refreshing && <div className="admin-refresh-chip">Refreshing booking list...</div>}
 
       {bookings.length === 0 ? (
         <p className="no-data">No booking requests found.</p>
       ) : (
-        <div className="admin-booking-grid">
+        <div className={`admin-booking-grid ${refreshing ? 'is-refreshing' : ''}`}>
           {bookings.map((booking) => (
             <article key={booking._id} className="admin-booking-card">
               <div className="admin-booking-topline">
@@ -319,7 +342,8 @@ const AdminBookings = () => {
                     onChange={(event) => updateBooking(
                       booking._id,
                       { assignedTo: event.target.value },
-                      'Booking assignment updated.'
+                      'Booking assignment updated.',
+                      'Updating assignment...'
                     )}
                   >
                     <option value="">Unassigned</option>
@@ -351,17 +375,17 @@ const AdminBookings = () => {
                     placeholder="Reason shown to the member"
                   />
                 </label>
-                <button onClick={() => reviewBooking(booking, 'approved')} disabled={booking.status === 'approved'}>
+                <button onClick={() => reviewBooking(booking, 'approved')} disabled={booking.status === 'approved' || Boolean(busyMessage)}>
                   Approve
                 </button>
-                <button onClick={() => updateBooking(booking._id, { status: 'completed' }, 'Booking completed.')} disabled={booking.status === 'completed'}>
+                <button onClick={() => updateBooking(booking._id, { status: 'completed' }, 'Booking completed.', 'Completing booking...')} disabled={booking.status === 'completed' || Boolean(busyMessage)}>
                   Complete
                 </button>
-                <button className="btn-cancel-booking" onClick={() => reviewBooking(booking, 'denied')} disabled={booking.status === 'denied'}>
+                <button className="btn-cancel-booking" onClick={() => reviewBooking(booking, 'denied')} disabled={booking.status === 'denied' || Boolean(busyMessage)}>
                   Deny
                 </button>
                 {booking.status !== 'pending' && (
-                  <button className="btn-reopen-booking" onClick={() => updateBooking(booking._id, { status: 'pending' }, 'Booking reopened.')}>
+                  <button className="btn-reopen-booking" onClick={() => updateBooking(booking._id, { status: 'pending' }, 'Booking reopened.', 'Reopening booking...')} disabled={Boolean(busyMessage)}>
                     Reopen
                   </button>
                 )}
@@ -396,6 +420,45 @@ const AdminBookings = () => {
           background: #2f7d46;
         }
         .admin-booking-toolbar { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .booking-inline-status {
+          min-height: 46px;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.65rem;
+          width: 100%;
+          margin-bottom: 1rem;
+          padding: 0.8rem 0.95rem;
+          border-radius: 8px;
+          color: #e8f3ec;
+          background: rgba(47, 125, 70, 0.22);
+          border: 1px solid rgba(155, 216, 170, 0.28);
+          font-weight: 700;
+        }
+        .booking-inline-status::before,
+        .admin-refresh-chip::before {
+          content: '';
+          width: 0.8rem;
+          height: 0.8rem;
+          border-radius: 50%;
+          border: 2px solid rgba(255, 255, 255, 0.32);
+          border-top-color: #a8ff78;
+          animation: booking-spin 0.8s linear infinite;
+          flex: 0 0 auto;
+        }
+        .admin-refresh-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          min-height: 32px;
+          margin: 0 0 1rem;
+          padding: 0.35rem 0.6rem;
+          border-radius: 999px;
+          color: #e8f3ec;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          font-size: 0.78rem;
+          font-weight: 800;
+        }
         .admin-booking-toolbar select, .admin-booking-assign select, .admin-booking-create input, .admin-booking-create select, .admin-booking-create textarea, .admin-booking-review textarea {
           min-height: 42px;
           border: 1px solid rgba(255,255,255,0.2);
@@ -409,6 +472,10 @@ const AdminBookings = () => {
           color: white;
         }
         .admin-booking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 1rem; }
+        .admin-booking-grid.is-refreshing .admin-booking-card {
+          opacity: 0.72;
+          transition: opacity 0.2s ease;
+        }
         .admin-booking-card {
           background: rgba(255,255,255,0.1);
           backdrop-filter: blur(10px);
@@ -461,6 +528,9 @@ const AdminBookings = () => {
         .admin-booking-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
         .admin-booking-actions .btn-cancel-booking { background: #c2413a; }
         .admin-booking-actions .btn-reopen-booking { background: #8a5a1f; }
+        @keyframes booking-spin {
+          to { transform: rotate(360deg); }
+        }
         @media (max-width: 720px) {
           .admin-booking-form-row { grid-template-columns: 1fr; }
           .admin-booking-meta { grid-template-columns: 1fr; }

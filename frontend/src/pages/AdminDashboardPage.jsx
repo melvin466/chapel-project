@@ -6,6 +6,7 @@ import  announcementService  from '../services/announcementService';
 import userService from '../services/userService';
 import  donationService  from '../services/donationService';
 import prayerService from '../services/prayerService';
+import PageSkeleton from '../components/PageSkeleton';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title, Filler, PointElement, LineElement } from 'chart.js';
 import { Pie, Bar, Line } from 'react-chartjs-2';
 
@@ -177,12 +178,7 @@ const AdminDashboardPage = () => {
   ];
 
   if (loading) {
-    return (
-      <div className="admin-loader">
-        <div className="loader-spinner"></div>
-        <p>Loading dashboard...</p>
-      </div>
-    );
+    return <PageSkeleton variant="admin" label="Loading admin dashboard" />;
   }
 
   return (

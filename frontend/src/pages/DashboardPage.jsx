@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import eventService from '../services/eventService';
 import notificationService from '../services/notificationService';
 import prayerService from '../services/prayerService';
+import PageSkeleton from '../components/PageSkeleton';
 
 const DashboardPage = () => {
   const { user, logout } = useAuth();
@@ -51,12 +52,7 @@ const DashboardPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="loader"></div>
-        <p>Loading your dashboard...</p>
-      </div>
-    );
+    return <PageSkeleton label="Loading your dashboard" />;
   }
 
   const unreadCount = notifications.filter((notification) => !notification.isRead).length;
