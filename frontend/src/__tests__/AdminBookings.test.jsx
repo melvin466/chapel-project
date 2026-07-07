@@ -26,12 +26,17 @@ vi.mock('../services/userService', () => ({
   },
 }));
 
+const futureDate = (daysFromNow) => new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000).toISOString();
+const pastDate = (daysAgo) => new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString();
+const dateInputValue = (daysFromNow) => futureDate(daysFromNow).split('T')[0];
+
 const bookings = [
   {
     _id: 'booking-1',
     bookingType: 'wedding',
-    requestedDate: '2026-07-11T00:00:00.000Z',
+    requestedDate: futureDate(7),
     requestedTime: '10:00',
+    endDateTime: futureDate(7),
     purpose: 'Wedding planning meeting',
     numberOfPeople: 4,
     specialRequests: 'Needs counselling room',
@@ -41,6 +46,36 @@ const bookings = [
       lastName: 'Student',
       email: 'mary@example.com',
       phoneNumber: '256700000000',
+    },
+  },
+  {
+    _id: 'booking-2',
+    bookingType: 'facility',
+    requestedDate: futureDate(9),
+    requestedTime: '15:00',
+    endDateTime: futureDate(9),
+    purpose: 'Approved fellowship setup',
+    numberOfPeople: 20,
+    status: 'approved',
+    user: {
+      firstName: 'John',
+      lastName: 'Leader',
+      email: 'john@example.com',
+    },
+  },
+  {
+    _id: 'booking-3',
+    bookingType: 'appointment',
+    requestedDate: pastDate(3),
+    requestedTime: '08:00',
+    endDateTime: pastDate(3),
+    purpose: 'Old appointment',
+    numberOfPeople: 1,
+    status: 'pending',
+    user: {
+      firstName: 'Past',
+      lastName: 'Member',
+      email: 'past@example.com',
     },
   },
 ];
@@ -67,9 +102,13 @@ describe('AdminBookings', () => {
     expect(screen.getByText(/Loading booking requests/i)).toBeInTheDocument();
     expect(await screen.findByText('Booking Management')).toBeInTheDocument();
     expect(screen.getByText('Wedding planning meeting')).toBeInTheDocument();
+    expect(screen.getByText('Approved fellowship setup')).toBeInTheDocument();
+    expect(screen.queryByText('Old appointment')).not.toBeInTheDocument();
+    expect(screen.getByText('Pending Bookings')).toBeInTheDocument();
+    expect(screen.getByText('Approved Bookings')).toBeInTheDocument();
     expect(screen.getByText('Mary Student')).toBeInTheDocument();
 
-    const assignmentSelect = screen.getAllByRole('combobox').at(-1);
+    const assignmentSelect = screen.getAllByRole('combobox').at(-2);
     fireEvent.change(assignmentSelect, { target: { value: 'staff-1' } });
 
     await waitFor(() => {
@@ -85,10 +124,10 @@ describe('AdminBookings', () => {
 
     expect(await screen.findByText('Wedding planning meeting')).toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText(/Reason shown to the member/i), {
+    fireEvent.change(screen.getAllByPlaceholderText(/Reason shown to the member/i)[0], {
       target: { value: 'Approved for the counselling room at 10 AM.' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /Approve/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Approve/i })[0]);
 
     await waitFor(() => {
       expect(bookingService.updateManagedBooking).toHaveBeenCalledWith('booking-1', {
@@ -108,7 +147,7 @@ describe('AdminBookings', () => {
       target: { value: 'facility' },
     });
     fireEvent.change(container.querySelector('input[name="requestedDate"]'), {
-      target: { value: '2026-08-12' },
+      target: { value: dateInputValue(30) },
     });
     fireEvent.change(container.querySelector('input[name="requestedTime"]'), {
       target: { value: '14:00' },
@@ -125,7 +164,7 @@ describe('AdminBookings', () => {
     await waitFor(() => {
       expect(bookingService.createBooking).toHaveBeenCalledWith({
         bookingType: 'facility',
-        requestedDate: '2026-08-12',
+        requestedDate: dateInputValue(30),
         requestedTime: '14:00',
         hours: 1,
         numberOfPeople: 20,

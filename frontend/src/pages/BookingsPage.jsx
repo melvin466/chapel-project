@@ -73,6 +73,7 @@ const BookingsPage = () => {
   const [busyMessage, setBusyMessage] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [latestBooking, setLatestBooking] = useState(null);
   const pageRef = useRef(null);
   const feedbackRef = useRef(null);
   const isBusy = submitting || Boolean(busyMessage);
@@ -151,11 +152,14 @@ const BookingsPage = () => {
     setError('');
     setMessage('');
     setBusyMessage('Sending your booking request...');
+    setLatestBooking(null);
     setSubmitting(true);
     scrollToFeedback();
 
     try {
-      await api.post('/bookings', formData);
+      const response = await api.post('/bookings', formData);
+      const createdBooking = response.data?.data?.booking;
+      setLatestBooking(createdBooking || { ...formData, status: 'pending' });
       setMessage('Your booking request has been sent. The chapel team will review it.');
       setFormData(initialForm);
       await loadBookings();
@@ -170,6 +174,7 @@ const BookingsPage = () => {
   const handleCancel = async (bookingId) => {
     setError('');
     setMessage('');
+    setLatestBooking(null);
     setBusyMessage('Cancelling this booking...');
     scrollToFeedback();
 
@@ -233,8 +238,16 @@ const BookingsPage = () => {
               {busyMessage}
             </div>
           )}
-          {message && <div className="success-message">{message}</div>}
-          {error && <div className="error-message">{error}</div>}
+          {message && <div className="booking-feedback-message">{message}</div>}
+          {error && <div className="booking-feedback-message booking-feedback-error">{error}</div>}
+          {latestBooking && (
+            <div className="booking-latest-card" aria-live="polite">
+              <span>Just submitted</span>
+              <strong>{formatType(latestBooking.bookingType)}</strong>
+              <p>{latestBooking.purpose}</p>
+              <small>{formatDateTime(latestBooking.requestedDate, latestBooking.requestedTime)}</small>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit}>
             <label className="form-label-group">
@@ -353,7 +366,7 @@ const BookingsPage = () => {
             <p className="member-empty">Loading bookings...</p>
           ) : bookings.length > 0 ? (
             bookings.map((booking) => (
-              <article key={booking._id} className="booking-item">
+              <article key={booking._id} className={`booking-item ${latestBooking?._id === booking._id ? 'booking-item-latest' : ''}`}>
                 <div className="booking-item-header">
                   <h2>{formatType(booking.bookingType)}</h2>
                   <span className={`booking-status status-${booking.status}`}>{booking.status}</span>
@@ -361,7 +374,7 @@ const BookingsPage = () => {
                 {booking.requiresChapel && (
                   <div style={{ margin: '-0.25rem 0 0.75rem' }}>
                     <span className="booking-chapel-badge" style={{ display: 'inline-block', background: 'rgba(168, 255, 120, 0.15)', color: '#a8ff78', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700' }}>
-                      ⛪ Requires Chapel Hall
+                      Requires Chapel Hall
                     </span>
                   </div>
                 )}
@@ -414,6 +427,48 @@ const BookingsPage = () => {
         .booking-price-preview small {
           font-size: 0.75rem;
           color: rgba(255, 255, 255, 0.5);
+        }
+        .booking-feedback-message {
+          margin-bottom: 1rem;
+          padding: 0.9rem 1rem;
+          border-radius: 8px;
+          color: #e8f3ec;
+          background: rgba(47, 125, 70, 0.22);
+          border: 1px solid rgba(155, 216, 170, 0.28);
+          font-weight: 700;
+        }
+        .booking-feedback-error {
+          color: #fff4d6;
+          background: rgba(138, 90, 31, 0.28);
+          border-color: rgba(255, 214, 137, 0.32);
+        }
+        .booking-latest-card {
+          display: grid;
+          gap: 0.35rem;
+          margin-bottom: 1rem;
+          padding: 1rem;
+          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.78);
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(168, 255, 120, 0.28);
+        }
+        .booking-latest-card span {
+          color: #a8ff78;
+          font-size: 0.78rem;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+        .booking-latest-card strong {
+          color: white;
+          font-size: 1.05rem;
+        }
+        .booking-latest-card p {
+          margin: 0;
+          overflow-wrap: anywhere;
+        }
+        .booking-latest-card small {
+          color: rgba(255, 255, 255, 0.62);
+          font-weight: 700;
         }
         .booking-inline-status {
           min-height: 46px;
@@ -468,6 +523,10 @@ const BookingsPage = () => {
         .bookings-list.is-refreshing .booking-item {
           opacity: 0.72;
           transition: opacity 0.2s ease;
+        }
+        .booking-item-latest {
+          border-color: rgba(168, 255, 120, 0.42);
+          box-shadow: 0 0 0 1px rgba(168, 255, 120, 0.18), 0 14px 34px rgba(47, 125, 70, 0.18);
         }
         @keyframes booking-spin {
           to { transform: rotate(360deg); }

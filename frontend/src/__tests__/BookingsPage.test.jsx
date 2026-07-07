@@ -12,11 +12,14 @@ vi.mock('../services/api', () => ({
   },
 }));
 
+const futureDate = (daysFromNow) => new Date(Date.now() + daysFromNow * 24 * 60 * 60 * 1000).toISOString();
+const dateInputValue = (daysFromNow) => futureDate(daysFromNow).split('T')[0];
+
 const existingBookings = [
   {
     _id: 'booking-1',
     bookingType: 'wedding',
-    requestedDate: '2026-07-11T00:00:00.000Z',
+    requestedDate: futureDate(7),
     requestedTime: '10:00',
     purpose: 'Wedding ceremony booking',
     numberOfPeople: 80,
@@ -27,11 +30,24 @@ const existingBookings = [
   },
 ];
 
+const createdBooking = {
+  _id: 'booking-2',
+  bookingType: 'baptism',
+  requestedDate: futureDate(30),
+  requestedTime: '09:30',
+  purpose: 'Baptism service request',
+  numberOfPeople: 5,
+  specialRequests: 'Reserve front seats',
+  status: 'pending',
+};
+
 describe('BookingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    api.get.mockResolvedValue({ data: { data: { bookings: existingBookings } } });
-    api.post.mockResolvedValue({ data: { success: true } });
+    api.get
+      .mockResolvedValueOnce({ data: { data: { bookings: existingBookings } } })
+      .mockResolvedValue({ data: { data: { bookings: [createdBooking, ...existingBookings] } } });
+    api.post.mockResolvedValue({ data: { success: true, data: { booking: createdBooking } } });
     api.put.mockResolvedValue({ data: { success: true } });
   });
 
@@ -46,7 +62,7 @@ describe('BookingsPage', () => {
       target: { value: 'baptism' },
     });
     fireEvent.change(container.querySelector('input[name="requestedDate"]'), {
-      target: { value: '2026-08-02' },
+      target: { value: dateInputValue(30) },
     });
     fireEvent.change(container.querySelector('input[name="requestedTime"]'), {
       target: { value: '09:30' },
@@ -66,7 +82,7 @@ describe('BookingsPage', () => {
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith('/bookings', {
         bookingType: 'baptism',
-        requestedDate: '2026-08-02',
+        requestedDate: dateInputValue(30),
         requestedTime: '09:30',
         hours: 1,
         numberOfPeople: 5,
@@ -76,6 +92,10 @@ describe('BookingsPage', () => {
       });
     });
     expect(await screen.findByText(/booking request has been sent/i)).toBeInTheDocument();
+    expect(screen.getByText('Just submitted')).toBeInTheDocument();
+    expect(screen.getAllByText('Baptism service request').length).toBeGreaterThan(0);
+    expect(document.querySelector('.booking-item-latest')).toBeInTheDocument();
+    expect(document.querySelector('.success-message')).not.toBeInTheDocument();
   });
 
   it('cancels a pending booking request', async () => {

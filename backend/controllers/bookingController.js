@@ -29,7 +29,15 @@ const getBookings = async (req, res) => {
 const getManageBookings = async (req, res) => {
   try {
     const { page = 1, limit = 100, status, type } = req.query;
-    const filter = {};
+    const now = new Date();
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const filter = {
+      $or: [
+        { endDateTime: { $gte: now } },
+        { endDateTime: { $exists: false }, requestedDate: { $gte: todayStart } }
+      ]
+    };
     if (status) filter.status = status;
     if (type) filter.bookingType = type;
 
@@ -129,6 +137,7 @@ const createBooking = async (req, res) => {
       specialRequests,
       event,
       user: req.user.id,
+      requiresChapel,
       status: 'pending',
     });
 

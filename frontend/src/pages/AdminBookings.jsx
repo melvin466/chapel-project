@@ -13,6 +13,14 @@ const bookingTypes = {
 
 const reviewStatuses = ['pending', 'approved', 'denied', 'completed', 'cancelled'];
 
+const bookingStatusSections = [
+  { status: 'pending', title: 'Pending', emptyText: 'No pending bookings.' },
+  { status: 'approved', title: 'Approved', emptyText: 'No approved bookings.' },
+  { status: 'completed', title: 'Completed', emptyText: 'No completed bookings.' },
+  { status: 'denied', title: 'Denied', emptyText: 'No denied bookings.' },
+  { status: 'cancelled', title: 'Cancelled', emptyText: 'No cancelled bookings.' },
+];
+
 const initialForm = {
   bookingType: 'counselling',
   requestedDate: '',
@@ -33,6 +41,26 @@ const formatDateTime = (date, time) => {
     timeZone: 'UTC',
   });
   return time ? `${day} at ${time}` : day;
+};
+
+const getBookingEndDate = (booking) => {
+  if (booking.endDateTime) {
+    const endDate = new Date(booking.endDateTime);
+    return Number.isNaN(endDate.getTime()) ? null : endDate;
+  }
+
+  if (!booking.requestedDate) return null;
+
+  const requestedDate = new Date(booking.requestedDate);
+  if (Number.isNaN(requestedDate.getTime())) return null;
+
+  const datePart = requestedDate.toISOString().split('T')[0];
+  if (!booking.requestedTime) return new Date(`${datePart}T23:59:59`);
+
+  const startDate = new Date(`${datePart}T${booking.requestedTime}:00`);
+  if (Number.isNaN(startDate.getTime())) return null;
+
+  return new Date(startDate.getTime() + (Number(booking.hours) || 1) * 60 * 60 * 1000);
 };
 
 const AdminBookings = () => {
@@ -73,6 +101,34 @@ const AdminBookings = () => {
     () => staffUsers.filter((user) => ['admin', 'chaplain'].includes(user.role)),
     [staffUsers]
   );
+
+  const activeBookings = useMemo(() => {
+    const now = Date.now();
+    return bookings.filter((booking) => {
+      const endDate = getBookingEndDate(booking);
+      return !endDate || endDate.getTime() >= now;
+    });
+  }, [bookings]);
+
+  const bookingGroups = useMemo(() => (
+    bookingStatusSections.map((section) => ({
+      ...section,
+      bookings: activeBookings.filter((booking) => booking.status === section.status),
+    }))
+  ), [activeBookings]);
+
+  const displayedBookingGroups = useMemo(() => (
+    statusFilter
+      ? bookingGroups.filter((section) => section.status === statusFilter)
+      : bookingGroups.filter((section) => section.bookings.length > 0)
+  ), [bookingGroups, statusFilter]);
+
+  const statusCounts = useMemo(() => (
+    bookingStatusSections.reduce((acc, section) => {
+      acc[section.status] = activeBookings.filter((booking) => booking.status === section.status).length;
+      return acc;
+    }, {})
+  ), [activeBookings]);
 
   const loadBookings = async () => {
     const isInitialLoad = initialLoading;
@@ -201,6 +257,122 @@ const AdminBookings = () => {
     );
   };
 
+  const renderBookingCard = (booking) => (
+    <article key={booking._id} className="admin-booking-card">
+      <div className="admin-booking-topline">
+        <span className={`booking-status status-${booking.status}`}>{booking.status}</span>
+        <span>{bookingTypes[booking.bookingType] || booking.bookingType}</span>
+      </div>
+      {booking.requiresChapel && (
+        <div style={{ margin: '-0.4rem 0 0.8rem' }}>
+          <span className="booking-chapel-badge" style={{ display: 'inline-block', background: 'rgba(168, 255, 120, 0.15)', color: '#a8ff78', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700' }}>
+            Requires Chapel Space
+          </span>
+        </div>
+      )}
+
+      <h2>{booking.purpose}</h2>
+
+      <div className="admin-booking-meta">
+        <span>
+          <strong>Requested for</strong>
+          {formatDateTime(booking.requestedDate, booking.requestedTime)}
+        </span>
+        <span>
+          <strong>Duration</strong>
+          {booking.hours || 1} {booking.hours === 1 ? 'hour' : 'hours'}
+        </span>
+        <span>
+          <strong>Cost</strong>
+          {(booking.price || 0).toLocaleString()} UGX
+        </span>
+        <span>
+          <strong>People</strong>
+          {booking.numberOfPeople || 1}
+        </span>
+        <span>
+          <strong>Member</strong>
+          {booking.user ? `${booking.user.firstName} ${booking.user.lastName}` : 'Unknown'}
+        </span>
+        <span>
+          <strong>Contact</strong>
+          {booking.user?.phoneNumber || booking.user?.email || 'Not provided'}
+        </span>
+      </div>
+
+      {booking.specialRequests && (
+        <div className="admin-booking-notes">
+          <strong>Notes</strong>
+          <p>{booking.specialRequests}</p>
+        </div>
+      )}
+
+      {booking.reviewReason && (
+        <div className="admin-booking-notes">
+          <strong>Review reason</strong>
+          <p>{booking.reviewReason}</p>
+        </div>
+      )}
+
+      {hasAdminPower && (
+        <label className="admin-booking-assign">
+          Assigned to
+          <select
+            value={booking.assignedTo?._id || ''}
+            onChange={(event) => updateBooking(
+              booking._id,
+              { assignedTo: event.target.value },
+              'Booking assignment updated.',
+              'Updating assignment...'
+            )}
+          >
+            <option value="">Unassigned</option>
+            {staffOptions.map((staff) => (
+              <option key={staff._id} value={staff._id}>
+                {staff.firstName} {staff.lastName} ({staff.role})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      {!hasAdminPower && booking.assignedTo && (
+        <p className="admin-booking-assigned">
+          Assigned to {booking.assignedTo.firstName} {booking.assignedTo.lastName}
+        </p>
+      )}
+
+      <div className="admin-booking-actions">
+        <label className="admin-booking-review">
+          Decision reason
+          <textarea
+            rows="3"
+            value={reviewDrafts[booking._id] || ''}
+            onChange={(event) => setReviewDrafts((current) => ({
+              ...current,
+              [booking._id]: event.target.value,
+            }))}
+            placeholder="Reason shown to the member"
+          />
+        </label>
+        <button onClick={() => reviewBooking(booking, 'approved')} disabled={booking.status === 'approved' || Boolean(busyMessage)}>
+          Approve
+        </button>
+        <button onClick={() => updateBooking(booking._id, { status: 'completed' }, 'Booking completed.', 'Completing booking...')} disabled={booking.status === 'completed' || Boolean(busyMessage)}>
+          Complete
+        </button>
+        <button className="btn-cancel-booking" onClick={() => reviewBooking(booking, 'denied')} disabled={booking.status === 'denied' || Boolean(busyMessage)}>
+          Deny
+        </button>
+        {booking.status !== 'pending' && (
+          <button className="btn-reopen-booking" onClick={() => updateBooking(booking._id, { status: 'pending' }, 'Booking reopened.', 'Reopening booking...')} disabled={Boolean(busyMessage)}>
+            Reopen
+          </button>
+        )}
+      </div>
+    </article>
+  );
+
   if (initialLoading) return <div className="loading">Loading booking requests...</div>;
 
   return (
@@ -273,124 +445,39 @@ const AdminBookings = () => {
       {error && <div className="error-message">{error}</div>}
       {refreshing && <div className="admin-refresh-chip">Refreshing booking list...</div>}
 
-      {bookings.length === 0 ? (
-        <p className="no-data">No booking requests found.</p>
+      {activeBookings.length > 0 && (
+        <div className="admin-booking-status-summary" aria-label="Booking counts by status">
+          {bookingStatusSections.map((section) => (
+            <span key={section.status}>
+              <strong>{statusCounts[section.status] || 0}</strong>
+              {section.title}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {activeBookings.length === 0 ? (
+        <p className="no-data">No upcoming booking requests found.</p>
       ) : (
-        <div className={`admin-booking-grid ${refreshing ? 'is-refreshing' : ''}`}>
-          {bookings.map((booking) => (
-            <article key={booking._id} className="admin-booking-card">
-              <div className="admin-booking-topline">
-                <span className={`booking-status status-${booking.status}`}>{booking.status}</span>
-                <span>{bookingTypes[booking.bookingType] || booking.bookingType}</span>
-              </div>
-              {booking.requiresChapel && (
-                <div style={{ margin: '-0.4rem 0 0.8rem' }}>
-                  <span className="booking-chapel-badge" style={{ display: 'inline-block', background: 'rgba(168, 255, 120, 0.15)', color: '#a8ff78', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '700' }}>
-                    ⛪ Requires Chapel Space
-                  </span>
+        <div className={`admin-booking-groups ${refreshing ? 'is-refreshing' : ''}`}>
+          {displayedBookingGroups.map((section) => (
+            <section key={section.status} className={`admin-booking-section admin-booking-section-${section.status}`}>
+              <div className="admin-booking-section-header">
+                <div>
+                  <span className="profile-role">{section.title}</span>
+                  <h2>{section.title} Bookings</h2>
                 </div>
-              )}
-
-              <h2>{booking.purpose}</h2>
-
-              <div className="admin-booking-meta">
-                <span>
-                  <strong>Requested for</strong>
-                  {formatDateTime(booking.requestedDate, booking.requestedTime)}
-                </span>
-                <span>
-                  <strong>Duration</strong>
-                  {booking.hours || 1} {booking.hours === 1 ? 'hour' : 'hours'}
-                </span>
-                <span>
-                  <strong>Cost</strong>
-                  {(booking.price || 0).toLocaleString()} UGX
-                </span>
-                <span>
-                  <strong>People</strong>
-                  {booking.numberOfPeople || 1}
-                </span>
-                <span>
-                  <strong>Member</strong>
-                  {booking.user ? `${booking.user.firstName} ${booking.user.lastName}` : 'Unknown'}
-                </span>
-                <span>
-                  <strong>Contact</strong>
-                  {booking.user?.phoneNumber || booking.user?.email || 'Not provided'}
-                </span>
+                <span className="admin-booking-section-count">{section.bookings.length}</span>
               </div>
 
-              {booking.specialRequests && (
-                <div className="admin-booking-notes">
-                  <strong>Notes</strong>
-                  <p>{booking.specialRequests}</p>
+              {section.bookings.length > 0 ? (
+                <div className="admin-booking-grid">
+                  {section.bookings.map(renderBookingCard)}
                 </div>
+              ) : (
+                <p className="admin-booking-section-empty">{section.emptyText}</p>
               )}
-
-              {booking.reviewReason && (
-                <div className="admin-booking-notes">
-                  <strong>Review reason</strong>
-                  <p>{booking.reviewReason}</p>
-                </div>
-              )}
-
-              {hasAdminPower && (
-                <label className="admin-booking-assign">
-                  Assigned to
-                  <select
-                    value={booking.assignedTo?._id || ''}
-                    onChange={(event) => updateBooking(
-                      booking._id,
-                      { assignedTo: event.target.value },
-                      'Booking assignment updated.',
-                      'Updating assignment...'
-                    )}
-                  >
-                    <option value="">Unassigned</option>
-                    {staffOptions.map((staff) => (
-                      <option key={staff._id} value={staff._id}>
-                        {staff.firstName} {staff.lastName} ({staff.role})
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
-
-              {!hasAdminPower && booking.assignedTo && (
-                <p className="admin-booking-assigned">
-                  Assigned to {booking.assignedTo.firstName} {booking.assignedTo.lastName}
-                </p>
-              )}
-
-              <div className="admin-booking-actions">
-                <label className="admin-booking-review">
-                  Decision reason
-                  <textarea
-                    rows="3"
-                    value={reviewDrafts[booking._id] || ''}
-                    onChange={(event) => setReviewDrafts((current) => ({
-                      ...current,
-                      [booking._id]: event.target.value,
-                    }))}
-                    placeholder="Reason shown to the member"
-                  />
-                </label>
-                <button onClick={() => reviewBooking(booking, 'approved')} disabled={booking.status === 'approved' || Boolean(busyMessage)}>
-                  Approve
-                </button>
-                <button onClick={() => updateBooking(booking._id, { status: 'completed' }, 'Booking completed.', 'Completing booking...')} disabled={booking.status === 'completed' || Boolean(busyMessage)}>
-                  Complete
-                </button>
-                <button className="btn-cancel-booking" onClick={() => reviewBooking(booking, 'denied')} disabled={booking.status === 'denied' || Boolean(busyMessage)}>
-                  Deny
-                </button>
-                {booking.status !== 'pending' && (
-                  <button className="btn-reopen-booking" onClick={() => updateBooking(booking._id, { status: 'pending' }, 'Booking reopened.', 'Reopening booking...')} disabled={Boolean(busyMessage)}>
-                    Reopen
-                  </button>
-                )}
-              </div>
-            </article>
+            </section>
           ))}
         </div>
       )}
@@ -470,6 +557,74 @@ const AdminBookings = () => {
         .admin-booking-toolbar select option, .admin-booking-assign select option, .admin-booking-create select option, .admin-booking-review textarea {
           background: #1f2933;
           color: white;
+        }
+        .admin-booking-status-summary {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+          gap: 0.75rem;
+          margin: 0 0 1rem;
+        }
+        .admin-booking-status-summary span {
+          min-height: 58px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+          padding: 0.75rem 0.9rem;
+          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.78);
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          font-weight: 800;
+        }
+        .admin-booking-status-summary strong {
+          color: white;
+          font-size: 1.25rem;
+        }
+        .admin-booking-groups {
+          display: grid;
+          gap: 1rem;
+        }
+        .admin-booking-groups.is-refreshing .admin-booking-card {
+          opacity: 0.72;
+          transition: opacity 0.2s ease;
+        }
+        .admin-booking-section {
+          padding: 1rem;
+          border-radius: 8px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.045);
+        }
+        .admin-booking-section-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          margin-bottom: 1rem;
+        }
+        .admin-booking-section-header h2 {
+          color: white;
+          margin: 0.15rem 0 0;
+          font-size: 1.3rem;
+        }
+        .admin-booking-section-count {
+          min-width: 42px;
+          min-height: 42px;
+          display: inline-grid;
+          place-items: center;
+          border-radius: 8px;
+          color: white;
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          font-weight: 900;
+        }
+        .admin-booking-section-empty {
+          margin: 0;
+          padding: 0.9rem;
+          border-radius: 8px;
+          color: rgba(255, 255, 255, 0.72);
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px dashed rgba(255, 255, 255, 0.14);
         }
         .admin-booking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 1rem; }
         .admin-booking-grid.is-refreshing .admin-booking-card {
