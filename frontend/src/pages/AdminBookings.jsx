@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import bookingService from '../services/bookingService';
 import userService from '../services/userService';
 import { useAuth } from '../context/AuthContext';
@@ -47,6 +47,17 @@ const AdminBookings = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const pageRef = useRef(null);
+  const feedbackRef = useRef(null);
+
+  const scrollToFeedback = (behavior = 'smooth') => {
+    window.requestAnimationFrame(() => {
+      (feedbackRef.current || pageRef.current)?.scrollIntoView?.({
+        behavior,
+        block: 'start',
+      });
+    });
+  };
 
   const today = useMemo(() => {
     const d = new Date();
@@ -99,6 +110,12 @@ const AdminBookings = () => {
     loadBookings();
   }, [statusFilter, typeFilter]);
 
+  useEffect(() => {
+    if (message || error) {
+      scrollToFeedback();
+    }
+  }, [message, error]);
+
   const handleFormChange = (event) => {
     const { name, value, type, checked } = event.target;
     setFormData((current) => {
@@ -124,6 +141,7 @@ const AdminBookings = () => {
     setError('');
     setMessage('');
     setSubmitting(true);
+    scrollToFeedback();
 
     try {
       await bookingService.createBooking(formData);
@@ -140,6 +158,7 @@ const AdminBookings = () => {
   const updateBooking = async (id, data, successText) => {
     setError('');
     setMessage('');
+    scrollToFeedback();
 
     try {
       await bookingService.updateManagedBooking(id, data);
@@ -154,6 +173,7 @@ const AdminBookings = () => {
     const reviewReason = reviewDrafts[booking._id]?.trim();
     if (!reviewReason) {
       setError('Please enter a reason before approving or denying this booking.');
+      scrollToFeedback();
       return;
     }
 
@@ -164,10 +184,10 @@ const AdminBookings = () => {
     );
   };
 
-  if (loading) return <div className="loading">Loading booking requests...</div>;
+  if (loading && bookings.length === 0) return <div className="loading">Loading booking requests...</div>;
 
   return (
-    <div className="admin-container admin-bookings-page">
+    <div className="admin-container admin-bookings-page" ref={pageRef}>
       <div className="admin-header">
         <div>
           <span className="profile-role">Chapel office</span>
@@ -226,6 +246,7 @@ const AdminBookings = () => {
         </select>
       </div>
 
+      <div ref={feedbackRef} style={{ scrollMarginTop: '1rem' }} />
       {message && <div className="success-message">{message}</div>}
       {error && <div className="error-message">{error}</div>}
 

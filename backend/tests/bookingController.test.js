@@ -117,20 +117,24 @@ describe('Booking Controller Integration Tests', () => {
       });
     expect(approveRes.statusCode).toBe(200);
 
-    // 2. Attempt to book an overlapping time (same day 11:00 to 12:00 - overlap)
-    const conflictRes = await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${member2.token}`)
-      .send({
-        bookingType: 'facility',
-        requestedDate: '2026-08-10',
-        requestedTime: '11:00',
-        hours: 1,
-        purpose: 'Youth group meeting',
-        numberOfPeople: 15
-      });
-    expect(conflictRes.statusCode).toBe(400);
-    expect(conflictRes.body.message).toContain('conflicts with an already approved booking');
+    // 2. Attempt to book overlapping times (same day 11:00 to 12:00 - overlap)
+    const conflictingTypes = ['facility', 'wedding', 'baptism', 'counselling', 'appointment'];
+    for (const bookingType of conflictingTypes) {
+      const conflictRes = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${member2.token}`)
+        .send({
+          bookingType,
+          requestedDate: '2026-08-10',
+          requestedTime: '11:00',
+          hours: 1,
+          purpose: `${bookingType} meeting`,
+          numberOfPeople: 15,
+          requiresChapel: false
+        });
+      expect(conflictRes.statusCode).toBe(400);
+      expect(conflictRes.body.message).toContain('conflicts with an already approved booking');
+    }
 
     // 3. Attempt to book a non-overlapping time (same day 08:00 to 10:00 - no overlap)
     const nonConflictRes1 = await request(app)
@@ -212,5 +216,56 @@ describe('Booking Controller Integration Tests', () => {
       });
     expect(approveB2.statusCode).toBe(400);
     expect(approveB2.body.message).toContain('Cannot approve this booking because it conflicts');
+  });
+
+  it('should prevent collision when approving non-chapel booking types', async () => {
+    const admin = await registerAndLogin({ email: 'admin@example.com', role: 'admin' });
+    const member1 = await registerAndLogin({ email: 'member1@example.com' });
+    const member2 = await registerAndLogin({ email: 'member2@example.com' });
+
+    const counsellingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${member1.token}`)
+      .send({
+        bookingType: 'counselling',
+        requestedDate: '2026-08-10',
+        requestedTime: '10:00',
+        hours: 2,
+        purpose: 'Pastoral counselling',
+        requiresChapel: false
+      });
+    expect(counsellingRes.statusCode).toBe(201);
+
+    const appointmentRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${member2.token}`)
+      .send({
+        bookingType: 'appointment',
+        requestedDate: '2026-08-10',
+        requestedTime: '11:00',
+        hours: 1,
+        purpose: 'Chaplain appointment',
+        requiresChapel: false
+      });
+    expect(appointmentRes.statusCode).toBe(201);
+
+    const approveCounselling = await request(app)
+      .put(`/api/bookings/${counsellingRes.body.data.booking._id}/manage`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({
+        status: 'approved',
+        reviewReason: 'Approved counselling slot.'
+      });
+    expect(approveCounselling.statusCode).toBe(200);
+
+    const approveAppointment = await request(app)
+      .put(`/api/bookings/${appointmentRes.body.data.booking._id}/manage`)
+      .set('Authorization', `Bearer ${admin.token}`)
+      .send({
+        status: 'approved',
+        reviewReason: 'Approved appointment slot.'
+      });
+    expect(approveAppointment.statusCode).toBe(400);
+    expect(approveAppointment.body.message).toContain('Cannot approve this booking because it conflicts');
   });
 });

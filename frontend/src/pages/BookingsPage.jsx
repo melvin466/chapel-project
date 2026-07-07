@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import '../App.css';
 import api from '../services/api';
 
@@ -71,6 +71,17 @@ const BookingsPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const pageRef = useRef(null);
+  const feedbackRef = useRef(null);
+
+  const scrollToFeedback = (behavior = 'smooth') => {
+    window.requestAnimationFrame(() => {
+      (feedbackRef.current || pageRef.current)?.scrollIntoView?.({
+        behavior,
+        block: 'start',
+      });
+    });
+  };
 
   const today = useMemo(() => {
     const d = new Date();
@@ -97,6 +108,12 @@ const BookingsPage = () => {
     loadBookings();
   }, []);
 
+  useEffect(() => {
+    if (message || error) {
+      scrollToFeedback();
+    }
+  }, [message, error]);
+
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
     setFormData((current) => {
@@ -122,6 +139,7 @@ const BookingsPage = () => {
     setError('');
     setMessage('');
     setSubmitting(true);
+    scrollToFeedback();
 
     try {
       await api.post('/bookings', formData);
@@ -138,6 +156,7 @@ const BookingsPage = () => {
   const handleCancel = async (bookingId) => {
     setError('');
     setMessage('');
+    scrollToFeedback();
 
     try {
       await api.put(`/bookings/${bookingId}/cancel`);
@@ -149,7 +168,7 @@ const BookingsPage = () => {
   };
 
   return (
-    <div className="bookings-page">
+    <div className="bookings-page" ref={pageRef}>
       <section className="booking-hero">
         <div className="booking-hero-copy">
           <span>Chapel care, planned gently</span>
@@ -191,6 +210,7 @@ const BookingsPage = () => {
             <h2>Make a Booking</h2>
             <p>{selectedBookingType.description}</p>
           </div>
+          <div ref={feedbackRef} style={{ scrollMarginTop: '1rem' }} />
           {message && <div className="success-message">{message}</div>}
           {error && <div className="error-message">{error}</div>}
 
@@ -304,7 +324,7 @@ const BookingsPage = () => {
 
         <section className="bookings-list">
           <h2>My Booking Requests</h2>
-          {loading ? (
+          {loading && bookings.length === 0 ? (
             <p className="member-empty">Loading bookings...</p>
           ) : bookings.length > 0 ? (
             bookings.map((booking) => (
